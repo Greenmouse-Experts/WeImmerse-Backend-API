@@ -38,8 +38,9 @@ module.exports = {
         type: Sequelize.DATE, // Use Sequelize.DATE for timestamp
       },
       phoneNumber: {
-        allowNull: true,
+        allowNull: false,
         type: Sequelize.STRING,
+        unique: true,
       },
       dateOfBirth: {
         allowNull: true,
@@ -47,7 +48,7 @@ module.exports = {
       },
       location: {
         allowNull: true,
-        type: Sequelize.STRING,
+        type: Sequelize.JSON,
       },
       photo: {
         allowNull: true,

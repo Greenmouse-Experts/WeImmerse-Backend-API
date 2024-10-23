@@ -13,9 +13,14 @@ export const registrationValidationRules = () => {
     check("firstName").not().isEmpty().withMessage("First name is required"),
     check("lastName").not().isEmpty().withMessage("Last name is required"),
     check("phoneNumber")
-      .optional()
       .isMobilePhone("any")
-      .withMessage("Invalid phone number"),
+      .withMessage("Invalid phone number")
+      .custom((value) => {
+        if (value && !value.startsWith('+')) {
+          throw new Error("Phone number must start with '+'");
+        }
+        return true;
+      }),
   ];
 };
 
@@ -90,8 +95,58 @@ export const updatePasswordValidationRules = () => {
   ];
 };
 
+export const updateProfileEmailValidationRules = () => {
+  return [check("newEmail").isEmail().withMessage("Please provide a valid email")];
+};
+
+export const confirmProfileEmailValidationRules = () => {
+  return [
+    check("newEmail").isEmail().withMessage("Please provide a valid email"),
+    check("otpCode")
+      .isLength({ min: 6, max: 6 })
+      .withMessage("OTP code must be exactly 6 digits")
+      .isNumeric()
+      .withMessage("OTP code must be numeric"),
+  ];
+};
+
+export const updateProfilePhoneNumberValidationRules = () => {
+  return [
+    check("newPhoneNumber")
+      .optional()
+      .isMobilePhone("any")
+      .withMessage("Invalid phone number")
+      .custom((value) => {
+        if (value && !value.startsWith('+')) {
+          throw new Error("Phone number must start with '+'");
+        }
+        return true;
+      }),
+  ]
+};
+
+export const confirmProfilePhoneNumberValidationRules = () => {
+  return [
+    check("newPhoneNumber")
+      .optional()
+      .isMobilePhone("any")
+      .withMessage("Invalid phone number")
+      .custom((value) => {
+        if (value && !value.startsWith('+')) {
+          throw new Error("New phone number must start with '+'");
+        }
+        return true;
+      }),
+    check("otpCode")
+      .isLength({ min: 6, max: 6 })
+      .withMessage("OTP code must be exactly 6 digits")
+      .isNumeric()
+      .withMessage("OTP code must be numeric"),
+  ];
+};
+
 // Admin
-// Forgot password validation rules
+// Update Email validation rules
 export const adminUpdateProfileValidationRules = () => {
   return [check("email").isEmail().withMessage("Please provide a valid email")];
 };

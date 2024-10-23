@@ -1,6 +1,13 @@
 import bcrypt from "bcrypt";
 import { Model, DataTypes, Sequelize } from "sequelize";
 
+interface Location {
+  country?: string;
+  state?: string;
+  city?: string;
+  // Add other fields as needed
+}
+
 class User extends Model {
   public id!: string; // Use '!' to indicate these fields are definitely assigned
   public firstName!: string;
@@ -9,9 +16,9 @@ class User extends Model {
   public email!: string;
   public email_verified_at?: Date;
   public password!: string;
-  public phoneNumber?: string;
+  public phoneNumber!: string;
   public dateOfBirth?: string;
-  public location?: string;
+  public location?: Location;
   public photo?: string;
   public status?: "active" | "inactive";
   public createdAt?: Date;
@@ -53,9 +60,12 @@ const initUserModel = (sequelize: Sequelize) => {
       },
       email_verified_at: DataTypes.DATE,
       password: DataTypes.STRING,
-      phoneNumber: DataTypes.STRING,
+      phoneNumber: {
+        type: DataTypes.STRING,
+        unique: true
+      },
       dateOfBirth: DataTypes.STRING,
-      location: DataTypes.STRING,
+      location: DataTypes.JSON,
       photo: DataTypes.TEXT,
       facebookId: DataTypes.STRING,
       googleId: DataTypes.STRING,

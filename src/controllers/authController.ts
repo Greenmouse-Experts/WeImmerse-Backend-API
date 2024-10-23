@@ -60,7 +60,7 @@ export const vendorRegister = async (req: Request, res: Response): Promise<void>
       }
 
       // Return a success response
-      res.status(200).json({ message: 'User registered successfully' });
+      res.status(200).json({ message: 'Vendor registered successfully' });
   } catch (error) {
       logger.error('Error during registration:', error);
       res.status(500).json({ message: 'Server error' });
@@ -107,7 +107,7 @@ export const customerRegister = async (req: Request, res: Response): Promise<voi
       }
 
       // Return a success response
-      res.status(200).json({ message: 'User registered successfully' });
+      res.status(200).json({ message: 'Customer registered successfully' });
   } catch (error) {
       logger.error('Error during registration:', error);
       res.status(500).json({ message: 'Server error' });
