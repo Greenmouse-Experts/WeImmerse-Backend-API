@@ -1,4 +1,3 @@
-import bcrypt from "bcrypt";
 import { Model, DataTypes, Sequelize } from "sequelize";
 import User from "./user";
 
@@ -19,7 +18,7 @@ class OTP extends Model {
   }
 }
 
-const initUserModel = (sequelize: Sequelize) => {
+const initModel = (sequelize: Sequelize) => {
   OTP.init(
     {
       userId: DataTypes.UUID,
@@ -37,4 +36,4 @@ const initUserModel = (sequelize: Sequelize) => {
 };
 
 export default OTP; 
-export { initUserModel };
+export { initModel };

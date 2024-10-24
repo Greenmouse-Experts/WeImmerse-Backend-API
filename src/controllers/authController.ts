@@ -12,6 +12,7 @@ import JwtService from '../services/jwt.service';
 import logger from '../middlewares/logger'; // Adjust the path to your logger.js
 import { capitalizeFirstLetter } from '../utils/helpers';
 import Admin from '../models/admin';
+import Role from '../models/role';
 
 export const index = async (req: Request, res: Response) => {
     res.status(200).json({
@@ -394,7 +395,14 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
 
   try {
     // Find admin by email
-    const admin = await Admin.scope('auth').findOne({ where: { email } });
+    const admin = await Admin.scope('auth').findOne({ where: { email },
+      include: [
+        {
+          model: Role, // Assuming you've imported the Role model
+          as: 'role',  // Make sure this alias matches the one you used in the association
+        }
+      ] 
+    });
 
     // Check if admin exists
     if (!admin) {

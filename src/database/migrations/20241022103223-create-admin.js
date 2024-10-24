@@ -29,13 +29,9 @@ module.exports = {
         allowNull: true,
         type: Sequelize.TEXT,
       },
-      role: {
+      roleId: {
         allowNull: true,
-        type: Sequelize.STRING,
-      },
-      permission: {
-        allowNull: true,
-        type: Sequelize.STRING,
+        type: Sequelize.UUID,
       },
       status: {
         allowNull: false,

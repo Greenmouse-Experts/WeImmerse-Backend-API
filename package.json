@@ -2,13 +2,13 @@
   "name": "kudumart",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "../index.ts",
   "scripts": {
     "start": "node",
     "dev": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1",
     "migrate": "ts-node -r tsconfig-paths/register ./node_modules/.bin/sequelize-cli db:migrate",
-    "seed": "ts-node -r tsconfig-paths/register ./node_modules/.bin/sequelize-cli db:seed:all"
+    "migrate:seeder": "ts-node -r tsconfig-paths/register ./node_modules/.bin/sequelize-cli db:seed:all"
   },
   "keywords": [],
   "author": "",

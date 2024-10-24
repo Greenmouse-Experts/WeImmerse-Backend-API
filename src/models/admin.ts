@@ -7,8 +7,7 @@ class Admin extends Model {
   public email!: string;
   public password!: string;
   public photo?: string;
-  public role?: string;
-  public permission?: string;
+  public roleId?: string;
   public status?: "active" | "inactive";
   public createdAt?: Date;
   public updatedAt?: Date;
@@ -23,9 +22,32 @@ class Admin extends Model {
     return bcrypt.compare(password, this.password);
   }
 
+  // Static method to dynamically set roleId and permission
+  static async assignRoleAndPermissions(adminId: string, roleId: string) {
+    const admin = await this.findByPk(adminId);
+    if (!admin) {
+      throw new Error('Sub admin not found');
+    }
+    admin.roleId = roleId;
+    await admin.save();
+    return admin;
+  }
+
+  hasRole(requiredRole: string) {
+    return this.roleId === requiredRole;
+  }
+
+  // Association with Role model
+  static associate(models: any) {
+    this.belongsTo(models.Role, {
+      as: 'role',
+      foreignKey: 'roleId',
+    });
+  }
+
 }
 
-const initUserModel = (sequelize: Sequelize) => {
+const initModel = (sequelize: Sequelize) => {
   Admin.init(
     {
       id: {
@@ -40,8 +62,7 @@ const initUserModel = (sequelize: Sequelize) => {
       },
       password: DataTypes.STRING,
       photo: DataTypes.TEXT,
-      role: DataTypes.STRING,
-      permission: DataTypes.STRING,
+      roleId: DataTypes.UUID,
       status: DataTypes.ENUM("active", "inactive"),
     },
     {
@@ -75,4 +96,4 @@ const initUserModel = (sequelize: Sequelize) => {
 
 // Export the User model and the init function
 export default Admin; // Ensure User is exported as default
-export { initUserModel };
+export { initModel };

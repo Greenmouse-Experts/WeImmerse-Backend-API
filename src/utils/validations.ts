@@ -151,6 +151,56 @@ export const adminUpdateProfileValidationRules = () => {
   return [check("email").isEmail().withMessage("Please provide a valid email")];
 };
 
+export const createSubAdminValidationRules = () => {
+  return [
+    check("name")
+      .not()
+      .isEmpty()
+      .withMessage("Name is required")
+      .isLength({ min: 2 })
+      .withMessage("Name must be at least 2 characters"),
+
+    check("email")
+      .isEmail()
+      .withMessage("Please provide a valid email"),
+
+    check("roleId")
+      .not()
+      .isEmpty()
+      .withMessage("Role ID is required and must be a valid UUID"),
+  ];
+};
+
+// Validation rules for updating sub-admin
+export const updateSubAdminValidationRules = () => {
+  return [
+    check("subAdminId")
+      .not()
+      .isEmpty()
+      .withMessage("Sub-admin ID is required")
+      .isUUID()
+      .withMessage("Sub-admin ID must be a valid UUID"),
+
+    check("name")
+      .not()
+      .isEmpty()
+      .withMessage("Name is required")
+      .isLength({ min: 2, max: 50 })
+      .withMessage("Name must be between 2 and 50 characters"),
+
+    check("email")
+      .isEmail()
+      .withMessage("Please provide a valid email"),
+
+    check("roleId")
+      .not()
+      .isEmpty()
+      .withMessage("Role ID is required")
+      .isUUID()
+      .withMessage("Role ID must be a valid UUID"),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,
@@ -161,7 +211,7 @@ export const validate = (
   if (!errors.isEmpty()) {
     // Return only the first error
     const firstError = errors.array()[0];
-    res.status(400).json({ error: firstError.msg });
+    res.status(400).json({ message: firstError.msg });
     return;
   }
   next();

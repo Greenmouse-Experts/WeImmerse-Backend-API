@@ -43,7 +43,7 @@ class User extends Model {
   }
 }
 
-const initUserModel = (sequelize: Sequelize) => {
+const initModel = (sequelize: Sequelize) => {
   User.init(
     {
       id: {
@@ -103,4 +103,4 @@ const initUserModel = (sequelize: Sequelize) => {
 
 // Export the User model and the init function
 export default User; // Ensure User is exported as default
-export { initUserModel };
+export { initModel };

@@ -1,6 +1,9 @@
 // utils/helpers.ts
 import http from 'http';
 import querystring from 'querystring';
+import Admin from '../models/admin';
+import Role from '../models/role';
+import Permission from '../models/permission';
 
 // Function to generate a 6-digit OTP
 const generateOTP = (): string => {
@@ -13,7 +16,7 @@ function capitalizeFirstLetter(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
 
-export const sendSMS = async (mobile: string, messageContent: string): Promise<void> => {
+const sendSMS = async (mobile: string, messageContent: string): Promise<void> => {
   const apiUrl = 'portal.nigeriabulksms.com';
   const data = querystring.stringify({
     username: process.env.SMS_USERNAME, // Your SMS API username
@@ -66,5 +69,16 @@ export const sendSMS = async (mobile: string, messageContent: string): Promise<v
   });
 };
 
+const fetchAdminWithPermissions = async (adminId: string) => {
+  return await Admin.findByPk(adminId, {
+    include: [
+      {
+        model: Role,
+        include: [Permission], // Assuming you have a Role and Permission model with proper associations
+      },
+    ],
+  });
+};
+
 // Export functions
-export { generateOTP, capitalizeFirstLetter };
+export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions };

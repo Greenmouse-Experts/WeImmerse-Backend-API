@@ -50,7 +50,7 @@ const sequelizeService = {
         
         if (typeof model.init === 'function') {
           // Pass the sequelize instance to the init function
-          modelModule.initUserModel(sequelizeService.connection); 
+          modelModule.initModel(sequelizeService.connection); 
           sequelizeService.models[model.name] = model; // Store the model in the models object
           console.log(`Model ${model.name} initialized`);
         } else {

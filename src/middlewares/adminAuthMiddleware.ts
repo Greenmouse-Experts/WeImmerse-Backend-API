@@ -12,7 +12,7 @@ interface DecodedToken {
   id: string; // Assuming `id` is the admin's ID in the JWT payload
 }
 
-const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
+const adminAuthMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     // If the server JWT handling is disabled, skip the middleware
     if (process.env.SERVER_JWT === "false") {
@@ -71,4 +71,4 @@ const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: Ne
   }
 };
 
-export default authMiddleware;
+export default adminAuthMiddleware;
