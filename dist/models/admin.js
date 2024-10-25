@@ -26,18 +26,6 @@ class Admin extends sequelize_1.Model {
     checkPassword(password) {
         return bcrypt_1.default.compare(password, this.password);
     }
-    // Static method to dynamically set roleId and permission
-    static assignRoleAndPermissions(adminId, roleId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const admin = yield this.findByPk(adminId);
-            if (!admin) {
-                throw new Error('Sub admin not found');
-            }
-            admin.roleId = roleId;
-            yield admin.save();
-            return admin;
-        });
-    }
     hasRole(requiredRole) {
         return this.roleId === requiredRole;
     }

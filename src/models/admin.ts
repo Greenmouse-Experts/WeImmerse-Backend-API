@@ -22,17 +22,6 @@ class Admin extends Model {
     return bcrypt.compare(password, this.password);
   }
 
-  // Static method to dynamically set roleId and permission
-  static async assignRoleAndPermissions(adminId: string, roleId: string) {
-    const admin = await this.findByPk(adminId);
-    if (!admin) {
-      throw new Error('Sub admin not found');
-    }
-    admin.roleId = roleId;
-    await admin.save();
-    return admin;
-  }
-
   hasRole(requiredRole: string) {
     return this.roleId === requiredRole;
   }

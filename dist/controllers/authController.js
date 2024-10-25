@@ -388,8 +388,9 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const { email, password } = req.body;
     try {
         // Find admin by email
-        const admin = yield admin_1.default.scope("auth").findOne({
+        const admin = yield admin_1.default.findOne({
             where: { email },
+            attributes: ["email", "password", "status"],
             include: [
                 {
                     model: role_1.default,
