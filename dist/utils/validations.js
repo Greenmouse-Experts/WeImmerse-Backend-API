@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
+exports.validate = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
 // Registration validation rules
@@ -194,6 +194,79 @@ const updateSubAdminValidationRules = () => {
     ];
 };
 exports.updateSubAdminValidationRules = updateSubAdminValidationRules;
+// Validation rules for creating a subscription plan
+const createSubscriptionPlanValidationRules = () => {
+    return [
+        (0, express_validator_1.check)("name")
+            .not()
+            .isEmpty()
+            .withMessage("Plan name is required")
+            .isLength({ min: 2, max: 50 })
+            .withMessage("Plan name must be between 2 and 50 characters"),
+        (0, express_validator_1.check)("duration")
+            .not()
+            .isEmpty()
+            .withMessage("Duration is required")
+            .isInt({ min: 1 })
+            .withMessage("Duration must be a positive integer representing months"),
+        (0, express_validator_1.check)("price")
+            .not()
+            .isEmpty()
+            .withMessage("Price is required")
+            .isFloat({ min: 0 })
+            .withMessage("Price must be a non-negative number"),
+        (0, express_validator_1.check)("productLimit")
+            .not()
+            .isEmpty()
+            .withMessage("Product limit is required")
+            .isInt({ min: 0 })
+            .withMessage("Product limit must be a non-negative integer"),
+        (0, express_validator_1.check)("allowsAuction")
+            .isBoolean()
+            .withMessage("Allows auction must be a boolean value"),
+        (0, express_validator_1.check)("auctionProductLimit")
+            .optional()
+            .isInt({ min: 0 })
+            .withMessage("Auction product limit must be a non-negative integer"),
+    ];
+};
+exports.createSubscriptionPlanValidationRules = createSubscriptionPlanValidationRules;
+// Validation rules for updating a subscription plan
+const updateSubscriptionPlanValidationRules = () => {
+    return [
+        (0, express_validator_1.check)("planId")
+            .not()
+            .isEmpty()
+            .withMessage("Plan ID is required")
+            .isUUID()
+            .withMessage("Plan ID must be a valid UUID"),
+        (0, express_validator_1.check)("name")
+            .optional()
+            .isLength({ min: 2, max: 50 })
+            .withMessage("Plan name must be between 2 and 50 characters"),
+        (0, express_validator_1.check)("duration")
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage("Duration must be a positive integer representing months"),
+        (0, express_validator_1.check)("price")
+            .optional()
+            .isFloat({ min: 0 })
+            .withMessage("Price must be a non-negative number"),
+        (0, express_validator_1.check)("productLimit")
+            .optional()
+            .isInt({ min: 0 })
+            .withMessage("Product limit must be a non-negative integer"),
+        (0, express_validator_1.check)("allowsAuction")
+            .optional()
+            .isBoolean()
+            .withMessage("Allows auction must be a boolean value"),
+        (0, express_validator_1.check)("auctionProductLimit")
+            .optional()
+            .isInt({ min: 0 })
+            .withMessage("Auction product limit must be a non-negative integer"),
+    ];
+};
+exports.updateSubscriptionPlanValidationRules = updateSubscriptionPlanValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

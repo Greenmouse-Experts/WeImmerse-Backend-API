@@ -57,6 +57,7 @@ const initModel = (sequelize) => {
         dateOfBirth: sequelize_1.DataTypes.STRING,
         location: sequelize_1.DataTypes.JSON,
         photo: sequelize_1.DataTypes.TEXT,
+        wallet: sequelize_1.DataTypes.DECIMAL(20, 2),
         facebookId: sequelize_1.DataTypes.STRING,
         googleId: sequelize_1.DataTypes.STRING,
         accountType: sequelize_1.DataTypes.ENUM('Vendor', 'Customer'),

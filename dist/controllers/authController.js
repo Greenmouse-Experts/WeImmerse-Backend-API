@@ -24,6 +24,8 @@ const logger_1 = __importDefault(require("../middlewares/logger")); // Adjust th
 const helpers_2 = require("../utils/helpers");
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
+const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
+const vendorsubscription_1 = __importDefault(require("../models/vendorsubscription"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.status(200).json({
         code: 200,
@@ -37,9 +39,13 @@ const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
         // Check if the user already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
-            res.status(400).json({ message: 'Email already in use' });
+            res.status(400).json({ message: "Email already in use" });
             return; // Make sure the function returns void here
         }
+        // Find the free subscription plan
+        const freePlan = yield subscriptionplan_1.default.findOne({
+            where: { name: "Free Plan" },
+        });
         // Create the new user
         const newUser = yield user_1.default.create({
             email,
@@ -47,8 +53,21 @@ const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
             firstName: (0, helpers_2.capitalizeFirstLetter)(firstName),
             lastName: (0, helpers_2.capitalizeFirstLetter)(lastName),
             phoneNumber,
-            accountType: 'Vendor'
+            accountType: "Vendor",
         });
+        // Assign the free plan to the new user
+        if (freePlan) {
+            const startDate = new Date();
+            const endDate = new Date();
+            endDate.setMonth(startDate.getMonth() + freePlan.duration); // Set end date by adding months
+            yield vendorsubscription_1.default.create({
+                vendorId: newUser.id,
+                subscriptionPlanId: freePlan.id,
+                startDate,
+                endDate,
+                isActive: true,
+            });
+        }
         // Generate OTP for verification
         const otpCode = (0, helpers_1.generateOTP)();
         const otp = yield otp_1.default.create({
@@ -65,11 +84,11 @@ const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
             logger_1.default.error("Error sending email:", emailError); // Log error for internal use
         }
         // Return a success response
-        res.status(200).json({ message: 'Vendor registered successfully' });
+        res.status(200).json({ message: "Vendor registered successfully" });
     }
     catch (error) {
-        logger_1.default.error('Error during registration:', error);
-        res.status(500).json({ message: 'Server error' });
+        logger_1.default.error("Error during registration:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 exports.vendorRegister = vendorRegister;
@@ -79,7 +98,7 @@ const customerRegister = (req, res) => __awaiter(void 0, void 0, void 0, functio
         // Check if the user already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
-            res.status(400).json({ message: 'Email already in use' });
+            res.status(400).json({ message: "Email already in use" });
             return; // Make sure the function returns void here
         }
         // Create the new user
@@ -89,7 +108,7 @@ const customerRegister = (req, res) => __awaiter(void 0, void 0, void 0, functio
             firstName: (0, helpers_2.capitalizeFirstLetter)(firstName),
             lastName: (0, helpers_2.capitalizeFirstLetter)(lastName),
             phoneNumber,
-            accountType: 'Customer'
+            accountType: "Customer",
         });
         // Generate OTP for verification
         const otpCode = (0, helpers_1.generateOTP)();
@@ -107,11 +126,11 @@ const customerRegister = (req, res) => __awaiter(void 0, void 0, void 0, functio
             logger_1.default.error("Error sending email:", emailError); // Log error for internal use
         }
         // Return a success response
-        res.status(200).json({ message: 'Customer registered successfully' });
+        res.status(200).json({ message: "Customer registered successfully" });
     }
     catch (error) {
-        logger_1.default.error('Error during registration:', error);
-        res.status(500).json({ message: 'Server error' });
+        logger_1.default.error("Error during registration:", error);
+        res.status(500).json({ message: "Server error" });
     }
 });
 exports.customerRegister = customerRegister;
@@ -126,7 +145,9 @@ const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         }
         if (!user.email_verified_at) {
             // Check for the OTP
-            const otpRecord = yield otp_1.default.findOne({ where: { userId: user.id, otpCode } });
+            const otpRecord = yield otp_1.default.findOne({
+                where: { userId: user.id, otpCode },
+            });
             if (!otpRecord) {
                 res.status(400).json({ message: "Invalid OTP code." });
                 return;
@@ -163,15 +184,17 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     try {
         // Find user by email
-        const user = yield user_1.default.scope('auth').findOne({ where: { email } });
+        const user = yield user_1.default.scope("auth").findOne({ where: { email } });
         // Check if user exists
         if (!user) {
             res.status(400).json({ message: "Invalid email" });
             return;
         }
         // Check if user is inactive
-        if (user.status === 'inactive') {
-            res.status(403).json({ message: "Your account is inactive. Please contact support." });
+        if (user.status === "inactive") {
+            res
+                .status(403)
+                .json({ message: "Your account is inactive. Please contact support." });
             return;
         }
         // Check if email is verified
@@ -300,7 +323,7 @@ const codeCheck = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
             include: {
                 model: user_1.default,
-                as: 'user',
+                as: "user",
                 where: { email },
             },
         });
@@ -327,7 +350,7 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             where: { otpCode },
             include: {
                 model: user_1.default,
-                as: 'user',
+                as: "user",
                 where: { email },
             },
         });
@@ -365,13 +388,14 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const { email, password } = req.body;
     try {
         // Find admin by email
-        const admin = yield admin_1.default.scope('auth').findOne({ where: { email },
+        const admin = yield admin_1.default.scope("auth").findOne({
+            where: { email },
             include: [
                 {
                     model: role_1.default,
-                    as: 'role', // Make sure this alias matches the one you used in the association
-                }
-            ]
+                    as: "role", // Make sure this alias matches the one you used in the association
+                },
+            ],
         });
         // Check if admin exists
         if (!admin) {
@@ -379,8 +403,10 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return;
         }
         // Check if user is inactive
-        if (admin.status === 'inactive') {
-            res.status(403).json({ message: "Your account is inactive. Please contact support." });
+        if (admin.status === "inactive") {
+            res
+                .status(403)
+                .json({ message: "Your account is inactive. Please contact support." });
             return;
         }
         // Check if the password is correct

@@ -45,7 +45,20 @@ adminRoutes.patch('/sub-admin/status', adminAuthMiddleware_1.default, (0, checkP
 adminRoutes.delete('/sub-admin/delete', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('delete-subadmin'), adminController.deleteSubAdmin);
 adminRoutes.post('/sub-admin/resend-login', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('resendlogindetails-subadmin'), adminController.resendLoginDetailsSubAdmin);
 // Role
-adminRoutes.get('/roles', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('view-subadmin'), adminController.getRoles);
-adminRoutes.post('/role/create', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('create-subadmin'), adminController.createRole);
-adminRoutes.put('/role/update', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('update-subadmin'), adminController.updateRole);
+adminRoutes.get('/roles', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('view-role'), adminController.getRoles);
+adminRoutes.post('/role/create', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('create-role'), adminController.createRole);
+adminRoutes.put('/role/update', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('update-role'), adminController.updateRole);
+adminRoutes.get('/role/view/permissions', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('view-role-permissions'), adminController.viewRolePermissions);
+adminRoutes.post('/role/assign/permission', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('assign-role-permissions'), adminController.assignPermissionToRole);
+adminRoutes.delete('/role/delete/permission', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('delete-role-permissions'), adminController.deletePermissionFromRole);
+// Permission
+adminRoutes.get('/permissions', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('view-permission'), adminController.getPermissions);
+adminRoutes.post('/permission/create', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('create-permission'), adminController.createPermission);
+adminRoutes.put('/permission/update', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('update-permission'), adminController.updatePermission);
+adminRoutes.delete('/permission/delete', adminAuthMiddleware_1.default, (0, checkPermissionMiddleware_1.default)('delete-permission'), adminController.deletePermission);
+// Subscription Plan
+adminRoutes.get('/subscription/plans', adminAuthMiddleware_1.default, adminController.getAllSubscriptionPlans);
+adminRoutes.post('/subscription/plan/create', adminAuthMiddleware_1.default, (0, validations_1.createSubscriptionPlanValidationRules)(), validations_1.validate, adminController.createSubscriptionPlan);
+adminRoutes.put('/subscription/plan/update', adminAuthMiddleware_1.default, (0, validations_1.updateSubscriptionPlanValidationRules)(), validations_1.validate, adminController.updateSubscriptionPlan);
+adminRoutes.delete('/subscription/plan/delete', adminAuthMiddleware_1.default, adminController.deleteSubscriptionPlan);
 exports.default = adminRoutes; // Export the router

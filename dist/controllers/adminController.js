@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -21,6 +21,9 @@ const logger_1 = __importDefault(require("../middlewares/logger")); // Adjust th
 const helpers_1 = require("../utils/helpers");
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
+const permission_1 = __importDefault(require("../models/permission"));
+const rolepermission_1 = __importDefault(require("../models/rolepermission"));
+const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -278,7 +281,7 @@ const deactivateOrActivateSubAdmin = (req, res) => __awaiter(void 0, void 0, voi
 });
 exports.deactivateOrActivateSubAdmin = deactivateOrActivateSubAdmin;
 const deleteSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { subAdminId } = req.body;
+    const subAdminId = req.query.subAdminId;
     try {
         const subAdmin = yield admin_1.default.findByPk(subAdminId);
         if (!subAdmin) {
@@ -336,11 +339,18 @@ const createRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             res.status(400).json({ message: "Name is required." });
             return;
         }
+        // Check if a role with the same name already exists
+        const existingRole = yield role_1.default.findOne({ where: { name } });
+        if (existingRole) {
+            res.status(409).json({ message: "Role with this name already exists." });
+            return;
+        }
+        // Create the new role
         const role = yield role_1.default.create({ name });
         res.status(200).json({ message: "Role created successfully" });
     }
     catch (error) {
-        console.error("Error creating role:", error);
+        logger_1.default.error("Error creating role:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -352,7 +362,7 @@ const getRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(200).json({ data: roles });
     }
     catch (error) {
-        console.error("Error fetching roles:", error);
+        logger_1.default.error("Error fetching roles:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -368,14 +378,325 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const role = yield role_1.default.findByPk(roleId);
         if (!role) {
             res.status(404).json({ message: "Role not found" });
+            return;
         }
+        // Check if another role with the same name exists
+        const existingRole = yield role_1.default.findOne({
+            where: { name, id: { [sequelize_1.Op.ne]: roleId } }, // Exclude the current role ID
+        });
+        if (existingRole) {
+            res
+                .status(409)
+                .json({ message: "Another role with this name already exists." });
+            return;
+        }
+        // Update the role name
         role.name = name;
         yield role.save();
         res.status(200).json({ message: "Role updated successfully", role });
     }
     catch (error) {
-        console.error("Error updating role:", error);
+        logger_1.default.error("Error updating role:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
 exports.updateRole = updateRole;
+// View a Role's Permissions
+const viewRolePermissions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const roleId = req.query.roleId;
+    try {
+        const role = yield role_1.default.findByPk(roleId, {
+            include: [{ model: permission_1.default, as: "permissions" }],
+        });
+        if (!role) {
+            res.status(404).json({ message: "Role not found" });
+            return;
+        }
+        res.status(200).json({ data: role });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching role permissions:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.viewRolePermissions = viewRolePermissions;
+// Assign a New Permission to a Role
+const assignPermissionToRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { roleId, permissionId } = req.body;
+    try {
+        // Ensure role and permission exist
+        const role = yield role_1.default.findByPk(roleId);
+        const permission = yield permission_1.default.findByPk(permissionId);
+        if (!role || !permission) {
+            res.status(404).json({ message: "Role or Permission not found" });
+            return;
+        }
+        // Check if the permission is already assigned to the role
+        const existingRolePermission = yield rolepermission_1.default.findOne({
+            where: { roleId, permissionId },
+        });
+        if (existingRolePermission) {
+            res
+                .status(409)
+                .json({ message: "Permission is already assigned to this role" });
+            return;
+        }
+        // Assign permission to role
+        yield rolepermission_1.default.create({ roleId, permissionId });
+        res
+            .status(200)
+            .json({ message: "Permission assigned to role successfully" });
+    }
+    catch (error) {
+        logger_1.default.error("Error assigning permission to role:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.assignPermissionToRole = assignPermissionToRole;
+// Delete a Permission from a Role
+const deletePermissionFromRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { roleId, permissionId } = req.query;
+    try {
+        const rolePermission = yield rolepermission_1.default.findOne({
+            where: { roleId, permissionId },
+        });
+        if (!rolePermission) {
+            res.status(404).json({ message: "Permission not found for the role" });
+            return;
+        }
+        yield rolePermission.destroy();
+        res
+            .status(200)
+            .json({ message: "Permission removed from role successfully" });
+    }
+    catch (error) {
+        logger_1.default.error("Error deleting permission from role:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.deletePermissionFromRole = deletePermissionFromRole;
+// Permission
+// Create a new Permission
+const createPermission = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name } = req.body;
+    try {
+        if (!name) {
+            res.status(400).json({ message: "Name is required." });
+            return;
+        }
+        // Check if permission name already exists
+        const existingPermission = yield permission_1.default.findOne({ where: { name } });
+        if (existingPermission) {
+            res.status(409).json({ message: "Permission name already exists." });
+            return;
+        }
+        // Create new permission if it doesn't exist
+        const permission = yield permission_1.default.create({ name });
+        res.status(201).json({
+            message: "Permission created successfully",
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error creating permission:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.createPermission = createPermission;
+// Get all Permissions
+const getPermissions = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const permissions = yield permission_1.default.findAll();
+        res.status(200).json({ data: permissions });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching permissions:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.getPermissions = getPermissions;
+// Update an existing Permission
+const updatePermission = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { permissionId, name } = req.body;
+    try {
+        if (!name) {
+            res.status(400).json({ message: "Name is required." });
+            return;
+        }
+        const permission = yield permission_1.default.findByPk(permissionId);
+        if (!permission) {
+            res.status(404).json({ message: "Permission not found" });
+            return;
+        }
+        // Check if the new name exists in another permission
+        const existingPermission = yield permission_1.default.findOne({
+            where: {
+                name,
+                id: { [sequelize_1.Op.ne]: permissionId }, // Exclude current permission
+            },
+        });
+        if (existingPermission) {
+            res.status(409).json({ message: "Permission name already exists." });
+            return;
+        }
+        permission.name = name;
+        yield permission.save();
+        res.status(200).json({ message: "Permission updated successfully" });
+    }
+    catch (error) {
+        logger_1.default.error("Error updating permission:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.updatePermission = updatePermission;
+// Delete a Permission and cascade delete from role_permissions
+const deletePermission = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const permissionId = req.query.permissionId;
+        // Find the permission
+        const permission = yield permission_1.default.findByPk(permissionId);
+        if (!permission) {
+            res.status(404).json({ message: "Permission not found" });
+            return;
+        }
+        // Delete the permission and associated role_permissions
+        yield permission.destroy();
+        yield rolepermission_1.default.destroy({ where: { permissionId } });
+        res.status(200).json({
+            message: "Permission and associated role permissions deleted successfully",
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error deleting permission:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.deletePermission = deletePermission;
+// Subscription Plan
+const getAllSubscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name } = req.query; // Get the name from query parameters
+        const queryOptions = {}; // Initialize query options
+        // If a name is provided, add a condition to the query
+        if (name) {
+            queryOptions.where = {
+                name: {
+                    [sequelize_1.Op.like]: `%${name}%`, // Use a partial match for name
+                },
+            };
+        }
+        const plans = yield subscriptionplan_1.default.findAll(queryOptions); // Use query options
+        res.status(200).json({ data: plans });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching subscription plans:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.getAllSubscriptionPlans = getAllSubscriptionPlans;
+const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, duration, price, productLimit, allowsAuction, auctionProductLimit, } = req.body;
+    try {
+        // Check if the subscription plan name already exists
+        const existingPlan = yield subscriptionplan_1.default.findOne({ where: { name } });
+        if (existingPlan) {
+            res
+                .status(400)
+                .json({ message: "A plan with this name already exists." });
+            return;
+        }
+        // Create the subscription plan
+        yield subscriptionplan_1.default.create({
+            name,
+            duration,
+            price,
+            productLimit,
+            allowsAuction,
+            auctionProductLimit,
+        });
+        res.status(200).json({
+            message: "Subscription plan created successfully.",
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error creating subscription plan:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.createSubscriptionPlan = createSubscriptionPlan;
+const updateSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { planId, name, duration, price, productLimit, allowsAuction, auctionProductLimit, } = req.body;
+    try {
+        // Fetch the subscription plan to update
+        const plan = yield subscriptionplan_1.default.findByPk(planId);
+        if (!plan) {
+            res.status(404).json({ message: "Subscription plan not found." });
+            return;
+        }
+        // Prevent name change for Free Plan
+        if (plan.name === "Free Plan" && name !== "Free Plan") {
+            res
+                .status(400)
+                .json({ message: "The Free Plan name cannot be changed." });
+            return;
+        }
+        // Check if the new name already exists (ignoring the current plan)
+        const existingPlan = yield subscriptionplan_1.default.findOne({
+            where: { name, id: { [sequelize_1.Op.ne]: planId } },
+        });
+        if (existingPlan) {
+            res
+                .status(400)
+                .json({ message: "A different plan with this name already exists." });
+            return;
+        }
+        // Update fields
+        plan.name = name;
+        plan.duration = duration;
+        plan.price = price;
+        plan.productLimit = productLimit;
+        plan.allowsAuction = allowsAuction;
+        plan.auctionProductLimit = auctionProductLimit;
+        yield plan.save();
+        res
+            .status(200)
+            .json({ message: "Subscription plan updated successfully" });
+    }
+    catch (error) {
+        logger_1.default.error("Error updating subscription plan:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.updateSubscriptionPlan = updateSubscriptionPlan;
+const deleteSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const planId = req.query.planId;
+    try {
+        // Fetch the subscription plan
+        const plan = yield subscriptionplan_1.default.findByPk(planId);
+        if (!plan) {
+            res.status(404).json({ message: "Subscription plan not found." });
+            return;
+        }
+        // Prevent deletion of the Free Plan
+        if (plan.name === "Free Plan") {
+            res.status(400).json({ message: "The Free Plan cannot be deleted." });
+            return;
+        }
+        // Attempt to delete the plan
+        yield plan.destroy();
+        res
+            .status(200)
+            .json({ message: "Subscription plan deleted successfully." });
+    }
+    catch (error) {
+        logger_1.default.error("Error deleting subscription plan:", error);
+        if (error.name === "SequelizeForeignKeyConstraintError") {
+            res.status(400).json({
+                message: "Cannot delete plan: it is assigned to one or more vendors.",
+            });
+        }
+        else {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    }
+});
+exports.deleteSubscriptionPlan = deleteSubscriptionPlan;
