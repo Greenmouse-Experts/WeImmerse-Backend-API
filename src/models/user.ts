@@ -20,6 +20,7 @@ class User extends Model {
   public dateOfBirth?: string;
   public location?: Location;
   public photo?: string;
+  public wallet?: string;
   public status?: "active" | "inactive";
   public createdAt?: Date;
   public updatedAt?: Date;
@@ -67,6 +68,7 @@ const initModel = (sequelize: Sequelize) => {
       dateOfBirth: DataTypes.STRING,
       location: DataTypes.JSON,
       photo: DataTypes.TEXT,
+      wallet: DataTypes.DECIMAL(20, 2),
       facebookId: DataTypes.STRING,
       googleId: DataTypes.STRING,
       accountType: DataTypes.ENUM('Vendor', 'Customer'),

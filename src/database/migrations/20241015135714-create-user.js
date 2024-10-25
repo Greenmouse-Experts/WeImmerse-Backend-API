@@ -54,6 +54,10 @@ module.exports = {
         allowNull: true,
         type: Sequelize.TEXT,
       },
+      wallet: {
+        allowNull: true,
+        type: Sequelize.DECIMAL(20, 2),
+      },
       facebookId: {
         type: Sequelize.STRING,
         allowNull: true,

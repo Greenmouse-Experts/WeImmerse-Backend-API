@@ -1,122 +1,155 @@
 // src/controllers/authController.ts
-import { Request, Response, NextFunction } from 'express';
-import User  from '../models/user';
+import { Request, Response, NextFunction } from "express";
+import User from "../models/user";
 import bcrypt from "bcrypt";
-import { generateOTP } from '../utils/helpers';
-import OTP from '../models/otp';
-import { sendMail } from '../services/mail.service';
-import {
-  emailTemplates
-} from '../utils/messages';
-import JwtService from '../services/jwt.service';
-import logger from '../middlewares/logger'; // Adjust the path to your logger.js
-import { capitalizeFirstLetter } from '../utils/helpers';
-import Admin from '../models/admin';
-import Role from '../models/role';
+import { generateOTP } from "../utils/helpers";
+import OTP from "../models/otp";
+import { sendMail } from "../services/mail.service";
+import { emailTemplates } from "../utils/messages";
+import JwtService from "../services/jwt.service";
+import logger from "../middlewares/logger"; // Adjust the path to your logger.js
+import { capitalizeFirstLetter } from "../utils/helpers";
+import Admin from "../models/admin";
+import Role from "../models/role";
+import SubscriptionPlan from "../models/subscriptionplan";
+import VendorSubscription from "../models/vendorsubscription";
 
 export const index = async (req: Request, res: Response) => {
-    res.status(200).json({
-        code: 200,
-        message: `Welcome to ${process.env.APP_NAME} Endpoint.`,
+  res.status(200).json({
+    code: 200,
+    message: `Welcome to ${process.env.APP_NAME} Endpoint.`,
+  });
+};
+
+export const vendorRegister = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email, password, firstName, lastName, phoneNumber } = req.body;
+
+  try {
+    // Check if the user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      res.status(400).json({ message: "Email already in use" });
+      return; // Make sure the function returns void here
+    }
+
+    // Find the free subscription plan
+    const freePlan = await SubscriptionPlan.findOne({
+      where: { name: "Free Plan" },
     });
-};
 
-export const vendorRegister = async (req: Request, res: Response): Promise<void> => {
-  const { email, password, firstName, lastName, phoneNumber } = req.body;
+    // Create the new user
+    const newUser = await User.create({
+      email,
+      password,
+      firstName: capitalizeFirstLetter(firstName),
+      lastName: capitalizeFirstLetter(lastName),
+      phoneNumber,
+      accountType: "Vendor",
+    });
 
-  try {
-      // Check if the user already exists
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
-          res.status(400).json({ message: 'Email already in use' });
-          return; // Make sure the function returns void here
-      }
+    // Assign the free plan to the new user
+    if (freePlan) {
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setMonth(startDate.getMonth() + freePlan.duration); // Set end date by adding months
 
-      // Create the new user
-      const newUser = await User.create({
-          email,
-          password,
-          firstName: capitalizeFirstLetter(firstName),
-          lastName: capitalizeFirstLetter(lastName),
-          phoneNumber,
-          accountType: 'Vendor'
+      await VendorSubscription.create({
+        vendorId: newUser.id,
+        subscriptionPlanId: freePlan.id,
+        startDate,
+        endDate,
+        isActive: true,
       });
+    }
 
-      // Generate OTP for verification
-      const otpCode = generateOTP();
-      const otp = await OTP.create(
-        {
-          userId: newUser.id,
-          otpCode: otpCode,
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // OTP expires in 1 hour
-        },
+    // Generate OTP for verification
+    const otpCode = generateOTP();
+    const otp = await OTP.create({
+      userId: newUser.id,
+      otpCode: otpCode,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // OTP expires in 1 hour
+    });
+
+    // Send mail
+    let message = emailTemplates.verifyEmail(newUser, otp.otpCode);
+    try {
+      await sendMail(
+        email,
+        `${process.env.APP_NAME} - Verify Your Account`,
+        message
       );
+    } catch (emailError) {
+      logger.error("Error sending email:", emailError); // Log error for internal use
+    }
 
-      // Send mail
-      let message = emailTemplates.verifyEmail(newUser, otp.otpCode);
-      try {
-        await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
-      } catch (emailError) {
-        logger.error("Error sending email:", emailError); // Log error for internal use
-      }
-
-      // Return a success response
-      res.status(200).json({ message: 'Vendor registered successfully' });
+    // Return a success response
+    res.status(200).json({ message: "Vendor registered successfully" });
   } catch (error) {
-      logger.error('Error during registration:', error);
-      res.status(500).json({ message: 'Server error' });
+    logger.error("Error during registration:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-export const customerRegister = async (req: Request, res: Response): Promise<void> => {
+export const customerRegister = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { email, password, firstName, lastName, phoneNumber } = req.body;
 
   try {
-      // Check if the user already exists
-      const existingUser = await User.findOne({ where: { email } });
-      if (existingUser) {
-          res.status(400).json({ message: 'Email already in use' });
-          return; // Make sure the function returns void here
-      }
+    // Check if the user already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      res.status(400).json({ message: "Email already in use" });
+      return; // Make sure the function returns void here
+    }
 
-      // Create the new user
-      const newUser = await User.create({
-          email,
-          password,
-          firstName: capitalizeFirstLetter(firstName),
-          lastName: capitalizeFirstLetter(lastName),
-          phoneNumber,
-          accountType: 'Customer'
-      });
+    // Create the new user
+    const newUser = await User.create({
+      email,
+      password,
+      firstName: capitalizeFirstLetter(firstName),
+      lastName: capitalizeFirstLetter(lastName),
+      phoneNumber,
+      accountType: "Customer",
+    });
 
-      // Generate OTP for verification
-      const otpCode = generateOTP();
-      const otp = await OTP.create(
-        {
-          userId: newUser.id,
-          otpCode: otpCode,
-          expiresAt: new Date(Date.now() + 60 * 60 * 1000), // OTP expires in 1 hour
-        },
+    // Generate OTP for verification
+    const otpCode = generateOTP();
+    const otp = await OTP.create({
+      userId: newUser.id,
+      otpCode: otpCode,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // OTP expires in 1 hour
+    });
+
+    // Send mail
+    let message = emailTemplates.verifyEmail(newUser, otp.otpCode);
+    try {
+      await sendMail(
+        email,
+        `${process.env.APP_NAME} - Verify Your Account`,
+        message
       );
+    } catch (emailError) {
+      logger.error("Error sending email:", emailError); // Log error for internal use
+    }
 
-      // Send mail
-      let message = emailTemplates.verifyEmail(newUser, otp.otpCode);
-      try {
-        await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
-      } catch (emailError) {
-        logger.error("Error sending email:", emailError); // Log error for internal use
-      }
-
-      // Return a success response
-      res.status(200).json({ message: 'Customer registered successfully' });
+    // Return a success response
+    res.status(200).json({ message: "Customer registered successfully" });
   } catch (error) {
-      logger.error('Error during registration:', error);
-      res.status(500).json({ message: 'Server error' });
+    logger.error("Error during registration:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
-export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
-  const { email, otpCode } = req.body;  // Assuming OTP and email are sent in the request body
+export const verifyEmail = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { email, otpCode } = req.body; // Assuming OTP and email are sent in the request body
 
   try {
     // Check if the user exists
@@ -128,7 +161,9 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
 
     if (!user.email_verified_at) {
       // Check for the OTP
-      const otpRecord = await OTP.findOne({ where: { userId: user.id, otpCode } });
+      const otpRecord = await OTP.findOne({
+        where: { userId: user.id, otpCode },
+      });
       if (!otpRecord) {
         res.status(400).json({ message: "Invalid OTP code." });
         return;
@@ -141,7 +176,7 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
       }
 
       // Update the user's email verification status
-      user.email_verified_at = new Date();  // Assuming this field exists in the User model
+      user.email_verified_at = new Date(); // Assuming this field exists in the User model
       await user.save();
 
       // Optionally delete the OTP record after successful verification
@@ -169,7 +204,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
   try {
     // Find user by email
-    const user = await User.scope('auth').findOne({ where: { email } });
+    const user = await User.scope("auth").findOne({ where: { email } });
 
     // Check if user exists
     if (!user) {
@@ -178,8 +213,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Check if user is inactive
-    if (user.status === 'inactive') {
-      res.status(403).json({ message: "Your account is inactive. Please contact support." });
+    if (user.status === "inactive") {
+      res
+        .status(403)
+        .json({ message: "Your account is inactive. Please contact support." });
       return;
     }
 
@@ -198,13 +235,18 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       // Prepare and send the verification email
       const message = emailTemplates.verifyEmail(user, otpCode); // Ensure verifyEmailMessage generates the correct email message
       try {
-        await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+        await sendMail(
+          email,
+          `${process.env.APP_NAME} - Verify Your Account`,
+          message
+        );
       } catch (emailError) {
         logger.error("Error sending email:", emailError); // Log error for internal use
       }
 
       res.status(403).json({
-        message: "Your email is not verified. A verification email has been sent to your email address.",
+        message:
+          "Your email is not verified. A verification email has been sent to your email address.",
       });
       return;
     }
@@ -214,7 +256,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     if (!isPasswordValid) {
       res.status(400).json({ message: "Incorrect password" });
       return;
-    }    
+    }
 
     // Generate token
     const token = JwtService.jwtSign(user.id);
@@ -233,7 +275,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const resendVerificationEmail = async (req: Request, res: Response): Promise<void> => {
+export const resendVerificationEmail = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { email } = req.body; // Assuming the email is sent in the request body
 
   try {
@@ -257,7 +302,11 @@ export const resendVerificationEmail = async (req: Request, res: Response): Prom
     // Prepare and send the verification email
     const message = emailTemplates.verifyEmail(user, otpCode); // Ensure this function generates the correct email message
     try {
-      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+      await sendMail(
+        email,
+        `${process.env.APP_NAME} - Verify Your Account`,
+        message
+      );
     } catch (emailError) {
       logger.error("Error sending email:", emailError); // Log error for internal use
     }
@@ -273,7 +322,10 @@ export const resendVerificationEmail = async (req: Request, res: Response): Prom
   }
 };
 
-export const forgetPassword = async (req: Request, res: Response): Promise<void> => {
+export const forgetPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { email } = req.body;
 
   try {
@@ -297,7 +349,11 @@ export const forgetPassword = async (req: Request, res: Response): Promise<void>
     // Send OTP to user's email
     const message = emailTemplates.forgotPassword(user, otpCode);
     try {
-      await sendMail(user.email, `${process.env.APP_NAME} - Reset Password`, message);
+      await sendMail(
+        user.email,
+        `${process.env.APP_NAME} - Reset Password`,
+        message
+      );
     } catch (emailError) {
       logger.error("Error sending email:", emailError); // Log error for internal use
     }
@@ -322,7 +378,7 @@ export const codeCheck = async (req: Request, res: Response): Promise<void> => {
       },
       include: {
         model: User, // Assuming OTP is linked to User model
-        as: 'user',
+        as: "user",
         where: { email },
       },
     });
@@ -343,7 +399,10 @@ export const codeCheck = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+export const resetPassword = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { email, otpCode, newPassword, confirmPassword } = req.body;
 
   try {
@@ -352,7 +411,7 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
       where: { otpCode },
       include: {
         model: User,
-        as: 'user',
+        as: "user",
         where: { email },
       },
     });
@@ -375,7 +434,11 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     // Send password reset notification email
     const message = emailTemplates.passwordResetNotification(otpRecord.user);
     try {
-      await sendMail(otpRecord.user.email, `${process.env.APP_NAME} - Password Reset Notification`, message);
+      await sendMail(
+        otpRecord.user.email,
+        `${process.env.APP_NAME} - Password Reset Notification`,
+        message
+      );
     } catch (emailError) {
       logger.error("Error sending email:", emailError); // Log error for internal use
     }
@@ -390,18 +453,22 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 };
 
 // Admin Login
-export const adminLogin = async (req: Request, res: Response): Promise<void> => {
+export const adminLogin = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { email, password } = req.body;
 
   try {
     // Find admin by email
-    const admin = await Admin.scope('auth').findOne({ where: { email },
+    const admin = await Admin.scope("auth").findOne({
+      where: { email },
       include: [
         {
           model: Role, // Assuming you've imported the Role model
-          as: 'role',  // Make sure this alias matches the one you used in the association
-        }
-      ] 
+          as: "role", // Make sure this alias matches the one you used in the association
+        },
+      ],
     });
 
     // Check if admin exists
@@ -411,8 +478,10 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
     }
 
     // Check if user is inactive
-    if (admin.status === 'inactive') {
-      res.status(403).json({ message: "Your account is inactive. Please contact support." });
+    if (admin.status === "inactive") {
+      res
+        .status(403)
+        .json({ message: "Your account is inactive. Please contact support." });
       return;
     }
 
@@ -421,7 +490,7 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
     if (!isPasswordValid) {
       res.status(400).json({ message: "Incorrect password" });
       return;
-    }    
+    }
 
     // Generate token
     const token = JwtService.jwtSign(admin.id);

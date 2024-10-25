@@ -15,6 +15,16 @@ module.exports = {
       { id: uuidv4(), name: 'resendlogindetails-subadmin', createdAt: new Date(), updatedAt: new Date() },
       { id: uuidv4(), name: 'update-password', createdAt: new Date(), updatedAt: new Date() },
       { id: uuidv4(), name: 'update-profile', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'view-role', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'create-role', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'update-role', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'view-role-permissions', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'assign-role-permissions', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'delete-role-permissions', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'view-permission', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'create-permission', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'update-permission', createdAt: new Date(), updatedAt: new Date() },
+      { id: uuidv4(), name: 'delete-permission', createdAt: new Date(), updatedAt: new Date() },
     ]);
   },
 

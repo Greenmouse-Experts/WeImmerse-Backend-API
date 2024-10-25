@@ -201,6 +201,90 @@ export const updateSubAdminValidationRules = () => {
   ];
 };
 
+// Validation rules for creating a subscription plan
+export const createSubscriptionPlanValidationRules = () => {
+  return [
+    check("name")
+      .not()
+      .isEmpty()
+      .withMessage("Plan name is required")
+      .isLength({ min: 2, max: 50 })
+      .withMessage("Plan name must be between 2 and 50 characters"),
+
+    check("duration")
+      .not()
+      .isEmpty()
+      .withMessage("Duration is required")
+      .isInt({ min: 1 })
+      .withMessage("Duration must be a positive integer representing months"),
+
+    check("price")
+      .not()
+      .isEmpty()
+      .withMessage("Price is required")
+      .isFloat({ min: 0 })
+      .withMessage("Price must be a non-negative number"),
+
+    check("productLimit")
+      .not()
+      .isEmpty()
+      .withMessage("Product limit is required")
+      .isInt({ min: 0 })
+      .withMessage("Product limit must be a non-negative integer"),
+
+    check("allowsAuction")
+      .isBoolean()
+      .withMessage("Allows auction must be a boolean value"),
+
+    check("auctionProductLimit")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("Auction product limit must be a non-negative integer"),
+  ];
+};
+
+// Validation rules for updating a subscription plan
+export const updateSubscriptionPlanValidationRules = () => {
+  return [
+    check("planId")
+      .not()
+      .isEmpty()
+      .withMessage("Plan ID is required")
+      .isUUID()
+      .withMessage("Plan ID must be a valid UUID"),
+
+    check("name")
+      .optional()
+      .isLength({ min: 2, max: 50 })
+      .withMessage("Plan name must be between 2 and 50 characters"),
+
+    check("duration")
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage("Duration must be a positive integer representing months"),
+
+    check("price")
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage("Price must be a non-negative number"),
+
+    check("productLimit")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("Product limit must be a non-negative integer"),
+
+    check("allowsAuction")
+      .optional()
+      .isBoolean()
+      .withMessage("Allows auction must be a boolean value"),
+
+    check("auctionProductLimit")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("Auction product limit must be a non-negative integer"),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,
