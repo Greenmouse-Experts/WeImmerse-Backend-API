@@ -41,3 +41,4 @@ const errorHandler = (err, _req, res, next) => {
 };
 exports.errorHandler = errorHandler;
 exports.default = exports.errorHandler; // Default export
+//# sourceMappingURL=errorMiddleware.js.map

@@ -41,3 +41,4 @@ authRoutes.post("/auth/password/reset", (0, validations_1.resetPasswordValidatio
 // Admin
 authRoutes.post("/auth/admin/login", (0, validations_1.loginValidationRules)(), validations_1.validate, authController.adminLogin);
 exports.default = authRoutes; // Export the router
+//# sourceMappingURL=authRoute.js.map

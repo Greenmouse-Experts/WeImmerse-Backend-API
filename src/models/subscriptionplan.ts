@@ -11,6 +11,13 @@ class SubscriptionPlan extends Model {
   public auctionProductLimit!: number | null; // Null if auctions are not allowed
   public createdAt!: Date;
   public updatedAt!: Date;
+
+  static associate(models: any) {
+    this.hasMany(models.VendorSubscription, {
+      as: 'vendorSubscriptions',
+      foreignKey: 'subscriptionPlanId',
+    });
+  }
 }
 
 const initModel = (sequelize: Sequelize) => {

@@ -13,28 +13,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const jwt_service_1 = __importDefault(require("../services/jwt.service"));
-const user_1 = __importDefault(require("../models/user")); // Assuming this is your Sequelize model
+const user_1 = __importDefault(require("../models/user"));
 const authMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // If the server JWT handling is disabled, skip the middleware
         if (process.env.SERVER_JWT === "false") {
             return next();
         }
-        // Extract the JWT token from the request headers
         const token = jwt_service_1.default.jwtGetToken(req);
         if (!token) {
             res.status(401).json({ message: "Token not provided" });
             return;
         }
-        // Check if the token is blacklisted
         if (jwt_service_1.default.jwtIsTokenBlacklisted(token)) {
-            res.status(403).json({ message: "Token is blacklisted. Please log in again." });
+            res
+                .status(403)
+                .json({ message: "Token is blacklisted. Please log in again." });
             return;
         }
-        // Verify the token and decode the payload
-        const decoded = jwt_service_1.default.jwtVerify(token); // Type assertion to `DecodedToken`
-        req.userId = decoded.id; // Assuming `id` is the user ID in the token payload
-        // Find the user by ID
+        const decoded = jwt_service_1.default.jwtVerify(token);
+        req.userId = decoded.id;
         const user = yield user_1.default.findOne({
             where: { id: req.userId },
         });
@@ -42,23 +39,23 @@ const authMiddleware = (req, res, next) => __awaiter(void 0, void 0, void 0, fun
             res.status(401).json({ message: "User not authorized" });
             return;
         }
-        // Attach the user instance to the request object
         req.user = user;
-        return next(); // Proceed to the next middleware or route handler
+        return next();
     }
     catch (error) {
         console.error("Authentication error:", error.message);
-        // Handle specific JWT-related errors
         if (error.name === "TokenExpiredError") {
-            res.status(401).json({ message: "Token has expired. Please log in again." });
+            res
+                .status(401)
+                .json({ message: "Token has expired. Please log in again." });
             return;
         }
         if (error.name === "JsonWebTokenError") {
             res.status(401).json({ message: "Invalid token. Please log in again." });
             return;
         }
-        // Handle all other unexpected errors
         res.status(401).json({ message: "Unauthorized" });
     }
 });
 exports.default = authMiddleware;
+//# sourceMappingURL=authMiddleware.js.map

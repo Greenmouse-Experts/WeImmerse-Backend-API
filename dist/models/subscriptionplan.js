@@ -4,6 +4,12 @@ exports.initModel = void 0;
 // models/SubscriptionPlan.ts
 const sequelize_1 = require("sequelize");
 class SubscriptionPlan extends sequelize_1.Model {
+    static associate(models) {
+        this.hasMany(models.VendorSubscription, {
+            as: 'vendorSubscriptions',
+            foreignKey: 'subscriptionPlanId',
+        });
+    }
 }
 const initModel = (sequelize) => {
     SubscriptionPlan.init({
@@ -48,3 +54,4 @@ const initModel = (sequelize) => {
 };
 exports.initModel = initModel;
 exports.default = SubscriptionPlan;
+//# sourceMappingURL=subscriptionplan.js.map

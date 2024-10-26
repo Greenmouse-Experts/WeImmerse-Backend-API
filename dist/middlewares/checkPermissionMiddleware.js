@@ -51,3 +51,4 @@ const checkPermission = (requiredPermission) => {
     });
 };
 exports.default = checkPermission;
+//# sourceMappingURL=checkPermissionMiddleware.js.map

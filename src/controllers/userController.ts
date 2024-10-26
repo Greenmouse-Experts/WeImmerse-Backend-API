@@ -10,12 +10,7 @@ import JwtService from "../services/jwt.service";
 import logger from "../middlewares/logger"; // Adjust the path to your logger.js
 import { capitalizeFirstLetter } from "../utils/helpers";
 import OTP from "../models/otp";
-
-// Extend the Express Request interface to include userId and user
-interface AuthenticatedRequest extends Request {
-  userId?: string;
-  user?: User; // This is the instance type of the User model
-}
+import { AuthenticatedRequest } from "../types/index";
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -44,13 +39,13 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 };
 
 export const updateProfile = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response
-): Promise<void> => {
+) => {
   try {
     const { firstName, lastName, dateOfBirth, photo, gender, location } =
       req.body;
-    const userId = req.user?.id; // Assuming the user ID is passed in the URL params
+    const userId = (req as AuthenticatedRequest).user?.id;  // Assuming the user ID is passed in the URL params
 
     const user = await User.findByPk(userId);
     if (!user) {
@@ -84,11 +79,11 @@ export const updateProfile = async (
 };
 
 export const updatePassword = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response
 ): Promise<void> => {
   const { oldPassword, newPassword, confirmNewPassword } = req.body;
-  const userId = req.user?.id; // Using optional chaining to access userId
+  const userId = (req as AuthenticatedRequest).user?.id;  // Using optional chaining to access userId
 
   try {
     // Find the user
@@ -136,10 +131,10 @@ export const updatePassword = async (
 };
 
 export const updateProfileEmail = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response
 ): Promise<void> => {
-  const userId = req.user?.id; // Authenticated user ID from middleware
+  const userId = (req as AuthenticatedRequest).user?.id;  // Authenticated user ID from middleware
   const { newEmail } = req.body;
 
   try {
@@ -187,10 +182,10 @@ export const updateProfileEmail = async (
 };
 
 export const confirmEmailUpdate = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response
 ): Promise<void> => {
-  const userId = req.user?.id; // Authenticated user ID from middleware
+  const userId = (req as AuthenticatedRequest).user?.id; // Authenticated user ID from middleware
   const { newEmail, otpCode } = req.body;
 
   try {
@@ -218,7 +213,7 @@ export const confirmEmailUpdate = async (
     }
 
     // Check if the OTP has expired
-    if (new Date() > otpRecord.expiresAt) {
+    if (!otpRecord.expiresAt || new Date() > otpRecord.expiresAt) {
       res.status(400).json({ message: "OTP has expired." });
       return;
     }
@@ -247,10 +242,10 @@ export const confirmEmailUpdate = async (
 };
 
 export const updateProfilePhoneNumber = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response
 ): Promise<void> => {
-  const userId = req.user?.id; // Authenticated user ID from middleware
+  const userId = (req as AuthenticatedRequest).user?.id;  // Authenticated user ID from middleware
   const { newPhoneNumber } = req.body;
 
   try {
@@ -296,10 +291,10 @@ export const updateProfilePhoneNumber = async (
 };
 
 export const confirmPhoneNumberUpdate = async (
-  req: AuthenticatedRequest,
+  req: Request,
   res: Response
 ): Promise<void> => {
-  const userId = req.user?.id; // Authenticated user ID from middleware
+  const userId = (req as AuthenticatedRequest).user?.id;  // Authenticated user ID from middleware
   const { newPhoneNumber, otpCode } = req.body;
 
   try {
@@ -327,7 +322,7 @@ export const confirmPhoneNumberUpdate = async (
     }
 
     // Check if the OTP has expired
-    if (new Date() > otpRecord.expiresAt) {
+    if (!otpRecord.expiresAt || new Date() > otpRecord.expiresAt) {
       res.status(400).json({ message: "OTP has expired." });
       return;
     }

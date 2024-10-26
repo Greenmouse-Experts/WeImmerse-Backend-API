@@ -16,3 +16,4 @@ const authorizeVendor = (req, res, next) => {
     next();
 };
 exports.default = authorizeVendor;
+//# sourceMappingURL=authorizeVendor.js.map

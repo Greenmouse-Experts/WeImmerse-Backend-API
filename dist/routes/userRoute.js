@@ -30,7 +30,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const userController = __importStar(require("../controllers/userController"));
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
-const validations_1 = require("../utils/validations"); // Import the service
+const validations_1 = require("../utils/validations");
 const userRoutes = (0, express_1.Router)();
 // User routes
 userRoutes.get("/logout", authMiddleware_1.default, userController.logout);
@@ -40,4 +40,5 @@ userRoutes.put('/profile/confirm/email', authMiddleware_1.default, (0, validatio
 userRoutes.put('/profile/update/phone', authMiddleware_1.default, (0, validations_1.updateProfilePhoneNumberValidationRules)(), validations_1.validate, userController.updateProfilePhoneNumber);
 userRoutes.put('/profile/confirm/phone/number', authMiddleware_1.default, (0, validations_1.confirmProfilePhoneNumberValidationRules)(), validations_1.validate, userController.confirmPhoneNumberUpdate);
 userRoutes.put('/profile/update/password', authMiddleware_1.default, (0, validations_1.updatePasswordValidationRules)(), validations_1.validate, userController.updatePassword);
-exports.default = userRoutes; // Export the router
+exports.default = userRoutes;
+//# sourceMappingURL=userRoute.js.map

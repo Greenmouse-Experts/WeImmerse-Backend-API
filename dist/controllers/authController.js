@@ -153,7 +153,7 @@ const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 return;
             }
             // Check if the OTP has expired
-            if (new Date() > otpRecord.expiresAt) {
+            if (!otpRecord.expiresAt || new Date() > otpRecord.expiresAt) {
                 res.status(400).json({ message: "OTP has expired." });
                 return;
             }
@@ -328,7 +328,7 @@ const codeCheck = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
         });
         // Check if OTP is valid
-        if (!otpRecord || otpRecord.expiresAt < new Date()) {
+        if (!otpRecord || !otpRecord.expiresAt || otpRecord.expiresAt < new Date()) {
             res.status(400).json({ message: "Invalid or expired OTP" });
             return;
         }
@@ -388,9 +388,8 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const { email, password } = req.body;
     try {
         // Find admin by email
-        const admin = yield admin_1.default.findOne({
+        const admin = yield admin_1.default.scope("auth").findOne({
             where: { email },
-            attributes: ["email", "password", "status"],
             include: [
                 {
                     model: role_1.default,
@@ -432,3 +431,4 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.adminLogin = adminLogin;
+//# sourceMappingURL=authController.js.map

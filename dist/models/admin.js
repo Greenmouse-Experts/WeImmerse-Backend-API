@@ -63,11 +63,8 @@ const initModel = (sequelize) => {
             attributes: { exclude: ["password"] },
         },
         scopes: {
-            withPassword: {
-                attributes: { include: ["password"] },
-            },
             auth: {
-                attributes: { include: ["email", "password", "status"] }, // Add necessary fields for authentication
+                attributes: { include: ["password"] }, // Add necessary fields for authentication
             },
         },
     });
@@ -81,3 +78,4 @@ const initModel = (sequelize) => {
 exports.initModel = initModel;
 // Export the User model and the init function
 exports.default = Admin; // Ensure User is exported as default
+//# sourceMappingURL=admin.js.map

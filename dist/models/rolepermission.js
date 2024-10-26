@@ -54,3 +54,4 @@ const initModel = (sequelize) => {
 };
 exports.initModel = initModel;
 exports.default = RolePermission;
+//# sourceMappingURL=rolepermission.js.map

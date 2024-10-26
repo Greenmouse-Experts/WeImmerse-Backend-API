@@ -26,3 +26,4 @@ const initModel = (sequelize) => {
 };
 exports.initModel = initModel;
 exports.default = OTP;
+//# sourceMappingURL=otp.js.map

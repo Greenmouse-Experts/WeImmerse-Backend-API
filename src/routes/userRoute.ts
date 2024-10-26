@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController';
 import authMiddleware from '../middlewares/authMiddleware';
-import { updatePasswordValidationRules, updateProfileEmailValidationRules, confirmProfileEmailValidationRules,  updateProfilePhoneNumberValidationRules, confirmProfilePhoneNumberValidationRules, validate } from '../utils/validations'; // Import the service
+import { updatePasswordValidationRules, updateProfileEmailValidationRules, confirmProfileEmailValidationRules, updateProfilePhoneNumberValidationRules, confirmProfilePhoneNumberValidationRules, validate } from '../utils/validations';
 
 const userRoutes = Router();
 
@@ -15,4 +15,4 @@ userRoutes.put('/profile/update/phone', authMiddleware, updateProfilePhoneNumber
 userRoutes.put('/profile/confirm/phone/number', authMiddleware, confirmProfilePhoneNumberValidationRules(), validate, userController.confirmPhoneNumberUpdate);
 userRoutes.put('/profile/update/password', authMiddleware, updatePasswordValidationRules(), validate, userController.updatePassword);
 
-export default userRoutes; // Export the router
+export default userRoutes;

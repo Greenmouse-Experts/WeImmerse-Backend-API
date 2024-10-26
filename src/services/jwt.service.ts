@@ -43,7 +43,7 @@ const JwtService = {
     }
   },
 
-  jwtGetToken: (request: Request): string | null => {
+  jwtGetToken: (request: Request): string | undefined => {
     try {
       if (process.env.SERVER_JWT !== "true") {
         throw new Error("[JWT] JWT flag is not set");

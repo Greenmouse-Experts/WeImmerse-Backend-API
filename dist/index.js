@@ -39,3 +39,4 @@ const server = http_1.default.createServer(app);
 server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
+//# sourceMappingURL=index.js.map

@@ -7,13 +7,11 @@ import { Model } from 'sequelize';
 // Load environment variables from .env file
 dotenv.config();
 
-// Define a type for models
 type ModelInstance = typeof Model & {
   associate?(models: Record<string, ModelInstance>): void;
   init(sequelize: Sequelize): void;
 };
 
-// Define the service
 const sequelizeService = {
   connection: null as Sequelize | null,
   models: {} as Record<string, ModelInstance>,
@@ -41,18 +39,19 @@ const sequelizeService = {
 
       // Load models dynamically
       const modelDirectory = path.join(__dirname, '../models');
-      const modelFiles = fs.readdirSync(modelDirectory).filter(file => file.endsWith('.ts'));
-
-      // Import and initialize models
+      const modelFiles = fs.readdirSync(modelDirectory).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+      
+      // Make sure to adjust the order of loading if needed.
       for (const file of modelFiles) {
         const modelModule = await import(path.join(modelDirectory, file));
-        const model = modelModule.default; // Ensure the model is exported as default
-        
-        if (typeof model.init === 'function') {
-          // Pass the sequelize instance to the init function
-          modelModule.initModel(sequelizeService.connection); 
-          sequelizeService.models[model.name] = model; // Store the model in the models object
-          console.log(`Model ${model.name} initialized`);
+        const { initModel } = modelModule; // Accessing initModel correctly
+
+        if (typeof initModel === 'function') {
+          initModel(sequelizeService.connection); // Initialize the model
+
+          const modelName = modelModule.default.name; // Get the class name directly
+          sequelizeService.models[modelName] = modelModule.default; // Store the model
+          console.log(`Model ${modelName} initialized`);
         } else {
           console.error(`Model init function is missing for ${file}`);
         }
@@ -76,5 +75,4 @@ const sequelizeService = {
   },
 };
 
-// Export the sequelize service
 export default sequelizeService;

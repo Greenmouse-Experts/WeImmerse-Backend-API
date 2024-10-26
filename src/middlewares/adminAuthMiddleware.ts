@@ -35,7 +35,6 @@ const adminAuthMiddleware = async (req: AuthenticatedRequest, res: Response, nex
 
     // Verify the token and decode the payload
     const decoded = JwtService.jwtVerify(token) as DecodedToken; // Type assertion to `DecodedToken`
-
     req.adminId = decoded.id; // Assuming `id` is the admin ID in the token payload
 
     // Find the admin by ID
@@ -50,7 +49,6 @@ const adminAuthMiddleware = async (req: AuthenticatedRequest, res: Response, nex
 
     // Attach the admin instance to the request object
     req.admin = admin;
-
     return next(); // Proceed to the next middleware or route handler
   } catch (error: any) {
     console.error("Authentication error:", error.message);

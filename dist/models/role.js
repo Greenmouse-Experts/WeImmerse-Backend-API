@@ -39,3 +39,4 @@ const initModel = (sequelize) => {
 };
 exports.initModel = initModel;
 exports.default = Role;
+//# sourceMappingURL=role.js.map

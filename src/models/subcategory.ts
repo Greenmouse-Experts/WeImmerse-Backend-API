@@ -2,7 +2,7 @@ import { Model, DataTypes, Sequelize } from 'sequelize';
 
 class SubCategory extends Model {
   public id!: string;
-  public categoryId: String;
+  public categoryId!: string;
   public image!: Text;
   public name!: string;
   public readonly createdAt!: Date;

@@ -61,4 +61,13 @@ adminRoutes.get('/subscription/plans', adminAuthMiddleware_1.default, adminContr
 adminRoutes.post('/subscription/plan/create', adminAuthMiddleware_1.default, (0, validations_1.createSubscriptionPlanValidationRules)(), validations_1.validate, adminController.createSubscriptionPlan);
 adminRoutes.put('/subscription/plan/update', adminAuthMiddleware_1.default, (0, validations_1.updateSubscriptionPlanValidationRules)(), validations_1.validate, adminController.updateSubscriptionPlan);
 adminRoutes.delete('/subscription/plan/delete', adminAuthMiddleware_1.default, adminController.deleteSubscriptionPlan);
+// Create a category
+adminRoutes.post('/categories', adminAuthMiddleware_1.default, adminController.createCategory);
+// Update a category
+adminRoutes.put('/categories', adminAuthMiddleware_1.default, adminController.updateCategory);
+// Delete a category
+adminRoutes.delete('/categories', adminAuthMiddleware_1.default, adminController.deleteCategory);
+// Fetch all categories
+adminRoutes.get('/categories', adminAuthMiddleware_1.default, adminController.getAllCategories);
 exports.default = adminRoutes; // Export the router
+//# sourceMappingURL=adminRoute.js.map

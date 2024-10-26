@@ -1823,3 +1823,4 @@ exports.emailTemplates = {
     }
     // Add more templates as needed
 };
+//# sourceMappingURL=messages.js.map

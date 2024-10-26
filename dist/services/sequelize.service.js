@@ -41,7 +41,6 @@ const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 // Load environment variables from .env file
 dotenv_1.default.config();
-// Define the service
 const sequelizeService = {
     connection: null,
     models: {},
@@ -61,16 +60,16 @@ const sequelizeService = {
             console.log("Database connected successfully");
             // Load models dynamically
             const modelDirectory = path_1.default.join(__dirname, '../models');
-            const modelFiles = fs_1.default.readdirSync(modelDirectory).filter(file => file.endsWith('.ts'));
-            // Import and initialize models
+            const modelFiles = fs_1.default.readdirSync(modelDirectory).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+            // Make sure to adjust the order of loading if needed.
             for (const file of modelFiles) {
                 const modelModule = yield Promise.resolve(`${path_1.default.join(modelDirectory, file)}`).then(s => __importStar(require(s)));
-                const model = modelModule.default; // Ensure the model is exported as default
-                if (typeof model.init === 'function') {
-                    // Pass the sequelize instance to the init function
-                    modelModule.initModel(sequelizeService.connection);
-                    sequelizeService.models[model.name] = model; // Store the model in the models object
-                    console.log(`Model ${model.name} initialized`);
+                const { initModel } = modelModule; // Accessing initModel correctly
+                if (typeof initModel === 'function') {
+                    initModel(sequelizeService.connection); // Initialize the model
+                    const modelName = modelModule.default.name; // Get the class name directly
+                    sequelizeService.models[modelName] = modelModule.default; // Store the model
+                    console.log(`Model ${modelName} initialized`);
                 }
                 else {
                     console.error(`Model init function is missing for ${file}`);
@@ -93,5 +92,5 @@ const sequelizeService = {
         }
     }),
 };
-// Export the sequelize service
 exports.default = sequelizeService;
+//# sourceMappingURL=sequelize.service.js.map

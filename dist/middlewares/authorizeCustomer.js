@@ -16,3 +16,4 @@ const authorizeCustomer = (req, res, next) => {
     next();
 };
 exports.default = authorizeCustomer;
+//# sourceMappingURL=authorizeCustomer.js.map

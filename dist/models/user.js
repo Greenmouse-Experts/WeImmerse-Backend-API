@@ -26,11 +26,14 @@ class User extends sequelize_1.Model {
     checkPassword(password) {
         return bcrypt_1.default.compare(password, this.password);
     }
-    // Association with OTP model
     static associate(models) {
         this.hasOne(models.OTP, {
             as: 'otp',
             foreignKey: 'userId', // Ensure the OTP model has a 'userId' column
+        });
+        this.hasMany(models.VendorSubscription, {
+            as: 'subscriptions',
+            foreignKey: 'vendorId'
         });
     }
 }
@@ -46,13 +49,18 @@ const initModel = (sequelize) => {
         gender: sequelize_1.DataTypes.STRING,
         email: {
             type: sequelize_1.DataTypes.STRING,
-            unique: true, // Ensure unique emails
+            unique: true,
+            allowNull: false, // You might want to enforce this
         },
         email_verified_at: sequelize_1.DataTypes.DATE,
-        password: sequelize_1.DataTypes.STRING,
+        password: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false, // Enforce password requirement
+        },
         phoneNumber: {
             type: sequelize_1.DataTypes.STRING,
-            unique: true
+            unique: true,
+            allowNull: false, // Enforce phone number requirement
         },
         dateOfBirth: sequelize_1.DataTypes.STRING,
         location: sequelize_1.DataTypes.JSON,
@@ -72,11 +80,8 @@ const initModel = (sequelize) => {
             attributes: { exclude: ["password"] },
         },
         scopes: {
-            withPassword: {
-                attributes: { include: ["password"] },
-            },
             auth: {
-                attributes: { include: ["email", "password", "status", "email_verified_at"] }, // Add necessary fields for authentication
+                attributes: { include: ["password"] }, // Add necessary fields for authentication
             },
         },
     });
@@ -90,3 +95,4 @@ const initModel = (sequelize) => {
 exports.initModel = initModel;
 // Export the User model and the init function
 exports.default = User; // Ensure User is exported as default
+//# sourceMappingURL=user.js.map

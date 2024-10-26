@@ -49,3 +49,4 @@ const sendMail = (email, subject, message, files = []) => __awaiter(void 0, void
     }
 });
 exports.sendMail = sendMail;
+//# sourceMappingURL=mail.service.js.map

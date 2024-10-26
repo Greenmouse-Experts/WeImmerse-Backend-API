@@ -18,7 +18,7 @@ class User extends Model {
   public password!: string;
   public phoneNumber!: string;
   public dateOfBirth?: string;
-  public location?: Location;
+  public location?: Location; // This will be serialized as JSON
   public photo?: string;
   public wallet?: string;
   public status?: "active" | "inactive";
@@ -35,11 +35,14 @@ class User extends Model {
     return bcrypt.compare(password, this.password);
   }
 
-  // Association with OTP model
-  static associate(models: any) {
+  static associate(models: any ) { // Define expected model types
     this.hasOne(models.OTP, {
       as: 'otp',
       foreignKey: 'userId', // Ensure the OTP model has a 'userId' column
+    });
+    this.hasMany(models.VendorSubscription, { 
+      as: 'subscriptions', 
+      foreignKey: 'vendorId' 
     });
   }
 }
@@ -58,12 +61,17 @@ const initModel = (sequelize: Sequelize) => {
       email: {
         type: DataTypes.STRING,
         unique: true, // Ensure unique emails
+        allowNull: false, // You might want to enforce this
       },
       email_verified_at: DataTypes.DATE,
-      password: DataTypes.STRING,
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false, // Enforce password requirement
+      },
       phoneNumber: {
         type: DataTypes.STRING,
-        unique: true
+        unique: true,
+        allowNull: false, // Enforce phone number requirement
       },
       dateOfBirth: DataTypes.STRING,
       location: DataTypes.JSON,
@@ -84,11 +92,8 @@ const initModel = (sequelize: Sequelize) => {
         attributes: { exclude: ["password"] },
       },
       scopes: {
-        withPassword: {
-          attributes: { include: ["password"] },
-        },
         auth: {
-          attributes: { include: ["email", "password", "status", "email_verified_at"] }, // Add necessary fields for authentication
+          attributes: { include: ["password"] }, // Add necessary fields for authentication
         },
       },
     }
@@ -100,7 +105,6 @@ const initModel = (sequelize: Sequelize) => {
       user.password = await User.hashPassword(user.password);
     }
   });
-  
 };
 
 // Export the User model and the init function

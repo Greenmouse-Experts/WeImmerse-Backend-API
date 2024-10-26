@@ -185,7 +185,7 @@ const confirmEmailUpdate = (req, res) => __awaiter(void 0, void 0, void 0, funct
             return;
         }
         // Check if the OTP has expired
-        if (new Date() > otpRecord.expiresAt) {
+        if (!otpRecord.expiresAt || new Date() > otpRecord.expiresAt) {
             res.status(400).json({ message: "OTP has expired." });
             return;
         }
@@ -277,7 +277,7 @@ const confirmPhoneNumberUpdate = (req, res) => __awaiter(void 0, void 0, void 0,
             return;
         }
         // Check if the OTP has expired
-        if (new Date() > otpRecord.expiresAt) {
+        if (!otpRecord.expiresAt || new Date() > otpRecord.expiresAt) {
             res.status(400).json({ message: "OTP has expired." });
             return;
         }
@@ -303,3 +303,4 @@ const confirmPhoneNumberUpdate = (req, res) => __awaiter(void 0, void 0, void 0,
     }
 });
 exports.confirmPhoneNumberUpdate = confirmPhoneNumberUpdate;
+//# sourceMappingURL=userController.js.map

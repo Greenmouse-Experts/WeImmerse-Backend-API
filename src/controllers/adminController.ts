@@ -190,7 +190,7 @@ export const subAdmins = async (
     logger.error("Error retrieving sub-admins:", error);
     res
       .status(500)
-      .json({ message: `Error retrieving sub-admins: ${error.message}` });
+      .json({ message: `Error retrieving sub-admins: ${error}` });
   }
 };
 
@@ -243,7 +243,7 @@ export const createSubAdmin = async (
     logger.error(error);
     res
       .status(400)
-      .json({ message: "Error creating sub-admin: ${error.message}" });
+      .json({ message: `Error creating sub-admin: ${error}` });
   }
 };
 
@@ -292,7 +292,7 @@ export const updateSubAdmin = async (
     logger.error("Error updating sub-admin:", error);
     res
       .status(400)
-      .json({ message: `Error updating sub-admin: ${error.message}` });
+      .json({ message: `Error updating sub-admin: ${error}` });
   }
 };
 
@@ -325,7 +325,7 @@ export const deactivateOrActivateSubAdmin = async (
     logger.error("Error updating sub-admin status:", error);
     res
       .status(500)
-      .json({ message: `Error updating sub-admin status: ${error.message}` });
+      .json({ message: `Error updating sub-admin status: ${error}` });
   }
 };
 
@@ -849,13 +849,7 @@ export const deleteSubscriptionPlan = async (
       .json({ message: "Subscription plan deleted successfully." });
   } catch (error) {
     logger.error("Error deleting subscription plan:", error);
-    if (error.name === "SequelizeForeignKeyConstraintError") {
-      res.status(400).json({
-        message: "Cannot delete plan: it is assigned to one or more vendors.",
-      });
-    } else {
-      res.status(500).json({ message: "Internal server error" });
-    }
+    res.status(500).json({ message: "Internal server error" });
   }
 };
 
@@ -883,7 +877,7 @@ export const getAllCategories = async (
 
     res.status(200).json({ data: categories });
   } catch (error) {
-    res.status(500).json({ message: "Error fetching categories", error });
+    res.status(500).json({ message: "Error fetching categories" });
   }
 };
 
@@ -922,7 +916,7 @@ export const createCategory = async (
     res.status(200).json({ message: "Category created successfully" });
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ message: "Error creating category", error });
+    res.status(500).json({ message: "Error creating category" });
   }
 };
 
@@ -977,7 +971,7 @@ export const updateCategory = async (
     console.error(error); // Use console.error instead of logger for debugging
     res
       .status(500)
-      .json({ message: "Error updating category", error: error.message });
+      .json({ message: "Error updating category" });
   }
 };
 
@@ -1000,6 +994,6 @@ export const deleteCategory = async (
     res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
     logger.error(error);
-    res.status(500).json({ message: "Error deleting category", error });
+    res.status(500).json({ message: "Error deleting category" });
   }
 };

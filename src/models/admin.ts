@@ -64,11 +64,8 @@ const initModel = (sequelize: Sequelize) => {
         attributes: { exclude: ["password"] },
       },
       scopes: {
-        withPassword: {
-          attributes: { include: ["password"] },
-        },
         auth: {
-          attributes: { include: ["email", "password", "status"] }, // Add necessary fields for authentication
+          attributes: { include: ["password"] }, // Add necessary fields for authentication
         },
       },
     }

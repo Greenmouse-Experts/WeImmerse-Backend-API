@@ -170,7 +170,7 @@ export const verifyEmail = async (
       }
 
       // Check if the OTP has expired
-      if (new Date() > otpRecord.expiresAt) {
+      if (!otpRecord.expiresAt || new Date() > otpRecord.expiresAt) {
         res.status(400).json({ message: "OTP has expired." });
         return;
       }
@@ -384,7 +384,7 @@ export const codeCheck = async (req: Request, res: Response): Promise<void> => {
     });
 
     // Check if OTP is valid
-    if (!otpRecord || otpRecord.expiresAt < new Date()) {
+    if (!otpRecord || !otpRecord.expiresAt || otpRecord.expiresAt < new Date()) {
       res.status(400).json({ message: "Invalid or expired OTP" });
       return;
     }

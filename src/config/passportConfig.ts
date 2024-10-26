@@ -8,11 +8,16 @@ passport.use(new FacebookStrategy({
     clientID: process.env.FACEBOOK_APP_ID!,
     clientSecret: process.env.FACEBOOK_APP_SECRET!,
     callbackURL: '/auth/facebook/callback',
-    profileFields: ['id', 'emails', 'name'] // You can ask for more fields
+    profileFields: ['id', 'emails', 'name']
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
-      const { email } = profile.emails[0];
+      // Type guard for profile.emails
+      if (!profile.emails || profile.emails.length === 0) {
+        return done(new Error('No email found for this user.'), null);
+      }
+      
+      const email = profile.emails[0].value; // Use the value property
       const existingUser = await User.findOne({ where: { email } });
       
       if (existingUser) {
@@ -22,8 +27,8 @@ passport.use(new FacebookStrategy({
       // Create a new user if they don't exist
       const newUser = await User.create({
         email,
-        firstName: profile.name.givenName,
-        lastName: profile.name.familyName,
+        firstName: profile.name?.givenName, // Optional chaining
+        lastName: profile.name?.familyName, // Optional chaining
         facebookId: profile.id // Save Facebook ID to associate with the user
       });
 
@@ -42,7 +47,12 @@ passport.use(new GoogleStrategy({
   },
   async (token, tokenSecret, profile, done) => {
     try {
-      const { email } = profile.emails[0];
+      // Type guard for profile.emails
+      if (!profile.emails || profile.emails.length === 0) {
+        return done(new Error('No email found for this user.'));
+      }
+      
+      const email = profile.emails[0].value; // Use the value property
       const existingUser = await User.findOne({ where: { email } });
       
       if (existingUser) {
@@ -52,14 +62,14 @@ passport.use(new GoogleStrategy({
       // Create a new user if they don't exist
       const newUser = await User.create({
         email,
-        firstName: profile.name.givenName,
-        lastName: profile.name.familyName,
+        firstName: profile.name?.givenName, // Optional chaining
+        lastName: profile.name?.familyName, // Optional chaining
         googleId: profile.id // Save Google ID to associate with the user
       });
 
       return done(null, newUser);
     } catch (error) {
-      return done(error, null);
+      return done(error);
     }
   }
 ));

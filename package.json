@@ -23,6 +23,8 @@
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.7.5",
     "@types/nodemailer": "^6.4.16",
+    "@types/passport-facebook": "^3.0.3",
+    "@types/passport-google-oauth20": "^2.0.16",
     "@types/uuid": "^10.0.0",
     "nodemon": "^3.1.7",
     "sequelize-cli": "^6.6.2",
