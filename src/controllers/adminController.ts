@@ -1,7 +1,7 @@
 // src/controllers/userController.ts
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
-import { Op } from "sequelize";
+import { Op, Sequelize } from "sequelize";
 import { generateOTP } from "../utils/helpers";
 import { sendMail } from "../services/mail.service";
 import { emailTemplates } from "../utils/messages";
@@ -13,6 +13,8 @@ import Role from "../models/role";
 import Permission from "../models/permission";
 import RolePermission from "../models/rolepermission";
 import SubscriptionPlan from "../models/subscriptionplan";
+import Category from "../models/category";
+import { Logger } from "winston";
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -813,9 +815,7 @@ export const updateSubscriptionPlan = async (
     plan.auctionProductLimit = auctionProductLimit;
     await plan.save();
 
-    res
-      .status(200)
-      .json({ message: "Subscription plan updated successfully" });
+    res.status(200).json({ message: "Subscription plan updated successfully" });
   } catch (error) {
     logger.error("Error updating subscription plan:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -826,7 +826,7 @@ export const deleteSubscriptionPlan = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const planId  = req.query.planId as string;
+  const planId = req.query.planId as string;
 
   try {
     // Fetch the subscription plan
@@ -856,5 +856,150 @@ export const deleteSubscriptionPlan = async (
     } else {
       res.status(500).json({ message: "Internal server error" });
     }
+  }
+};
+
+export const getAllCategories = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { name } = req.query;
+
+  try {
+    const categories = await Category.findAll({
+      where: name ? { name: { [Op.iLike]: `%${name}%` } } : {}, // Search by name if provided
+      attributes: {
+        include: [
+          [
+            // Count the total number of subcategories without including them in the result
+            Sequelize.literal(
+              `(SELECT COUNT(*) FROM sub_categories WHERE sub_categories.categoryId = Category.id)`
+            ),
+            "subCategoryCount",
+          ],
+        ],
+      },
+    });
+
+    res.status(200).json({ data: categories });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching categories", error });
+  }
+};
+
+// Create a category
+export const createCategory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { name, image } = req.body;
+
+  // Validate name and image fields
+  if (!name || typeof name !== "string") {
+    res
+      .status(400)
+      .json({ message: "Category name is required and must be a string" });
+    return;
+  }
+
+  if (!image || typeof image !== "string") {
+    res
+      .status(400)
+      .json({ message: "Image URL is required and must be a string" });
+    return;
+  }
+
+  try {
+    // Check if the category name already exists
+    const existingCategory = await Category.findOne({ where: { name } });
+    if (existingCategory) {
+      res.status(400).json({ message: "Category name already exists" });
+      return;
+    }
+
+    // Create the new category
+    const category = await Category.create({ name, image });
+    res.status(200).json({ message: "Category created successfully" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: "Error creating category", error });
+  }
+};
+
+export const updateCategory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { categoryId, name, image } = req.body;
+
+  // Validate categoryId
+  if (!categoryId) {
+    res.status(400).json({ message: "Category ID is required" });
+    return;
+  }
+
+  // Validate name
+  if (!name || typeof name !== "string") {
+    res.status(400).json({ message: "Valid category name is required" });
+    return;
+  }
+
+  // Validate image
+  if (!image || typeof image !== "string") {
+    res.status(400).json({ message: "Valid image URL is required" });
+    return;
+  }
+
+  try {
+    // Check if another category with the same name exists, excluding the current category
+    const existingCategory = await Category.findOne({
+      where: { name, id: { [Op.ne]: categoryId } },
+    });
+
+    if (existingCategory) {
+      res.status(400).json({ message: "Category name already in use" });
+      return; // Ensure the function returns after sending a response
+    }
+
+    // Fetch category by ID to update
+    const category = await Category.findByPk(categoryId);
+    if (!category) {
+      res.status(404).json({ message: "Category not found" });
+      return; // Ensure the function returns after sending a response
+    }
+
+    // Update the category
+    await category.update({ name, image });
+
+    // Send the success response
+    res.status(200).json({ message: "Category updated successfully" });
+  } catch (error) {
+    console.error(error); // Use console.error instead of logger for debugging
+    res
+      .status(500)
+      .json({ message: "Error updating category", error: error.message });
+  }
+};
+
+// Delete a category
+export const deleteCategory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const categoryId = req.query.categoryId as string;
+
+  try {
+    const category = await Category.findByPk(categoryId);
+
+    if (!category) {
+      res.status(404).json({ message: "Category not found" });
+      return;
+    }
+
+    await category.destroy();
+    res.status(200).json({ message: "Category deleted successfully" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: "Error deleting category", error });
   }
 };

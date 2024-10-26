@@ -461,9 +461,8 @@ export const adminLogin = async (
 
   try {
     // Find admin by email
-    const admin = await Admin.findOne({
+    const admin = await Admin.scope("auth").findOne({
       where: { email },
-      attributes: ["email", "password", "status"],
       include: [
         {
           model: Role, // Assuming you've imported the Role model

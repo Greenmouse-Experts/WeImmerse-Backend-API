@@ -47,4 +47,13 @@ adminRoutes.post('/subscription/plan/create', adminAuthMiddleware, createSubscri
 adminRoutes.put('/subscription/plan/update', adminAuthMiddleware, updateSubscriptionPlanValidationRules(), validate, adminController.updateSubscriptionPlan);
 adminRoutes.delete('/subscription/plan/delete', adminAuthMiddleware, adminController.deleteSubscriptionPlan);
 
+// Create a category
+adminRoutes.post('/categories', adminAuthMiddleware, adminController.createCategory);
+// Update a category
+adminRoutes.put('/categories', adminAuthMiddleware, adminController.updateCategory);
+// Delete a category
+adminRoutes.delete('/categories', adminAuthMiddleware, adminController.deleteCategory);
+// Fetch all categories
+adminRoutes.get('/categories', adminAuthMiddleware, adminController.getAllCategories);
+
 export default adminRoutes; // Export the router
