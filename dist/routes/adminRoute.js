@@ -69,5 +69,10 @@ adminRoutes.put('/categories', adminAuthMiddleware_1.default, adminController.up
 adminRoutes.delete('/categories', adminAuthMiddleware_1.default, adminController.deleteCategory);
 // Fetch all categories
 adminRoutes.get('/categories', adminAuthMiddleware_1.default, adminController.getAllCategories);
+adminRoutes.get('/categories/sub/categories', adminAuthMiddleware_1.default, adminController.getCategoriesWithSubCategories);
+adminRoutes.post('/sub/categories', adminAuthMiddleware_1.default, adminController.createSubCategory);
+adminRoutes.put('/sub/categories', adminAuthMiddleware_1.default, adminController.updateSubCategory);
+adminRoutes.delete('/sub/categories', adminAuthMiddleware_1.default, adminController.deleteSubCategory);
+adminRoutes.get('/sub/categories', adminAuthMiddleware_1.default, adminController.getAllSubCategories);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map

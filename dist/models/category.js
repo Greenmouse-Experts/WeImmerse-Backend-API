@@ -6,7 +6,7 @@ class Category extends sequelize_1.Model {
     static associate(models) {
         this.hasMany(models.SubCategory, {
             foreignKey: 'categoryId',
-            as: 'subcategories',
+            as: 'subCategories',
             onDelete: 'RESTRICT', // Prevent deletion if subcategories exist
         });
     }

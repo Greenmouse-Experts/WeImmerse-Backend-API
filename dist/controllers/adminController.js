@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getAllCategories = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.getAllSubCategories = exports.deleteSubCategory = exports.updateSubCategory = exports.createSubCategory = exports.getCategoriesWithSubCategories = exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getAllCategories = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -25,6 +25,7 @@ const permission_1 = __importDefault(require("../models/permission"));
 const rolepermission_1 = __importDefault(require("../models/rolepermission"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
 const category_1 = __importDefault(require("../models/category"));
+const subcategory_1 = __importDefault(require("../models/subcategory"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -164,9 +165,7 @@ const subAdmins = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         logger_1.default.error("Error retrieving sub-admins:", error);
-        res
-            .status(500)
-            .json({ message: `Error retrieving sub-admins: ${error}` });
+        res.status(500).json({ message: `Error retrieving sub-admins: ${error}` });
     }
 });
 exports.subAdmins = subAdmins;
@@ -206,9 +205,7 @@ const createSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
     catch (error) {
         logger_1.default.error(error);
-        res
-            .status(400)
-            .json({ message: `Error creating sub-admin: ${error}` });
+        res.status(400).json({ message: `Error creating sub-admin: ${error}` });
     }
 });
 exports.createSubAdmin = createSubAdmin;
@@ -248,9 +245,7 @@ const updateSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         // Log and send the error message in the response
         logger_1.default.error("Error updating sub-admin:", error);
-        res
-            .status(400)
-            .json({ message: `Error updating sub-admin: ${error}` });
+        res.status(400).json({ message: `Error updating sub-admin: ${error}` });
     }
 });
 exports.updateSubAdmin = updateSubAdmin;
@@ -687,8 +682,15 @@ const deleteSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
             .json({ message: "Subscription plan deleted successfully." });
     }
     catch (error) {
-        logger_1.default.error("Error deleting subscription plan:", error);
-        res.status(500).json({ message: "Internal server error" });
+        if (error instanceof sequelize_1.ForeignKeyConstraintError) {
+            res.status(400).json({
+                message: "Cannot delete subscription plan because it is currently assigned to one or more vendors. Please reassign or delete these associations before proceeding.",
+            });
+        }
+        else {
+            logger_1.default.error("Error deleting subscription plan:", error);
+            res.status(500).json({ message: "Error deleting subscription plan" });
+        }
     }
 });
 exports.deleteSubscriptionPlan = deleteSubscriptionPlan;
@@ -696,7 +698,7 @@ const getAllCategories = (req, res) => __awaiter(void 0, void 0, void 0, functio
     const { name } = req.query;
     try {
         const categories = yield category_1.default.findAll({
-            where: name ? { name: { [sequelize_1.Op.iLike]: `%${name}%` } } : {},
+            where: name ? { name: { [sequelize_1.Op.like]: `%${name}%` } } : {},
             attributes: {
                 include: [
                     [
@@ -710,6 +712,7 @@ const getAllCategories = (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(200).json({ data: categories });
     }
     catch (error) {
+        console.error("Error fetching categories:", error);
         res.status(500).json({ message: "Error fetching categories" });
     }
 });
@@ -785,10 +788,8 @@ const updateCategory = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(200).json({ message: "Category updated successfully" });
     }
     catch (error) {
-        console.error(error); // Use console.error instead of logger for debugging
-        res
-            .status(500)
-            .json({ message: "Error updating category" });
+        logger_1.default.error(error); // Use logger.error instead of logger for debugging
+        res.status(500).json({ message: "Error updating category" });
     }
 });
 exports.updateCategory = updateCategory;
@@ -805,9 +806,164 @@ const deleteCategory = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(200).json({ message: "Category deleted successfully" });
     }
     catch (error) {
-        logger_1.default.error(error);
-        res.status(500).json({ message: "Error deleting category" });
+        if (error instanceof sequelize_1.ForeignKeyConstraintError) {
+            res.status(400).json({
+                message: "Cannot delete category because it has associated sub-categories. Delete or reassign sub-categories before deleting this category.",
+            });
+        }
+        else {
+            logger_1.default.error(error);
+            res.status(500).json({ message: "Error deleting category" });
+        }
     }
 });
 exports.deleteCategory = deleteCategory;
+const getCategoriesWithSubCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const categories = yield category_1.default.findAll({
+            include: [
+                {
+                    model: subcategory_1.default,
+                    as: "subCategories", // alias used in the association
+                },
+            ],
+            attributes: ["id", "name", "image"],
+            order: [["name", "ASC"]], // sort categories alphabetically, for example
+        });
+        res.status(200).json({ data: categories });
+    }
+    catch (error) {
+        console.error("Error fetching categories with subcategories:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.getCategoriesWithSubCategories = getCategoriesWithSubCategories;
+// Create a sub_category
+const createSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { categoryId, name, image } = req.body;
+    if (!categoryId || !name) {
+        res.status(400).json({ message: "Category ID and name are required" });
+        return;
+    }
+    if (!image || typeof image !== "string") {
+        res
+            .status(400)
+            .json({ message: "Image URL is required and must be a string" });
+        return;
+    }
+    try {
+        // Check if a sub_category with the same name already exists within the same category
+        const existingSubCategory = yield subcategory_1.default.findOne({
+            where: { name, categoryId },
+        });
+        if (existingSubCategory) {
+            res.status(400).json({
+                message: "Sub-category name already exists within this category",
+            });
+            return;
+        }
+        const checkCategory = yield category_1.default.findByPk(categoryId);
+        if (!checkCategory) {
+            res.status(404).json({
+                message: "Category not found",
+            });
+            return;
+        }
+        // Create new sub_category
+        const newSubCategory = yield subcategory_1.default.create({
+            categoryId,
+            name,
+            image,
+        });
+        res.status(200).json({
+            message: "Sub-category created successfully",
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: "Error creating sub-category" });
+    }
+});
+exports.createSubCategory = createSubCategory;
+// Update a sub_category
+const updateSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { subCategoryId, categoryId, name, image } = req.body;
+    if (!categoryId) {
+        res.status(400).json({ message: "Category ID is required" });
+        return;
+    }
+    if (!subCategoryId || !name) {
+        res.status(400).json({ message: "Sub-category ID and name are required" });
+        return;
+    }
+    if (!image || typeof image !== "string") {
+        res
+            .status(400)
+            .json({ message: "Image URL is required and must be a string" });
+        return;
+    }
+    try {
+        // Check if another sub_category with the same name exists within the same category
+        const existingSubCategory = yield subcategory_1.default.findOne({
+            where: { name, categoryId, id: { [sequelize_1.Op.ne]: subCategoryId } },
+        });
+        if (existingSubCategory) {
+            res.status(400).json({
+                message: "Sub-category name already exists within this category",
+            });
+            return;
+        }
+        // Fetch sub_category by ID to update
+        const subCategory = yield subcategory_1.default.findByPk(subCategoryId);
+        if (!subCategory) {
+            res.status(404).json({ message: "Sub-category not found" });
+            return;
+        }
+        // Update the sub_category
+        yield subCategory.update({ name, image });
+        res.status(200).json({ message: "Sub-category updated successfully" });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: "Error updating sub-category" });
+    }
+});
+exports.updateSubCategory = updateSubCategory;
+// Delete a sub_category
+const deleteSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const subCategoryId = req.query.subCategoryId;
+    if (!subCategoryId) {
+        res.status(400).json({ message: "Sub-category ID is required" });
+        return;
+    }
+    try {
+        const subCategory = yield subcategory_1.default.findByPk(subCategoryId);
+        if (!subCategory) {
+            res.status(404).json({ message: "Sub-category not found" });
+            return;
+        }
+        yield subCategory.destroy();
+        res.status(200).json({ message: "Sub-category deleted successfully" });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: "Error deleting sub-category" });
+    }
+});
+exports.deleteSubCategory = deleteSubCategory;
+// Fetch all sub_categories (optional query by name)
+const getAllSubCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name } = req.query;
+    try {
+        // Query with name filter if provided
+        const whereClause = name ? { name: { [sequelize_1.Op.like]: `%${name}%` } } : {};
+        const subCategories = yield subcategory_1.default.findAll({ where: whereClause });
+        res.status(200).json({ subCategories });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: "Error fetching sub-categories" });
+    }
+});
+exports.getAllSubCategories = getAllSubCategories;
 //# sourceMappingURL=adminController.js.map
