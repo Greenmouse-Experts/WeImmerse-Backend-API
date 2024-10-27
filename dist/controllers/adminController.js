@@ -453,6 +453,13 @@ exports.assignPermissionToRole = assignPermissionToRole;
 const deletePermissionFromRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { roleId, permissionId } = req.query;
     try {
+        const role = yield role_1.default.findOne({
+            where: { id: roleId },
+        });
+        if (!role) {
+            res.status(404).json({ message: "Role not found" });
+            return;
+        }
         const rolePermission = yield rolepermission_1.default.findOne({
             where: { roleId, permissionId },
         });
@@ -768,6 +775,13 @@ const updateCategory = (req, res) => __awaiter(void 0, void 0, void 0, function*
         return;
     }
     try {
+        const checkCategory = yield category_1.default.findByPk(categoryId);
+        if (!checkCategory) {
+            res.status(404).json({
+                message: "Category not found",
+            });
+            return;
+        }
         // Check if another category with the same name exists, excluding the current category
         const existingCategory = yield category_1.default.findOne({
             where: { name, id: { [sequelize_1.Op.ne]: categoryId } },
@@ -852,6 +866,13 @@ const createSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
         return;
     }
     try {
+        const checkCategory = yield category_1.default.findByPk(categoryId);
+        if (!checkCategory) {
+            res.status(404).json({
+                message: "Category not found",
+            });
+            return;
+        }
         // Check if a sub_category with the same name already exists within the same category
         const existingSubCategory = yield subcategory_1.default.findOne({
             where: { name, categoryId },
@@ -859,13 +880,6 @@ const createSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
         if (existingSubCategory) {
             res.status(400).json({
                 message: "Sub-category name already exists within this category",
-            });
-            return;
-        }
-        const checkCategory = yield category_1.default.findByPk(categoryId);
-        if (!checkCategory) {
-            res.status(404).json({
-                message: "Category not found",
             });
             return;
         }
@@ -903,6 +917,19 @@ const updateSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
         return;
     }
     try {
+        const checkCategory = yield category_1.default.findByPk(categoryId);
+        if (!checkCategory) {
+            res.status(404).json({
+                message: "Category not found",
+            });
+            return;
+        }
+        // Fetch sub_category by ID to update
+        const subCategory = yield subcategory_1.default.findByPk(subCategoryId);
+        if (!subCategory) {
+            res.status(404).json({ message: "Sub-category not found" });
+            return;
+        }
         // Check if another sub_category with the same name exists within the same category
         const existingSubCategory = yield subcategory_1.default.findOne({
             where: { name, categoryId, id: { [sequelize_1.Op.ne]: subCategoryId } },
@@ -911,12 +938,6 @@ const updateSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
             res.status(400).json({
                 message: "Sub-category name already exists within this category",
             });
-            return;
-        }
-        // Fetch sub_category by ID to update
-        const subCategory = yield subcategory_1.default.findByPk(subCategoryId);
-        if (!subCategory) {
-            res.status(404).json({ message: "Sub-category not found" });
             return;
         }
         // Update the sub_category

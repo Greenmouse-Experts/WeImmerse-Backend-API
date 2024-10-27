@@ -550,6 +550,15 @@ export const deletePermissionFromRole = async (
   const { roleId, permissionId } = req.query;
 
   try {
+    const role = await Role.findOne({
+        where: { id: roleId },
+    });
+
+    if (!role) {
+      res.status(404).json({ message: "Role not found" });
+      return;
+    }
+    
     const rolePermission = await RolePermission.findOne({
       where: { roleId, permissionId },
     });
@@ -948,6 +957,14 @@ export const updateCategory = async (
   }
 
   try {
+    const checkCategory = await Category.findByPk(categoryId);
+    if (!checkCategory) {
+      res.status(404).json({
+        message: "Category not found",
+      });
+      return;
+    }
+
     // Check if another category with the same name exists, excluding the current category
     const existingCategory = await Category.findOne({
       where: { name, id: { [Op.ne]: categoryId } },
@@ -1049,6 +1066,14 @@ export const createSubCategory = async (
   }
 
   try {
+    const checkCategory = await Category.findByPk(categoryId);
+    if (!checkCategory) {
+      res.status(404).json({
+        message: "Category not found",
+      });
+      return;
+    }
+
     // Check if a sub_category with the same name already exists within the same category
     const existingSubCategory = await SubCategory.findOne({
       where: { name, categoryId },
@@ -1056,14 +1081,6 @@ export const createSubCategory = async (
     if (existingSubCategory) {
       res.status(400).json({
         message: "Sub-category name already exists within this category",
-      });
-      return;
-    }
-
-    const checkCategory = await Category.findByPk(categoryId);
-    if (!checkCategory) {
-      res.status(404).json({
-        message: "Category not found",
       });
       return;
     }
@@ -1108,6 +1125,21 @@ export const updateSubCategory = async (
   }
 
   try {
+    const checkCategory = await Category.findByPk(categoryId);
+    if (!checkCategory) {
+      res.status(404).json({
+        message: "Category not found",
+      });
+      return;
+    }
+
+    // Fetch sub_category by ID to update
+    const subCategory = await SubCategory.findByPk(subCategoryId);
+    if (!subCategory) {
+        res.status(404).json({ message: "Sub-category not found" });
+        return;
+    }
+
     // Check if another sub_category with the same name exists within the same category
     const existingSubCategory = await SubCategory.findOne({
       where: { name, categoryId, id: { [Op.ne]: subCategoryId } },
@@ -1116,13 +1148,6 @@ export const updateSubCategory = async (
       res.status(400).json({
         message: "Sub-category name already exists within this category",
       });
-      return;
-    }
-
-    // Fetch sub_category by ID to update
-    const subCategory = await SubCategory.findByPk(subCategoryId);
-    if (!subCategory) {
-      res.status(404).json({ message: "Sub-category not found" });
       return;
     }
 
