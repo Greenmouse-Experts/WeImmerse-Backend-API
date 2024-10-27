@@ -15,7 +15,7 @@ module.exports = {
           model: 'categories',
           key: 'id',
         },
-        onDelete: 'RESTRICT', // Prevent deletion if associated with a category
+        onDelete: 'CASCADE',
       },
       image: {
         type: Sequelize.TEXT,
@@ -36,6 +36,18 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       }
+    });
+
+    // Add foreign key constraint for subscriptionPlanId
+    await queryInterface.addConstraint('sub_categories', {
+      fields: ['categoryId'],
+      type: 'foreign key',
+      name: 'fk_category_id',
+      references: {
+        table: 'categories',
+        field: 'id',
+      },
+      onDelete: 'RESTRICT', // Prevent deletion if referenced in vendor_subscriptions
     });
   },
   async down(queryInterface, Sequelize) {

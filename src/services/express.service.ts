@@ -10,6 +10,7 @@ import globalErrorHandler from '../middlewares/errorMiddleware';
 import apiRouter from '../routes/authRoute';
 import userRouter from '../routes/userRoute';
 import adminRouter from '../routes/adminRoute';
+import vendorRouter from '../routes/vendorRoute';
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ const createExpressApp = () => {
     // Use your routes
     app.use("/api", apiRouter);
     app.use("/api/user", userRouter);
+    app.use("/api/vendor", vendorRouter);
     app.use("/api/admin", adminRouter);
 
     // 404 handler (this should come after routes)

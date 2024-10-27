@@ -1,7 +1,7 @@
 // src/controllers/userController.ts
 import { Request, Response, NextFunction } from "express";
 import bcrypt from "bcrypt";
-import { Op, Sequelize } from "sequelize";
+import { Op, Sequelize, ForeignKeyConstraintError } from "sequelize";
 import { generateOTP } from "../utils/helpers";
 import { sendMail } from "../services/mail.service";
 import { emailTemplates } from "../utils/messages";
@@ -15,6 +15,7 @@ import RolePermission from "../models/rolepermission";
 import SubscriptionPlan from "../models/subscriptionplan";
 import Category from "../models/category";
 import { Logger } from "winston";
+import SubCategory from "../models/subcategory";
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -188,9 +189,7 @@ export const subAdmins = async (
       .json({ message: "Sub-admins retrieved successfully", data: subAdmins });
   } catch (error) {
     logger.error("Error retrieving sub-admins:", error);
-    res
-      .status(500)
-      .json({ message: `Error retrieving sub-admins: ${error}` });
+    res.status(500).json({ message: `Error retrieving sub-admins: ${error}` });
   }
 };
 
@@ -241,9 +240,7 @@ export const createSubAdmin = async (
     res.status(200).json({ message: "Sub Admin created successfully." });
   } catch (error) {
     logger.error(error);
-    res
-      .status(400)
-      .json({ message: `Error creating sub-admin: ${error}` });
+    res.status(400).json({ message: `Error creating sub-admin: ${error}` });
   }
 };
 
@@ -290,9 +287,7 @@ export const updateSubAdmin = async (
   } catch (error) {
     // Log and send the error message in the response
     logger.error("Error updating sub-admin:", error);
-    res
-      .status(400)
-      .json({ message: `Error updating sub-admin: ${error}` });
+    res.status(400).json({ message: `Error updating sub-admin: ${error}` });
   }
 };
 
@@ -848,8 +843,15 @@ export const deleteSubscriptionPlan = async (
       .status(200)
       .json({ message: "Subscription plan deleted successfully." });
   } catch (error) {
-    logger.error("Error deleting subscription plan:", error);
-    res.status(500).json({ message: "Internal server error" });
+    if (error instanceof ForeignKeyConstraintError) {
+      res.status(400).json({
+        message:
+          "Cannot delete subscription plan because it is currently assigned to one or more vendors. Please reassign or delete these associations before proceeding.",
+      });
+    } else {
+      logger.error("Error deleting subscription plan:", error);
+      res.status(500).json({ message: "Error deleting subscription plan" });
+    }
   }
 };
 
@@ -861,7 +863,7 @@ export const getAllCategories = async (
 
   try {
     const categories = await Category.findAll({
-      where: name ? { name: { [Op.iLike]: `%${name}%` } } : {}, // Search by name if provided
+      where: name ? { name: { [Op.like]: `%${name}%` } } : {}, // Search by name if provided
       attributes: {
         include: [
           [
@@ -877,6 +879,7 @@ export const getAllCategories = async (
 
     res.status(200).json({ data: categories });
   } catch (error) {
+    console.error("Error fetching categories:", error);
     res.status(500).json({ message: "Error fetching categories" });
   }
 };
@@ -968,10 +971,8 @@ export const updateCategory = async (
     // Send the success response
     res.status(200).json({ message: "Category updated successfully" });
   } catch (error) {
-    console.error(error); // Use console.error instead of logger for debugging
-    res
-      .status(500)
-      .json({ message: "Error updating category" });
+    logger.error(error); // Use logger.error instead of logger for debugging
+    res.status(500).json({ message: "Error updating category" });
   }
 };
 
@@ -993,7 +994,189 @@ export const deleteCategory = async (
     await category.destroy();
     res.status(200).json({ message: "Category deleted successfully" });
   } catch (error) {
+    if (error instanceof ForeignKeyConstraintError) {
+      res.status(400).json({
+        message:
+          "Cannot delete category because it has associated sub-categories. Delete or reassign sub-categories before deleting this category.",
+      });
+    } else {
+      logger.error(error);
+      res.status(500).json({ message: "Error deleting category" });
+    }
+  }
+};
+
+export const getCategoriesWithSubCategories = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const categories = await Category.findAll({
+      include: [
+        {
+          model: SubCategory,
+          as: "subCategories", // alias used in the association
+        },
+      ],
+      attributes: ["id", "name", "image"], // select specific fields in Category
+      order: [["name", "ASC"]], // sort categories alphabetically, for example
+    });
+
+    res.status(200).json({ data: categories });
+  } catch (error) {
+    console.error("Error fetching categories with subcategories:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Create a sub_category
+export const createSubCategory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { categoryId, name, image } = req.body;
+
+  if (!categoryId || !name) {
+    res.status(400).json({ message: "Category ID and name are required" });
+    return;
+  }
+
+  if (!image || typeof image !== "string") {
+    res
+      .status(400)
+      .json({ message: "Image URL is required and must be a string" });
+    return;
+  }
+
+  try {
+    // Check if a sub_category with the same name already exists within the same category
+    const existingSubCategory = await SubCategory.findOne({
+      where: { name, categoryId },
+    });
+    if (existingSubCategory) {
+      res.status(400).json({
+        message: "Sub-category name already exists within this category",
+      });
+      return;
+    }
+
+    const checkCategory = await Category.findByPk(categoryId);
+    if (!checkCategory) {
+      res.status(404).json({
+        message: "Category not found",
+      });
+      return;
+    }
+
+    // Create new sub_category
+    const newSubCategory = await SubCategory.create({
+      categoryId,
+      name,
+      image,
+    });
+    res.status(200).json({
+      message: "Sub-category created successfully",
+    });
+  } catch (error) {
     logger.error(error);
-    res.status(500).json({ message: "Error deleting category" });
+    res.status(500).json({ message: "Error creating sub-category" });
+  }
+};
+
+// Update a sub_category
+export const updateSubCategory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { subCategoryId, categoryId, name, image } = req.body;
+
+  if (!categoryId) {
+    res.status(400).json({ message: "Category ID is required" });
+    return;
+  }
+
+  if (!subCategoryId || !name) {
+    res.status(400).json({ message: "Sub-category ID and name are required" });
+    return;
+  }
+
+  if (!image || typeof image !== "string") {
+    res
+      .status(400)
+      .json({ message: "Image URL is required and must be a string" });
+    return;
+  }
+
+  try {
+    // Check if another sub_category with the same name exists within the same category
+    const existingSubCategory = await SubCategory.findOne({
+      where: { name, categoryId, id: { [Op.ne]: subCategoryId } },
+    });
+    if (existingSubCategory) {
+      res.status(400).json({
+        message: "Sub-category name already exists within this category",
+      });
+      return;
+    }
+
+    // Fetch sub_category by ID to update
+    const subCategory = await SubCategory.findByPk(subCategoryId);
+    if (!subCategory) {
+      res.status(404).json({ message: "Sub-category not found" });
+      return;
+    }
+
+    // Update the sub_category
+    await subCategory.update({ name, image });
+    res.status(200).json({ message: "Sub-category updated successfully" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: "Error updating sub-category" });
+  }
+};
+
+// Delete a sub_category
+export const deleteSubCategory = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const subCategoryId = req.query.subCategoryId as string;
+
+  if (!subCategoryId) {
+    res.status(400).json({ message: "Sub-category ID is required" });
+    return;
+  }
+
+  try {
+    const subCategory = await SubCategory.findByPk(subCategoryId);
+    if (!subCategory) {
+      res.status(404).json({ message: "Sub-category not found" });
+      return;
+    }
+
+    await subCategory.destroy();
+    res.status(200).json({ message: "Sub-category deleted successfully" });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: "Error deleting sub-category" });
+  }
+};
+
+// Fetch all sub_categories (optional query by name)
+export const getAllSubCategories = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { name } = req.query;
+
+  try {
+    // Query with name filter if provided
+    const whereClause = name ? { name: { [Op.like]: `%${name}%` } } : {};
+
+    const subCategories = await SubCategory.findAll({ where: whereClause });
+    res.status(200).json({ subCategories });
+  } catch (error) {
+    logger.error(error);
+    res.status(500).json({ message: "Error fetching sub-categories" });
   }
 };

@@ -10,7 +10,7 @@ class Category extends Model {
   static associate(models: any) {
     this.hasMany(models.SubCategory, {
       foreignKey: 'categoryId',
-      as: 'subcategories',
+      as: 'subCategories',
       onDelete: 'RESTRICT', // Prevent deletion if subcategories exist
     });
   }
