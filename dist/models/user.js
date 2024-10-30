@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
+const kyc_1 = __importDefault(require("./kyc"));
 class User extends sequelize_1.Model {
     // Method to hash the password before saving
     static hashPassword(password) {
@@ -34,6 +35,12 @@ class User extends sequelize_1.Model {
         this.hasMany(models.VendorSubscription, {
             as: 'subscriptions',
             foreignKey: 'vendorId'
+        });
+    }
+    // Add method to fetch KYC record
+    getKyc() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield kyc_1.default.findOne({ where: { vendorId: this.id } }); // Assuming KYC has a userId field linking to User
         });
     }
 }

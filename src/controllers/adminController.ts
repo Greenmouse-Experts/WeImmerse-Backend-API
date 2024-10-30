@@ -16,6 +16,8 @@ import SubscriptionPlan from "../models/subscriptionplan";
 import Category from "../models/category";
 import { Logger } from "winston";
 import SubCategory from "../models/subcategory";
+import User from "../models/user";
+import KYC from "../models/kyc";
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -551,14 +553,14 @@ export const deletePermissionFromRole = async (
 
   try {
     const role = await Role.findOne({
-        where: { id: roleId },
+      where: { id: roleId },
     });
 
     if (!role) {
       res.status(404).json({ message: "Role not found" });
       return;
     }
-    
+
     const rolePermission = await RolePermission.findOne({
       where: { roleId, permissionId },
     });
@@ -888,7 +890,7 @@ export const getAllCategories = async (
 
     res.status(200).json({ data: categories });
   } catch (error) {
-    console.error("Error fetching categories:", error);
+    logger.error("Error fetching categories:", error);
     res.status(500).json({ message: "Error fetching categories" });
   }
 };
@@ -1041,7 +1043,7 @@ export const getCategoriesWithSubCategories = async (
 
     res.status(200).json({ data: categories });
   } catch (error) {
-    console.error("Error fetching categories with subcategories:", error);
+    logger.error("Error fetching categories with subcategories:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -1136,8 +1138,8 @@ export const updateSubCategory = async (
     // Fetch sub_category by ID to update
     const subCategory = await SubCategory.findByPk(subCategoryId);
     if (!subCategory) {
-        res.status(404).json({ message: "Sub-category not found" });
-        return;
+      res.status(404).json({ message: "Sub-category not found" });
+      return;
     }
 
     // Check if another sub_category with the same name exists within the same category
@@ -1203,5 +1205,106 @@ export const getAllSubCategories = async (
   } catch (error) {
     logger.error(error);
     res.status(500).json({ message: "Error fetching sub-categories" });
+  }
+};
+
+// KYC
+export const getAllKYC = async (req: Request, res: Response): Promise<void> => {
+  const { email, firstName, lastName } = req.query;
+
+  try {
+    // Build query filters
+    const userFilter: any = {};
+    if (email) userFilter.email = { [Op.like]: `%${email}%` };
+    if (firstName) userFilter.firstName = { [Op.like]: `%${firstName}%` };
+    if (lastName) userFilter.lastName = { [Op.like]: `%${lastName}%` };
+
+    // Fetch all KYC records with User relationship
+    const kycRecords = await KYC.findAll({
+      include: [
+        {
+          model: User,
+          as: "user",
+          where: userFilter,
+        },
+      ],
+    });
+
+    res.status(200).json({ data: kycRecords });
+  } catch (error) {
+    logger.error("Error retrieving KYC records:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const approveOrRejectKYC = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const { kycId, isVerified, note } = req.body; // Approve flag and note from request body
+
+  try {
+    // Find the KYC record by ID
+    const kycRecord = await KYC.findByPk(kycId, {
+      include: [
+        {
+          model: User,
+          as: "user",
+        },
+      ],
+    });
+
+    if (!kycRecord) {
+      res.status(404).json({ message: "KYC record not found" });
+      return;
+    }
+
+    // Safely access the user property
+    const user = kycRecord.user; // This should now work if the relationship is correctly defined
+
+    // Check if user exists
+    if (!user) {
+      res.status(404).json({ message: "User not found for the KYC record." });
+      return;
+    }
+
+    // Approve or reject with a note
+    kycRecord.isVerified = isVerified;
+    kycRecord.adminNote = isVerified
+      ? "Approved by admin"
+      : note || "Rejected without a note";
+
+    // Save the updated record
+    await kycRecord.save();
+
+    // Prepare email notification
+    const isApproved = isVerified;
+    const message = emailTemplates.kycStatusUpdate(
+      user,
+      isApproved,
+      kycRecord.adminNote
+    );
+
+    // Send email notification
+    try {
+      await sendMail(
+        user.email,
+        `${process.env.APP_NAME} - Your KYC Status Update`,
+        message
+      );
+    } catch (emailError) {
+      logger.error("Error sending email:", emailError); // Log error for internal use
+      // Optionally handle this scenario (e.g., revert KYC status)
+    }
+
+    // Send response
+    res.status(200).json({
+      message: isApproved
+        ? "KYC approved successfully"
+        : "KYC rejected with note",
+    });
+  } catch (error) {
+    logger.error("Error approving/rejecting KYC:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

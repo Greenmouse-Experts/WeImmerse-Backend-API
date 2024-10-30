@@ -285,6 +285,84 @@ export const updateSubscriptionPlanValidationRules = () => {
   ];
 };
 
+export const kycValidationRules = () => {
+  return [
+    check("businessName")
+      .not()
+      .isEmpty()
+      .withMessage("Business name is required")
+      .isLength({ min: 2, max: 100 })
+      .withMessage("Business name must be between 2 and 100 characters"),
+
+    check("contactEmail")
+      .not()
+      .isEmpty()
+      .withMessage("Contact email is required")
+      .isEmail()
+      .withMessage("Contact email must be a valid email"),
+
+    check("contactPhoneNumber")
+      .not()
+      .isEmpty()
+      .withMessage("Contact phone number is required")
+      .isLength({ min: 10, max: 15 })
+      .withMessage("Contact phone number must be between 10 and 15 digits"),
+
+    check("businessDescription")
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage("Business description must be less than 500 characters"),
+
+    check("businessLink")
+      .optional()
+      .isURL()
+      .withMessage("Business link must be a valid URL"),
+
+    check("businessRegistrationNumber")
+      .optional()
+      .isLength({ min: 2, max: 50 })
+      .withMessage("Business registration number must be between 2 and 50 characters"),
+
+    check("taxIdentificationNumber")
+      .optional()
+      .isLength({ min: 2, max: 50 })
+      .withMessage("Tax identification number must be between 2 and 50 characters"),
+
+    check("idVerification.name")
+      .optional()
+      .isLength({ min: 2, max: 50 })
+      .withMessage("ID verification name must be between 2 and 50 characters"),
+
+    check("idVerification.photoFront")
+      .optional()
+      .isURL()
+      .withMessage("Front of ID verification must be a valid URL"),
+
+    check("idVerification.photoBack")
+      .optional()
+      .isURL()
+      .withMessage("Back of ID verification must be a valid URL"),
+
+    check("certificateOfIncorporation")
+      .optional()
+      .isURL()
+      .withMessage("Certificate of Incorporation must be a valid URL"),
+  ];
+};
+
+export const validateKYCNotification = () => {
+  return [
+    check('isVerified')
+      .isBoolean()
+      .withMessage('Approval status is required and must be a boolean'),
+
+    check('adminNote')
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage('Admin note must not exceed 500 characters'),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,

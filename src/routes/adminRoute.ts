@@ -9,6 +9,7 @@ import {
     updateSubAdminValidationRules, 
     createSubscriptionPlanValidationRules, 
     updateSubscriptionPlanValidationRules,
+    validateKYCNotification,
     validate } from '../utils/validations'; // Import the service
 import checkPermission from '../middlewares/checkPermissionMiddleware';
 
@@ -62,4 +63,8 @@ adminRoutes.put('/sub/categories', adminAuthMiddleware, adminController.updateSu
 adminRoutes.delete('/sub/categories', adminAuthMiddleware, adminController.deleteSubCategory);
 adminRoutes.get('/sub/categories', adminAuthMiddleware, adminController.getAllSubCategories);
 
+
+// KYC
+adminRoutes.get('/kyc', adminAuthMiddleware, adminController.getAllKYC);
+adminRoutes.post('/kyc/approve-reject', adminAuthMiddleware, validateKYCNotification(), validate, adminController.approveOrRejectKYC);
 export default adminRoutes; // Export the router

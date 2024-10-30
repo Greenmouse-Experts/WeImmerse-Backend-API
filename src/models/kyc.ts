@@ -1,4 +1,5 @@
 import { Model, DataTypes, Sequelize } from 'sequelize';
+import User from './user';
 
 class KYC extends Model {
   public id!: string;
@@ -16,12 +17,17 @@ class KYC extends Model {
     photoBack: string; // URL or path to the back photo
   };
   public certificateOfIncorporation!: string;
+  public adminNote!: string;
   public isVerified!: boolean; // Change to boolean type
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  public user?: User;
 
   static associate(models: any) {
-    // Define associations here
+    this.belongsTo(models.User, {
+      as: 'user',
+      foreignKey: 'vendorId', // Ensure the OTP model has a 'userId' column
+    });
   }
 }
 
@@ -33,6 +39,15 @@ const initModel = (sequelize: Sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
         allowNull: false,
+      },
+      vendorId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'id',
+        },
+        onDelete: 'RESTRICT',
       },
       businessName: {
         type: DataTypes.STRING,
@@ -68,7 +83,11 @@ const initModel = (sequelize: Sequelize) => {
         allowNull: true,
       },
       certificateOfIncorporation: {
-        type: DataTypes.STRING, // This could be a URL to the uploaded document
+        type: DataTypes.TEXT, // This could be a URL to the uploaded document
+        allowNull: true,
+      },
+      adminNote: {
+        type: DataTypes.TEXT, // This field is for admin's notes or remarks
         allowNull: true,
       },
       isVerified: {

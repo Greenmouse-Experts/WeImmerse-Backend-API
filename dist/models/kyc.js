@@ -4,7 +4,10 @@ exports.initModel = void 0;
 const sequelize_1 = require("sequelize");
 class KYC extends sequelize_1.Model {
     static associate(models) {
-        // Define associations here
+        this.belongsTo(models.User, {
+            as: 'user',
+            foreignKey: 'vendorId', // Ensure the OTP model has a 'userId' column
+        });
     }
 }
 const initModel = (sequelize) => {
@@ -14,6 +17,15 @@ const initModel = (sequelize) => {
             defaultValue: sequelize_1.DataTypes.UUIDV4,
             primaryKey: true,
             allowNull: false,
+        },
+        vendorId: {
+            type: sequelize_1.DataTypes.UUID,
+            allowNull: false,
+            references: {
+                model: 'users',
+                key: 'id',
+            },
+            onDelete: 'RESTRICT',
         },
         businessName: {
             type: sequelize_1.DataTypes.STRING,
@@ -49,7 +61,11 @@ const initModel = (sequelize) => {
             allowNull: true,
         },
         certificateOfIncorporation: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.TEXT,
+            allowNull: true,
+        },
+        adminNote: {
+            type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
         },
         isVerified: {

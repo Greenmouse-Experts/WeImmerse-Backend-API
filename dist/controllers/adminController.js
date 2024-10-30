@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSubCategories = exports.deleteSubCategory = exports.updateSubCategory = exports.createSubCategory = exports.getCategoriesWithSubCategories = exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getAllCategories = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.approveOrRejectKYC = exports.getAllKYC = exports.getAllSubCategories = exports.deleteSubCategory = exports.updateSubCategory = exports.createSubCategory = exports.getCategoriesWithSubCategories = exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getAllCategories = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -26,6 +26,8 @@ const rolepermission_1 = __importDefault(require("../models/rolepermission"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
 const category_1 = __importDefault(require("../models/category"));
 const subcategory_1 = __importDefault(require("../models/subcategory"));
+const user_1 = __importDefault(require("../models/user"));
+const kyc_1 = __importDefault(require("../models/kyc"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -719,7 +721,7 @@ const getAllCategories = (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.status(200).json({ data: categories });
     }
     catch (error) {
-        console.error("Error fetching categories:", error);
+        logger_1.default.error("Error fetching categories:", error);
         res.status(500).json({ message: "Error fetching categories" });
     }
 });
@@ -847,7 +849,7 @@ const getCategoriesWithSubCategories = (req, res) => __awaiter(void 0, void 0, v
         res.status(200).json({ data: categories });
     }
     catch (error) {
-        console.error("Error fetching categories with subcategories:", error);
+        logger_1.default.error("Error fetching categories with subcategories:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 });
@@ -987,4 +989,88 @@ const getAllSubCategories = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.getAllSubCategories = getAllSubCategories;
+// KYC
+const getAllKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { email, firstName, lastName } = req.query;
+    try {
+        // Build query filters
+        const userFilter = {};
+        if (email)
+            userFilter.email = { [sequelize_1.Op.like]: `%${email}%` };
+        if (firstName)
+            userFilter.firstName = { [sequelize_1.Op.like]: `%${firstName}%` };
+        if (lastName)
+            userFilter.lastName = { [sequelize_1.Op.like]: `%${lastName}%` };
+        // Fetch all KYC records with User relationship
+        const kycRecords = yield kyc_1.default.findAll({
+            include: [
+                {
+                    model: user_1.default,
+                    as: "user",
+                    where: userFilter,
+                },
+            ],
+        });
+        res.status(200).json({ data: kycRecords });
+    }
+    catch (error) {
+        logger_1.default.error("Error retrieving KYC records:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.getAllKYC = getAllKYC;
+const approveOrRejectKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { kycId, isVerified, note } = req.body; // Approve flag and note from request body
+    try {
+        // Find the KYC record by ID
+        const kycRecord = yield kyc_1.default.findByPk(kycId, {
+            include: [
+                {
+                    model: user_1.default,
+                    as: "user",
+                },
+            ],
+        });
+        if (!kycRecord) {
+            res.status(404).json({ message: "KYC record not found" });
+            return;
+        }
+        // Safely access the user property
+        const user = kycRecord.user; // This should now work if the relationship is correctly defined
+        // Check if user exists
+        if (!user) {
+            res.status(404).json({ message: "User not found for the KYC record." });
+            return;
+        }
+        // Approve or reject with a note
+        kycRecord.isVerified = isVerified;
+        kycRecord.adminNote = isVerified
+            ? "Approved by admin"
+            : note || "Rejected without a note";
+        // Save the updated record
+        yield kycRecord.save();
+        // Prepare email notification
+        const isApproved = isVerified;
+        const message = messages_1.emailTemplates.kycStatusUpdate(user, isApproved, kycRecord.adminNote);
+        // Send email notification
+        try {
+            yield (0, mail_service_1.sendMail)(user.email, `${process.env.APP_NAME} - Your KYC Status Update`, message);
+        }
+        catch (emailError) {
+            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            // Optionally handle this scenario (e.g., revert KYC status)
+        }
+        // Send response
+        res.status(200).json({
+            message: isApproved
+                ? "KYC approved successfully"
+                : "KYC rejected with note",
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error approving/rejecting KYC:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.approveOrRejectKYC = approveOrRejectKYC;
 //# sourceMappingURL=adminController.js.map

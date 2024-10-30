@@ -28,10 +28,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // src/routes/userRoute.ts
 const express_1 = require("express");
-const userController = __importStar(require("../controllers/userController"));
+const vendorController = __importStar(require("../controllers/vendorController"));
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
+const authorizeVendor_1 = __importDefault(require("../middlewares/authorizeVendor"));
+const validations_1 = require("../utils/validations");
 const userRoutes = (0, express_1.Router)();
 // User routes
-userRoutes.get("/logout", authMiddleware_1.default, userController.logout);
+userRoutes.post("/kyc", authMiddleware_1.default, authorizeVendor_1.default, (0, validations_1.kycValidationRules)(), validations_1.validate, vendorController.submitOrUpdateKYC);
+userRoutes.get("/kyc", authMiddleware_1.default, vendorController.submitOrUpdateKYC);
 exports.default = userRoutes;
 //# sourceMappingURL=vendorRoute.js.map

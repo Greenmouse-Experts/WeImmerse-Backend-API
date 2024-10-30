@@ -52,7 +52,11 @@ module.exports = {
         allowNull: true,
       },
       certificateOfIncorporation: {
-        type: Sequelize.STRING, // This could be a URL to the uploaded document
+        type: Sequelize.TEXT, // This could be a URL to the uploaded document
+        allowNull: true,
+      },
+      adminNote: {
+        type: Sequelize.TEXT, // This field is for admin's notes or remarks
         allowNull: true,
       },
       isVerified: {

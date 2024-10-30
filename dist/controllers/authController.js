@@ -220,6 +220,10 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             });
             return;
         }
+        // Fetch the KYC relationship
+        const kyc = yield user.getKyc(); // Assuming a method exists to get the related KYC record
+        // Determine if the account is verified based on KYC status
+        const isVerified = kyc ? kyc.isVerified : false;
         // Check if the password is correct
         const isPasswordValid = yield user.checkPassword(password);
         if (!isPasswordValid) {
@@ -231,7 +235,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Successful login
         res.status(200).json({
             message: "Login successful",
-            data: user,
+            data: Object.assign(Object.assign({}, user.get()), { isVerified }),
             token,
         });
     }

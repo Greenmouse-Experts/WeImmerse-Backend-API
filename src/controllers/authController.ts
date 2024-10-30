@@ -251,6 +251,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // Fetch the KYC relationship
+    const kyc = await user.getKyc(); // Assuming a method exists to get the related KYC record
+
+    // Determine if the account is verified based on KYC status
+    const isVerified = kyc ? kyc.isVerified : false;
+
     // Check if the password is correct
     const isPasswordValid = await user.checkPassword(password);
     if (!isPasswordValid) {
@@ -264,7 +270,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Successful login
     res.status(200).json({
       message: "Login successful",
-      data: user,
+      data: { ...user.get(), isVerified },
       token,
     });
   } catch (error) {

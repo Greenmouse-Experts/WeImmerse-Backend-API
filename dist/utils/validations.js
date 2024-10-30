@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
+exports.validate = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
 // Registration validation rules
@@ -267,6 +267,73 @@ const updateSubscriptionPlanValidationRules = () => {
     ];
 };
 exports.updateSubscriptionPlanValidationRules = updateSubscriptionPlanValidationRules;
+const kycValidationRules = () => {
+    return [
+        (0, express_validator_1.check)("businessName")
+            .not()
+            .isEmpty()
+            .withMessage("Business name is required")
+            .isLength({ min: 2, max: 100 })
+            .withMessage("Business name must be between 2 and 100 characters"),
+        (0, express_validator_1.check)("contactEmail")
+            .not()
+            .isEmpty()
+            .withMessage("Contact email is required")
+            .isEmail()
+            .withMessage("Contact email must be a valid email"),
+        (0, express_validator_1.check)("contactPhoneNumber")
+            .not()
+            .isEmpty()
+            .withMessage("Contact phone number is required")
+            .isLength({ min: 10, max: 15 })
+            .withMessage("Contact phone number must be between 10 and 15 digits"),
+        (0, express_validator_1.check)("businessDescription")
+            .optional()
+            .isLength({ max: 500 })
+            .withMessage("Business description must be less than 500 characters"),
+        (0, express_validator_1.check)("businessLink")
+            .optional()
+            .isURL()
+            .withMessage("Business link must be a valid URL"),
+        (0, express_validator_1.check)("businessRegistrationNumber")
+            .optional()
+            .isLength({ min: 2, max: 50 })
+            .withMessage("Business registration number must be between 2 and 50 characters"),
+        (0, express_validator_1.check)("taxIdentificationNumber")
+            .optional()
+            .isLength({ min: 2, max: 50 })
+            .withMessage("Tax identification number must be between 2 and 50 characters"),
+        (0, express_validator_1.check)("idVerification.name")
+            .optional()
+            .isLength({ min: 2, max: 50 })
+            .withMessage("ID verification name must be between 2 and 50 characters"),
+        (0, express_validator_1.check)("idVerification.photoFront")
+            .optional()
+            .isURL()
+            .withMessage("Front of ID verification must be a valid URL"),
+        (0, express_validator_1.check)("idVerification.photoBack")
+            .optional()
+            .isURL()
+            .withMessage("Back of ID verification must be a valid URL"),
+        (0, express_validator_1.check)("certificateOfIncorporation")
+            .optional()
+            .isURL()
+            .withMessage("Certificate of Incorporation must be a valid URL"),
+    ];
+};
+exports.kycValidationRules = kycValidationRules;
+const validateKYCNotification = () => {
+    return [
+        (0, express_validator_1.check)('isVerified')
+            .isBoolean()
+            .withMessage('Approval status is required and must be a boolean'),
+        (0, express_validator_1.check)('adminNote')
+            .optional()
+            .isLength({ max: 500 })
+            .withMessage('Admin note must not exceed 500 characters'),
+    ];
+};
+exports.validateKYCNotification = validateKYCNotification;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

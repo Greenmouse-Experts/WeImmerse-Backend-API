@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import { Model, DataTypes, Sequelize } from "sequelize";
+import KYC from "./kyc";
 
 interface Location {
   country?: string;
@@ -21,6 +22,7 @@ class User extends Model {
   public location?: Location; // This will be serialized as JSON
   public photo?: string;
   public wallet?: string;
+  public accountType?: string;
   public status?: "active" | "inactive";
   public createdAt?: Date;
   public updatedAt?: Date;
@@ -44,6 +46,11 @@ class User extends Model {
       as: 'subscriptions', 
       foreignKey: 'vendorId' 
     });
+  }
+
+  // Add method to fetch KYC record
+  public async getKyc(): Promise<KYC | null> {
+    return await KYC.findOne({ where: { vendorId: this.id } }); // Assuming KYC has a userId field linking to User
   }
 }
 

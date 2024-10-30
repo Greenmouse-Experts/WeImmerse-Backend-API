@@ -33,7 +33,7 @@ const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"
 const validations_1 = require("../utils/validations");
 const userRoutes = (0, express_1.Router)();
 // User routes
-userRoutes.get("/logout", authMiddleware_1.default, userController.logout);
+userRoutes.post("/logout", authMiddleware_1.default, userController.logout);
 userRoutes.put('/profile/update', authMiddleware_1.default, userController.updateProfile);
 userRoutes.put('/profile/update/email', authMiddleware_1.default, (0, validations_1.updateProfileEmailValidationRules)(), validations_1.validate, userController.updateProfileEmail);
 userRoutes.put('/profile/confirm/email', authMiddleware_1.default, (0, validations_1.confirmProfileEmailValidationRules)(), validations_1.validate, userController.confirmEmailUpdate);

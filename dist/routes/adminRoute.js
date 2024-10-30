@@ -74,5 +74,8 @@ adminRoutes.post('/sub/categories', adminAuthMiddleware_1.default, adminControll
 adminRoutes.put('/sub/categories', adminAuthMiddleware_1.default, adminController.updateSubCategory);
 adminRoutes.delete('/sub/categories', adminAuthMiddleware_1.default, adminController.deleteSubCategory);
 adminRoutes.get('/sub/categories', adminAuthMiddleware_1.default, adminController.getAllSubCategories);
+// KYC
+adminRoutes.get('/kyc', adminAuthMiddleware_1.default, adminController.getAllKYC);
+adminRoutes.post('/kyc/approve-reject', adminAuthMiddleware_1.default, (0, validations_1.validateKYCNotification)(), validations_1.validate, adminController.approveOrRejectKYC);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map

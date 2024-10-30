@@ -7,7 +7,7 @@ import { updatePasswordValidationRules, updateProfileEmailValidationRules, confi
 const userRoutes = Router();
 
 // User routes
-userRoutes.get("/logout", authMiddleware, userController.logout);
+userRoutes.post("/logout", authMiddleware, userController.logout);
 userRoutes.put('/profile/update', authMiddleware, userController.updateProfile);
 userRoutes.put('/profile/update/email', authMiddleware, updateProfileEmailValidationRules(), validate, userController.updateProfileEmail);
 userRoutes.put('/profile/confirm/email', authMiddleware, confirmProfileEmailValidationRules(), validate, userController.confirmEmailUpdate);
