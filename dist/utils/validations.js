@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
+exports.validate = exports.updateAuctionProductValidation = exports.auctionProductValidation = exports.updateProductValidation = exports.addProductValidation = exports.updateStoreValidation = exports.createStoreValidation = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
 // Registration validation rules
@@ -16,7 +16,7 @@ const registrationValidationRules = () => {
             .isMobilePhone("any")
             .withMessage("Invalid phone number")
             .custom((value) => {
-            if (value && !value.startsWith('+')) {
+            if (value && !value.startsWith("+")) {
                 throw new Error("Phone number must start with '+'");
             }
             return true;
@@ -94,7 +94,9 @@ const updatePasswordValidationRules = () => {
 };
 exports.updatePasswordValidationRules = updatePasswordValidationRules;
 const updateProfileEmailValidationRules = () => {
-    return [(0, express_validator_1.check)("newEmail").isEmail().withMessage("Please provide a valid email")];
+    return [
+        (0, express_validator_1.check)("newEmail").isEmail().withMessage("Please provide a valid email"),
+    ];
 };
 exports.updateProfileEmailValidationRules = updateProfileEmailValidationRules;
 const confirmProfileEmailValidationRules = () => {
@@ -115,7 +117,7 @@ const updateProfilePhoneNumberValidationRules = () => {
             .isMobilePhone("any")
             .withMessage("Invalid phone number")
             .custom((value) => {
-            if (value && !value.startsWith('+')) {
+            if (value && !value.startsWith("+")) {
                 throw new Error("Phone number must start with '+'");
             }
             return true;
@@ -130,7 +132,7 @@ const confirmProfilePhoneNumberValidationRules = () => {
             .isMobilePhone("any")
             .withMessage("Invalid phone number")
             .custom((value) => {
-            if (value && !value.startsWith('+')) {
+            if (value && !value.startsWith("+")) {
                 throw new Error("New phone number must start with '+'");
             }
             return true;
@@ -157,9 +159,7 @@ const createSubAdminValidationRules = () => {
             .withMessage("Name is required")
             .isLength({ min: 2 })
             .withMessage("Name must be at least 2 characters"),
-        (0, express_validator_1.check)("email")
-            .isEmail()
-            .withMessage("Please provide a valid email"),
+        (0, express_validator_1.check)("email").isEmail().withMessage("Please provide a valid email"),
         (0, express_validator_1.check)("roleId")
             .not()
             .isEmpty()
@@ -182,9 +182,7 @@ const updateSubAdminValidationRules = () => {
             .withMessage("Name is required")
             .isLength({ min: 2, max: 50 })
             .withMessage("Name must be between 2 and 50 characters"),
-        (0, express_validator_1.check)("email")
-            .isEmail()
-            .withMessage("Please provide a valid email"),
+        (0, express_validator_1.check)("email").isEmail().withMessage("Please provide a valid email"),
         (0, express_validator_1.check)("roleId")
             .not()
             .isEmpty()
@@ -324,16 +322,358 @@ const kycValidationRules = () => {
 exports.kycValidationRules = kycValidationRules;
 const validateKYCNotification = () => {
     return [
-        (0, express_validator_1.check)('isVerified')
+        (0, express_validator_1.check)("isVerified")
             .isBoolean()
-            .withMessage('Approval status is required and must be a boolean'),
-        (0, express_validator_1.check)('adminNote')
+            .withMessage("Approval status is required and must be a boolean"),
+        (0, express_validator_1.check)("adminNote")
             .optional()
             .isLength({ max: 500 })
-            .withMessage('Admin note must not exceed 500 characters'),
+            .withMessage("Admin note must not exceed 500 characters"),
     ];
 };
 exports.validateKYCNotification = validateKYCNotification;
+const createStoreValidation = () => {
+    return [
+        (0, express_validator_1.check)("name")
+            .isString()
+            .isLength({ min: 1 })
+            .withMessage("Store name is required."),
+        (0, express_validator_1.check)("location")
+            .optional()
+            .isObject()
+            .withMessage("Location must be a valid object."),
+        (0, express_validator_1.check)("businessHours")
+            .optional()
+            .isObject()
+            .withMessage("Business hours must be a valid object."),
+        (0, express_validator_1.check)("deliveryOptions")
+            .optional()
+            .isArray()
+            .withMessage("Delivery options must be an array.")
+            .custom((value) => {
+            for (const option of value) {
+                if (typeof option !== "object" || option === null) {
+                    throw new Error("Each delivery option must be a valid object.");
+                }
+                if (!option.city || typeof option.city !== "string") {
+                    throw new Error("City must be a string.");
+                }
+                if (option.price === undefined || typeof option.price !== "number") {
+                    throw new Error("Price must be a number.");
+                }
+                if (!option.arrival_day || typeof option.arrival_day !== "string") {
+                    throw new Error("Arrival day must be a string.");
+                }
+            }
+            return true; // if all checks pass
+        }),
+        (0, express_validator_1.check)("tipsOnFinding")
+            .optional()
+            .isString()
+            .withMessage("Tips on finding the store must be a string."),
+    ];
+};
+exports.createStoreValidation = createStoreValidation;
+const updateStoreValidation = () => {
+    return [
+        (0, express_validator_1.check)("storeId").isUUID().withMessage("Store ID must be a valid UUID."),
+        (0, express_validator_1.check)("name")
+            .optional()
+            .isString()
+            .isLength({ min: 1 })
+            .withMessage("Store name must be a non-empty string."),
+        (0, express_validator_1.check)("location")
+            .optional()
+            .isObject()
+            .withMessage("Location must be a valid object."),
+        (0, express_validator_1.check)("businessHours")
+            .optional()
+            .isObject()
+            .withMessage("Business hours must be a valid object."),
+        (0, express_validator_1.check)("deliveryOptions")
+            .optional()
+            .isObject()
+            .withMessage("Delivery options must be a valid object."),
+        (0, express_validator_1.check)("tipsOnFinding")
+            .optional()
+            .isString()
+            .withMessage("Tips on finding the store must be a string."),
+    ];
+};
+exports.updateStoreValidation = updateStoreValidation;
+// Validation for adding a product
+const addProductValidation = () => {
+    return [
+        (0, express_validator_1.check)("storeId").isUUID().withMessage("Store ID must be a valid UUID."),
+        (0, express_validator_1.check)("categoryId")
+            .isUUID()
+            .withMessage("Category ID must be a valid UUID."),
+        (0, express_validator_1.check)("name")
+            .isString()
+            .isLength({ min: 1 })
+            .withMessage("Product name is required and must be a non-empty string."),
+        (0, express_validator_1.check)("condition")
+            .isIn(["brand_new", "fairly_used", "fairly_foreign", "refurbished"])
+            .withMessage("Condition must be one of the specified values."),
+        (0, express_validator_1.check)("description")
+            .optional()
+            .isString()
+            .withMessage("Description must be a string."),
+        (0, express_validator_1.check)("specification")
+            .optional()
+            .isString()
+            .withMessage("Specification must be a string."),
+        (0, express_validator_1.check)("price")
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Price must be a valid decimal number with up to two decimal places."),
+        (0, express_validator_1.check)("discount_price")
+            .optional()
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Discount price must be a valid decimal number with up to two decimal places if provided."),
+        (0, express_validator_1.check)("image_url")
+            .optional()
+            .isString()
+            .withMessage("Image URL must be a valid string."),
+        (0, express_validator_1.check)("additional_images")
+            .optional()
+            .isArray({ min: 1 })
+            .withMessage("Additional images must be an array of URLs.")
+            .custom((array) => {
+            // Ensure each item in the array is a valid URL
+            array.forEach((url) => {
+                if (typeof url !== "string" ||
+                    !url.match(/^(http|https):\/\/[^ "]+$/)) {
+                    throw new Error("Each item in additional images must be a valid URL.");
+                }
+            });
+            return true;
+        }),
+        (0, express_validator_1.check)("warranty")
+            .optional()
+            .isString()
+            .withMessage("Warranty must be a valid string."),
+        (0, express_validator_1.check)("return_policy")
+            .optional()
+            .isString()
+            .withMessage("Return policy must be a valid string."),
+        (0, express_validator_1.check)("seo_title")
+            .optional()
+            .isString()
+            .withMessage("SEO title must be a valid string."),
+        (0, express_validator_1.check)("meta_description")
+            .optional()
+            .isString()
+            .withMessage("Meta description must be a valid string."),
+        (0, express_validator_1.check)("keywords")
+            .optional()
+            .isString()
+            .withMessage("Keywords must be a valid string."),
+        (0, express_validator_1.check)("status")
+            .optional()
+            .isIn(["active", "inactive", "draft"])
+            .withMessage("Status must be one of the specified values."),
+    ];
+};
+exports.addProductValidation = addProductValidation;
+// Validation for updating a product
+const updateProductValidation = () => {
+    return [
+        (0, express_validator_1.check)("productId")
+            .isString()
+            .withMessage("Product ID must be a valid UUID or SKU."),
+        (0, express_validator_1.check)("name")
+            .optional()
+            .isString()
+            .isLength({ min: 1 })
+            .withMessage("Product name must be a non-empty string."),
+        (0, express_validator_1.check)("condition")
+            .optional()
+            .isIn(["brand_new", "fairly_used", "fairly_foreign", "refurbished"])
+            .withMessage("Condition must be one of the specified values."),
+        (0, express_validator_1.check)("description")
+            .optional()
+            .isString()
+            .withMessage("Description must be a string."),
+        (0, express_validator_1.check)("specification")
+            .optional()
+            .isString()
+            .withMessage("Specification must be a string."),
+        (0, express_validator_1.check)("price")
+            .optional()
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Price must be a valid decimal number with up to two decimal places."),
+        (0, express_validator_1.check)("discount_price")
+            .optional()
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Discount price must be a valid decimal number with up to two decimal places if provided."),
+        (0, express_validator_1.check)("image_url")
+            .optional()
+            .isString()
+            .withMessage("Image URL must be a valid string."),
+        (0, express_validator_1.check)("additional_images")
+            .optional()
+            .isArray({ min: 1 })
+            .withMessage("Additional images must be an array of URLs.")
+            .custom((array) => {
+            // Ensure each item in the array is a valid URL
+            array.forEach((url) => {
+                if (typeof url !== "string" ||
+                    !url.match(/^(http|https):\/\/[^ "]+$/)) {
+                    throw new Error("Each item in additional images must be a valid URL.");
+                }
+            });
+            return true;
+        }),
+        (0, express_validator_1.check)("warranty")
+            .optional()
+            .isString()
+            .withMessage("Warranty must be a valid string."),
+        (0, express_validator_1.check)("return_policy")
+            .optional()
+            .isString()
+            .withMessage("Return policy must be a valid string."),
+        (0, express_validator_1.check)("seo_title")
+            .optional()
+            .isString()
+            .withMessage("SEO title must be a valid string."),
+        (0, express_validator_1.check)("meta_description")
+            .optional()
+            .isString()
+            .withMessage("Meta description must be a valid string."),
+        (0, express_validator_1.check)("keywords")
+            .optional()
+            .isString()
+            .withMessage("Keywords must be a valid string."),
+        (0, express_validator_1.check)("status")
+            .optional()
+            .isIn(["active", "inactive", "draft"])
+            .withMessage("Status must be one of the specified values."),
+    ];
+};
+exports.updateProductValidation = updateProductValidation;
+const auctionProductValidation = () => {
+    return [
+        (0, express_validator_1.check)("storeId").isUUID().withMessage("Store ID must be a valid UUID."),
+        (0, express_validator_1.check)("categoryId")
+            .isUUID()
+            .withMessage("Category ID must be a valid UUID."),
+        (0, express_validator_1.check)("name")
+            .isString()
+            .isLength({ min: 1 })
+            .withMessage("Product name is required and must be a non-empty string."),
+        (0, express_validator_1.check)("condition")
+            .isIn(["brand_new", "fairly_used", "fairly_foreign", "refurbished"])
+            .withMessage("Condition must be one of the specified values."),
+        (0, express_validator_1.check)("description")
+            .isString()
+            .withMessage("Description must be a valid string."),
+        (0, express_validator_1.check)("specification")
+            .isString()
+            .withMessage("Specification must be a valid string."),
+        (0, express_validator_1.check)("price")
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Price must be a valid decimal number with up to two decimal places."),
+        (0, express_validator_1.check)("bidIncrement")
+            .optional()
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Bid increment must be a valid decimal number with up to two decimal places."),
+        (0, express_validator_1.check)("maxBidsPerUser")
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage("Max bids per user must be a valid integer greater than or equal to 1."),
+        (0, express_validator_1.check)("participantsInterestFee")
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Participants interest fee must be a valid decimal number with up to two decimal places."),
+        (0, express_validator_1.check)("startDate")
+            .isISO8601()
+            .withMessage("Start date must be a valid date in ISO 8601 format."),
+        (0, express_validator_1.check)("endDate")
+            .isISO8601()
+            .withMessage("End date must be a valid date in ISO 8601 format."),
+        (0, express_validator_1.check)("image")
+            .optional()
+            .isString()
+            .withMessage("Image must be a valid url."),
+        (0, express_validator_1.check)("additionalImages")
+            .optional()
+            .isArray({ min: 1 })
+            .withMessage("Additional images must be an array of URLs.")
+            .custom((array) => {
+            // Ensure each item in the array is a valid URL
+            array.forEach((url) => {
+                if (typeof url !== "string" ||
+                    !url.match(/^(http|https):\/\/[^ "]+$/)) {
+                    throw new Error("Each item in additional images must be a valid URL.");
+                }
+            });
+            return true;
+        }),
+    ];
+};
+exports.auctionProductValidation = auctionProductValidation;
+const updateAuctionProductValidation = () => {
+    return [
+        (0, express_validator_1.check)("auctionProductId")
+            .isString()
+            .withMessage("Auction Product ID must be a valid UUID or SKU."),
+        (0, express_validator_1.check)("storeId").isUUID().withMessage("Store ID must be a valid UUID."),
+        (0, express_validator_1.check)("categoryId")
+            .isUUID()
+            .withMessage("Category ID must be a valid UUID."),
+        (0, express_validator_1.check)("name")
+            .isString()
+            .isLength({ min: 1 })
+            .withMessage("Product name is required and must be a non-empty string."),
+        (0, express_validator_1.check)("condition")
+            .isIn(["brand_new", "fairly_used", "fairly_foreign", "refurbished"])
+            .withMessage("Condition must be one of the specified values."),
+        (0, express_validator_1.check)("description")
+            .isString()
+            .withMessage("Description must be a valid string."),
+        (0, express_validator_1.check)("specification")
+            .isString()
+            .withMessage("Specification must be a valid string."),
+        (0, express_validator_1.check)("price")
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Price must be a valid decimal number with up to two decimal places."),
+        (0, express_validator_1.check)("bidIncrement")
+            .optional()
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Bid increment must be a valid decimal number with up to two decimal places."),
+        (0, express_validator_1.check)("maxBidsPerUser")
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage("Max bids per user must be a valid integer greater than or equal to 1."),
+        (0, express_validator_1.check)("participantsInterestFee")
+            .isDecimal({ decimal_digits: "0,2" })
+            .withMessage("Participants interest fee must be a valid decimal number with up to two decimal places."),
+        (0, express_validator_1.check)("startDate")
+            .isISO8601()
+            .withMessage("Start date must be a valid date in ISO 8601 format."),
+        (0, express_validator_1.check)("endDate")
+            .isISO8601()
+            .withMessage("End date must be a valid date in ISO 8601 format."),
+        (0, express_validator_1.check)("image")
+            .optional()
+            .isString()
+            .withMessage("Image must be a valid url."),
+        (0, express_validator_1.check)("additionalImages")
+            .optional()
+            .isArray({ min: 1 })
+            .withMessage("Additional images must be an array of URLs.")
+            .custom((array) => {
+            // Ensure each item in the array is a valid URL
+            array.forEach((url) => {
+                if (typeof url !== "string" ||
+                    !url.match(/^(http|https):\/\/[^ "]+$/)) {
+                    throw new Error("Each item in additional images must be a valid URL.");
+                }
+            });
+            return true;
+        }),
+    ];
+};
+exports.updateAuctionProductValidation = updateAuctionProductValidation;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

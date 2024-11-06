@@ -1,19 +1,21 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
-// models/VendorSubscription.ts
+// models/vendorsubscription.ts
 const sequelize_1 = require("sequelize");
 class VendorSubscription extends sequelize_1.Model {
     static associate(models) {
         // Associate with User model
         this.belongsTo(models.User, {
             as: 'vendor',
-            foreignKey: 'vendorId'
+            foreignKey: 'vendorId',
+            onDelete: 'RESTRICT',
         });
         // Associate with SubscriptionPlan model
         this.belongsTo(models.SubscriptionPlan, {
             as: 'subscriptionPlans',
-            foreignKey: 'subscriptionPlanId'
+            foreignKey: 'subscriptionPlanId',
+            onDelete: 'RESTRICT',
         });
     }
 }

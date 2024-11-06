@@ -12,13 +12,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchAdminWithPermissions = exports.sendSMS = exports.capitalizeFirstLetter = exports.generateOTP = void 0;
+exports.checkVendorAuctionProductLimit = exports.checkVendorProductLimit = exports.fetchAdminWithPermissions = exports.sendSMS = exports.capitalizeFirstLetter = exports.generateOTP = void 0;
 // utils/helpers.ts
 const http_1 = __importDefault(require("http"));
 const querystring_1 = __importDefault(require("querystring"));
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
 const permission_1 = __importDefault(require("../models/permission"));
+const vendorsubscription_1 = __importDefault(require("../models/vendorsubscription"));
+const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
+const product_1 = __importDefault(require("../models/product"));
+const auctionproduct_1 = __importDefault(require("../models/auctionproduct"));
 // Function to generate a 6-digit OTP
 const generateOTP = () => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
@@ -90,4 +94,79 @@ const fetchAdminWithPermissions = (adminId) => __awaiter(void 0, void 0, void 0,
     });
 });
 exports.fetchAdminWithPermissions = fetchAdminWithPermissions;
+/**
+ * Checks if a vendor has reached their product limit based on their active subscription plan.
+ * @param vendorId - The ID of the vendor to check.
+ * @returns A promise that resolves to an object indicating the status and a message.
+ */
+const checkVendorProductLimit = (vendorId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Find the active subscription for the vendor
+        const activeSubscription = yield vendorsubscription_1.default.findOne({
+            where: {
+                vendorId,
+                isActive: true,
+            },
+        });
+        if (!activeSubscription) {
+            return { status: false, message: 'Vendor does not have an active subscription.' };
+        }
+        // Fetch the subscription plan details
+        const subscriptionPlan = yield subscriptionplan_1.default.findByPk(activeSubscription.subscriptionPlanId);
+        if (!subscriptionPlan) {
+            return { status: false, message: 'Subscription plan not found.' };
+        }
+        const { productLimit } = subscriptionPlan;
+        // Count the number of products already created by the vendor
+        const productCount = yield product_1.default.count({
+            where: { vendorId },
+        });
+        if (productCount >= productLimit) {
+            return { status: false, message: 'You have reached the maximum number of products allowed for your current subscription plan. Please upgrade your plan to add more products.' };
+        }
+        return { status: true, message: 'Vendor can create more products.' };
+    }
+    catch (error) {
+        // Error type should be handled more gracefully if you have custom error types
+        throw new Error(error.message || 'An error occurred while checking the product limit.');
+    }
+});
+exports.checkVendorProductLimit = checkVendorProductLimit;
+const checkVendorAuctionProductLimit = (vendorId) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Find the active subscription for the vendor
+        const activeSubscription = yield vendorsubscription_1.default.findOne({
+            where: {
+                vendorId,
+                isActive: true,
+            },
+        });
+        if (!activeSubscription) {
+            return { status: false, message: 'Vendor does not have an active subscription.' };
+        }
+        // Fetch the subscription plan details
+        const subscriptionPlan = yield subscriptionplan_1.default.findByPk(activeSubscription.subscriptionPlanId);
+        if (!subscriptionPlan) {
+            return { status: false, message: 'Subscription plan not found.' };
+        }
+        const auctionProductLimit = subscriptionPlan.auctionProductLimit;
+        // Handle the case where auctionProductLimit is null
+        if (auctionProductLimit === null) {
+            return { status: false, message: 'Subscription plan does not define a limit for auction products.' };
+        }
+        // Count the number of products already created by the vendor
+        const auctionProductCount = yield auctionproduct_1.default.count({
+            where: { vendorId },
+        });
+        if (auctionProductCount >= auctionProductLimit) {
+            return { status: false, message: 'You have reached the maximum number of products allowed for your current subscription plan. Please upgrade your plan to add more products.' };
+        }
+        return { status: true, message: 'Vendor can create more auction products.' };
+    }
+    catch (error) {
+        // Error type should be handled more gracefully if you have custom error types
+        throw new Error(error.message || 'An error occurred while checking the auction product limit.');
+    }
+});
+exports.checkVendorAuctionProductLimit = checkVendorAuctionProductLimit;
 //# sourceMappingURL=helpers.js.map

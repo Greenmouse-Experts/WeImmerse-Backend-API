@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
+// models/category.ts
 const sequelize_1 = require("sequelize");
 class Category extends sequelize_1.Model {
     static associate(models) {

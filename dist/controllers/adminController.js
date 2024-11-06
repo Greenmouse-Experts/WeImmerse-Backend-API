@@ -969,8 +969,15 @@ const deleteSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.status(200).json({ message: "Sub-category deleted successfully" });
     }
     catch (error) {
-        logger_1.default.error(error);
-        res.status(500).json({ message: "Error deleting sub-category" });
+        if (error instanceof sequelize_1.ForeignKeyConstraintError) {
+            res.status(400).json({
+                message: "Cannot delete sub-category because it has associated products. Delete or reassign products before deleting this sub-category.",
+            });
+        }
+        else {
+            logger_1.default.error(error);
+            res.status(500).json({ message: "Error deleting sub-category" });
+        }
     }
 });
 exports.deleteSubCategory = deleteSubCategory;

@@ -1,7 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
-// models/SubscriptionPlan.ts
+// models/subscriptionplan.ts
 const sequelize_1 = require("sequelize");
 class SubscriptionPlan extends sequelize_1.Model {
     static associate(models) {

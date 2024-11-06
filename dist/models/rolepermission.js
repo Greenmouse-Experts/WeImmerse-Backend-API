@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
+// models/rolepermission.ts
 const sequelize_1 = require("sequelize");
 const role_1 = __importDefault(require("./role"));
 const permission_1 = __importDefault(require("./permission"));

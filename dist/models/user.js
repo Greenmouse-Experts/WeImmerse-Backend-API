@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
+// models/user.ts
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
 const kyc_1 = __importDefault(require("./kyc"));
@@ -30,11 +31,18 @@ class User extends sequelize_1.Model {
     static associate(models) {
         this.hasOne(models.OTP, {
             as: 'otp',
-            foreignKey: 'userId', // Ensure the OTP model has a 'userId' column
+            foreignKey: 'userId',
+            onDelete: 'RESTRICT'
         });
         this.hasMany(models.VendorSubscription, {
             as: 'subscriptions',
-            foreignKey: 'vendorId'
+            foreignKey: 'vendorId',
+            onDelete: 'RESTRICT',
+        });
+        this.hasMany(models.Store, {
+            as: 'stores',
+            foreignKey: 'vendorId',
+            onDelete: 'RESTRICT',
         });
     }
     // Add method to fetch KYC record
