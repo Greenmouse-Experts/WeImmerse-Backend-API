@@ -1,4 +1,4 @@
-// models/VendorSubscription.ts
+// models/vendorsubscription.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
 class VendorSubscription extends Model {
@@ -15,12 +15,14 @@ class VendorSubscription extends Model {
     // Associate with User model
     this.belongsTo(models.User, { 
       as: 'vendor',
-      foreignKey: 'vendorId' 
+      foreignKey: 'vendorId',
+      onDelete: 'RESTRICT', 
     });
     // Associate with SubscriptionPlan model
     this.belongsTo(models.SubscriptionPlan, { 
       as: 'subscriptionPlans',
-      foreignKey: 'subscriptionPlanId' 
+      foreignKey: 'subscriptionPlanId',
+      onDelete: 'RESTRICT', 
     });
   }
 }

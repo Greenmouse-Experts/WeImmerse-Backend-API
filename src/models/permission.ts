@@ -1,3 +1,4 @@
+// models/permission.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
 class Permission extends Model {

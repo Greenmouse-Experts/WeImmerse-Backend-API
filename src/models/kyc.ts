@@ -1,3 +1,4 @@
+// models/kyc.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 import User from './user';
 

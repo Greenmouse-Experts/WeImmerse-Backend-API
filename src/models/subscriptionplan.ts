@@ -1,4 +1,4 @@
-// models/SubscriptionPlan.ts
+// models/subscriptionplan.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
 class SubscriptionPlan extends Model {

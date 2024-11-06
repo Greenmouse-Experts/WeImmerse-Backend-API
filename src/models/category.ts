@@ -1,3 +1,4 @@
+// models/category.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
 class Category extends Model {

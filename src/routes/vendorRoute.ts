@@ -3,12 +3,43 @@ import { Router } from 'express';
 import * as vendorController from '../controllers/vendorController';
 import authMiddleware from '../middlewares/authMiddleware';
 import authorizeVendor from '../middlewares/authorizeVendor';
-import { kycValidationRules, validate } from '../utils/validations';
+import { 
+    kycValidationRules, 
+    createStoreValidation, 
+    updateStoreValidation, 
+    addProductValidation,
+    updateProductValidation,
+    auctionProductValidation,
+    updateAuctionProductValidation,
+    validate } from '../utils/validations';
 
-const userRoutes = Router();
+const vendorRoutes = Router();
 
 // User routes
-userRoutes.post("/kyc", authMiddleware, authorizeVendor, kycValidationRules(), validate, vendorController.submitOrUpdateKYC);
-userRoutes.get("/kyc", authMiddleware, vendorController.submitOrUpdateKYC);
+vendorRoutes.post("/kyc", authMiddleware, authorizeVendor, kycValidationRules(), validate, vendorController.submitOrUpdateKYC);
+vendorRoutes.get("/kyc", authMiddleware, vendorController.getKYC);
 
-export default userRoutes;
+// Store
+vendorRoutes.get("/store", authMiddleware, vendorController.getStore);
+vendorRoutes.post("/store", authMiddleware, authorizeVendor, createStoreValidation(), validate, vendorController.createStore);
+vendorRoutes.put("/store", authMiddleware, authorizeVendor, updateStoreValidation(), validate, vendorController.updateStore);
+vendorRoutes.delete("/store", authMiddleware, authorizeVendor, vendorController.deleteStore);
+
+// Product
+vendorRoutes.get("/vendors/products", authMiddleware, vendorController.fetchVendorProducts);
+vendorRoutes.post("/products", authMiddleware, authorizeVendor, addProductValidation(), validate, vendorController.createProduct);
+vendorRoutes.put("/products", authMiddleware, authorizeVendor, updateProductValidation(), validate, vendorController.updateProduct);
+vendorRoutes.delete("/products", authMiddleware, authorizeVendor, vendorController.deleteProduct);
+vendorRoutes.get("/product", authMiddleware, authorizeVendor, vendorController.viewProduct);
+vendorRoutes.patch("/products/move-to-draft", authMiddleware, authorizeVendor, vendorController.moveToDraft);
+vendorRoutes.patch("/products/change-status", authMiddleware, authorizeVendor, vendorController.changeProductStatus);
+
+// Auction Product
+vendorRoutes.get("/auction/products", authMiddleware, authorizeVendor, vendorController.fetchVendorAuctionProducts);
+vendorRoutes.post("/auction/products", authMiddleware, authorizeVendor, auctionProductValidation(), validate, vendorController.createAuctionProduct);
+vendorRoutes.put("/auction/products", authMiddleware, authorizeVendor, updateAuctionProductValidation(), validate, vendorController.updateAuctionProduct);
+vendorRoutes.delete("/auction/products", authMiddleware, authorizeVendor, vendorController.deleteAuctionProduct);
+vendorRoutes.patch("/auction/products", authMiddleware, authorizeVendor, vendorController.cancelAuctionProduct);
+vendorRoutes.get("/auction/product", authMiddleware, authorizeVendor, vendorController.viewAuctionProduct);
+
+export default vendorRoutes;

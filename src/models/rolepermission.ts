@@ -1,3 +1,4 @@
+// models/rolepermission.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 import Role from './role';
 import Permission from './permission';

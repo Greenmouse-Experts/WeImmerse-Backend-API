@@ -1,3 +1,4 @@
+// models/subcategory.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
 class SubCategory extends Model {

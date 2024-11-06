@@ -1,3 +1,4 @@
+// models/role.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
 class Role extends Model {

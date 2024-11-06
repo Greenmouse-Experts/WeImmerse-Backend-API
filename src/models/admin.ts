@@ -1,3 +1,4 @@
+// models/admin.ts
 import bcrypt from "bcrypt";
 import { Model, DataTypes, Sequelize } from "sequelize";
 

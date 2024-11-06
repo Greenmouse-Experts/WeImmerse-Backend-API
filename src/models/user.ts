@@ -1,3 +1,4 @@
+// models/user.ts
 import bcrypt from "bcrypt";
 import { Model, DataTypes, Sequelize } from "sequelize";
 import KYC from "./kyc";
@@ -24,6 +25,7 @@ class User extends Model {
   public wallet?: string;
   public accountType?: string;
   public status?: "active" | "inactive";
+  public isVerified?: boolean;
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -41,10 +43,17 @@ class User extends Model {
     this.hasOne(models.OTP, {
       as: 'otp',
       foreignKey: 'userId', // Ensure the OTP model has a 'userId' column
+      onDelete: 'RESTRICT'
     });
     this.hasMany(models.VendorSubscription, { 
       as: 'subscriptions', 
-      foreignKey: 'vendorId' 
+      foreignKey: 'vendorId',
+      onDelete: 'RESTRICT', 
+    });
+    this.hasMany(models.Store, { 
+      as: 'stores', 
+      foreignKey: 'vendorId',
+      onDelete: 'RESTRICT', 
     });
   }
 
