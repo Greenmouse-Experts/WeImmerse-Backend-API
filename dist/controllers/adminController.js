@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.approveOrRejectKYC = exports.getAllKYC = exports.getAllSubCategories = exports.deleteSubCategory = exports.updateSubCategory = exports.createSubCategory = exports.getCategoriesWithSubCategories = exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getAllCategories = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.getAllPaymentGateways = exports.deletePaymentGateway = exports.updatePaymentGateway = exports.createPaymentGateway = exports.approveOrRejectKYC = exports.getAllKYC = exports.getAllSubCategories = exports.deleteSubCategory = exports.updateSubCategory = exports.createSubCategory = exports.getCategoriesWithSubCategories = exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getAllCategories = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -28,6 +28,7 @@ const category_1 = __importDefault(require("../models/category"));
 const subcategory_1 = __importDefault(require("../models/subcategory"));
 const user_1 = __importDefault(require("../models/user"));
 const kyc_1 = __importDefault(require("../models/kyc"));
+const paymentgateway_1 = __importDefault(require("../models/paymentgateway"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -726,7 +727,7 @@ const getAllCategories = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getAllCategories = getAllCategories;
-// Create a category
+// category
 const createCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, image } = req.body;
     // Validate name and image fields
@@ -809,7 +810,6 @@ const updateCategory = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.updateCategory = updateCategory;
-// Delete a category
 const deleteCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const categoryId = req.query.categoryId;
     try {
@@ -854,7 +854,7 @@ const getCategoriesWithSubCategories = (req, res) => __awaiter(void 0, void 0, v
     }
 });
 exports.getCategoriesWithSubCategories = getCategoriesWithSubCategories;
-// Create a sub_category
+// sub_category
 const createSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { categoryId, name, image } = req.body;
     if (!categoryId || !name) {
@@ -901,7 +901,6 @@ const createSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.createSubCategory = createSubCategory;
-// Update a sub_category
 const updateSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { subCategoryId, categoryId, name, image } = req.body;
     if (!categoryId) {
@@ -952,7 +951,6 @@ const updateSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.updateSubCategory = updateSubCategory;
-// Delete a sub_category
 const deleteSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const subCategoryId = req.query.subCategoryId;
     if (!subCategoryId) {
@@ -981,7 +979,6 @@ const deleteSubCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.deleteSubCategory = deleteSubCategory;
-// Fetch all sub_categories (optional query by name)
 const getAllSubCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name } = req.query;
     try {
@@ -1080,4 +1077,112 @@ const approveOrRejectKYC = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.approveOrRejectKYC = approveOrRejectKYC;
+// Payment Gateway
+const createPaymentGateway = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, publicKey, secretKey } = req.body;
+    try {
+        // Check if any payment gateway is active
+        const activeGateway = yield paymentgateway_1.default.findOne({ where: { isActive: true } });
+        // If there's no active gateway, set the new one as active, else set it as inactive
+        const newIsActive = activeGateway ? false : true;
+        const paymentGateway = yield paymentgateway_1.default.create({
+            name,
+            publicKey,
+            secretKey,
+            isActive: newIsActive,
+        });
+        res.status(200).json({
+            message: 'Payment Gateway created successfully',
+            data: paymentGateway,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while creating the payment gateway.',
+        });
+    }
+});
+exports.createPaymentGateway = createPaymentGateway;
+const updatePaymentGateway = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, name, publicKey, secretKey } = req.body;
+    try {
+        const paymentGateway = yield paymentgateway_1.default.findByPk(id);
+        if (!paymentGateway) {
+            res.status(404).json({ message: 'Payment Gateway not found' });
+            return;
+        }
+        yield paymentGateway.update({
+            name,
+            publicKey,
+            secretKey
+        });
+        res.status(200).json({
+            message: 'Payment Gateway updated successfully',
+            data: paymentGateway,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while updating the payment gateway.',
+        });
+    }
+});
+exports.updatePaymentGateway = updatePaymentGateway;
+const deletePaymentGateway = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.query.id;
+    try {
+        const paymentGateway = yield paymentgateway_1.default.findByPk(id);
+        if (!paymentGateway) {
+            res.status(404).json({ message: 'Payment Gateway not found' });
+            return;
+        }
+        if (paymentGateway.isActive) {
+            // If the gateway to be deleted is active, check for another active one
+            const anotherActiveGateway = yield paymentgateway_1.default.findOne({ where: { id: { [sequelize_1.Op.ne]: id } } });
+            if (anotherActiveGateway) {
+                // If another active gateway exists, set it to active and delete this one
+                yield anotherActiveGateway.update({ isActive: true });
+                yield paymentGateway.destroy();
+                res.status(200).json({
+                    message: 'Payment Gateway deleted successfully and another one activated.',
+                });
+            }
+            else {
+                // If no other active gateway, delete this one
+                yield paymentGateway.destroy();
+                res.status(200).json({
+                    message: 'Last active payment gateway deleted.',
+                });
+            }
+        }
+        else {
+            // If the gateway is not active, just delete it
+            yield paymentGateway.destroy();
+            res.status(200).json({
+                message: 'Payment Gateway deleted successfully.',
+            });
+        }
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while deleting the payment gateway.',
+        });
+    }
+});
+exports.deletePaymentGateway = deletePaymentGateway;
+const getAllPaymentGateways = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const gateways = yield paymentgateway_1.default.findAll();
+        res.status(200).json({
+            message: 'Payment Gateways retrieved successfully',
+            data: gateways,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while fetching payment gateways.',
+        });
+    }
+});
+exports.getAllPaymentGateways = getAllPaymentGateways;
 //# sourceMappingURL=adminController.js.map

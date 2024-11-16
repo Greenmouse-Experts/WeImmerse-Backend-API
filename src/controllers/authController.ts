@@ -13,6 +13,10 @@ import Admin from "../models/admin";
 import Role from "../models/role";
 import SubscriptionPlan from "../models/subscriptionplan";
 import VendorSubscription from "../models/vendorsubscription";
+import Product from "../models/product";
+import { Op, ForeignKeyConstraintError } from "sequelize";
+import SubCategory from "../models/subcategory";
+import UserNotificationSetting from "../models/usernotificationsetting";
 
 export const index = async (req: Request, res: Response) => {
   res.status(200).json({
@@ -65,6 +69,14 @@ export const vendorRegister = async (
       });
     }
 
+    // Step 2: Create default notification settings for the user
+    await UserNotificationSetting.create({
+      userId: newUser.id,  // Link the settings to the new user
+      hotDeals: false,  // Default value is false
+      auctionProducts: false,  // Default value is false
+      subscription: false,  // Default value is false
+    });
+
     // Generate OTP for verification
     const otpCode = generateOTP();
     const otp = await OTP.create({
@@ -115,6 +127,14 @@ export const customerRegister = async (
       lastName: capitalizeFirstLetter(lastName),
       phoneNumber,
       accountType: "Customer",
+    });
+
+    // Step 2: Create default notification settings for the user
+    await UserNotificationSetting.create({
+      userId: newUser.id,  // Link the settings to the new user
+      hotDeals: false,  // Default value is false
+      auctionProducts: false,  // Default value is false
+      subscription: false,  // Default value is false
     });
 
     // Generate OTP for verification
@@ -251,12 +271,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Fetch the KYC relationship
-    const kyc = await user.getKyc(); // Assuming a method exists to get the related KYC record
-
-    // Determine if the account is verified based on KYC status
-    const isVerified = kyc ? kyc.isVerified : false;
-
     // Check if the password is correct
     const isPasswordValid = await user.checkPassword(password);
     if (!isPasswordValid) {
@@ -270,7 +284,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Successful login
     res.status(200).json({
       message: "Login successful",
-      data: { ...user.get(), isVerified },
+      data: user.get(),
       token,
     });
   } catch (error) {

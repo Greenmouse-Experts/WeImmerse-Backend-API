@@ -42,4 +42,11 @@ vendorRoutes.delete("/auction/products", authMiddleware, authorizeVendor, vendor
 vendorRoutes.patch("/auction/products", authMiddleware, authorizeVendor, vendorController.cancelAuctionProduct);
 vendorRoutes.get("/auction/product", authMiddleware, authorizeVendor, vendorController.viewAuctionProduct);
 
+// Subscription
+vendorRoutes.get("/subscription/plans", authMiddleware, authorizeVendor, vendorController.subscriptionPlans);
+vendorRoutes.post("/subscribe", authMiddleware, authorizeVendor, vendorController.subscribe);
+
+vendorRoutes.get("/verifyCAC", authMiddleware, authorizeVendor, vendorController.verifyCAC);
+
+
 export default vendorRoutes;

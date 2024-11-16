@@ -10,6 +10,7 @@ import {
     createSubscriptionPlanValidationRules, 
     updateSubscriptionPlanValidationRules,
     validateKYCNotification,
+    validatePaymentGateway,
     validate } from '../utils/validations'; // Import the service
 import checkPermission from '../middlewares/checkPermissionMiddleware';
 
@@ -63,8 +64,14 @@ adminRoutes.put('/sub/categories', adminAuthMiddleware, adminController.updateSu
 adminRoutes.delete('/sub/categories', adminAuthMiddleware, adminController.deleteSubCategory);
 adminRoutes.get('/sub/categories', adminAuthMiddleware, adminController.getAllSubCategories);
 
-
 // KYC
 adminRoutes.get('/kyc', adminAuthMiddleware, adminController.getAllKYC);
 adminRoutes.post('/kyc/approve-reject', adminAuthMiddleware, validateKYCNotification(), validate, adminController.approveOrRejectKYC);
+
+// Payment Gateway
+adminRoutes.post('/payment-gateway', adminAuthMiddleware, validatePaymentGateway(), validate, adminController.createPaymentGateway);
+adminRoutes.put('/payment-gateway', adminAuthMiddleware, validatePaymentGateway(), validate, adminController.updatePaymentGateway);
+adminRoutes.delete('/payment-gateway', adminAuthMiddleware, adminController.deletePaymentGateway);
+adminRoutes.get('/payment-gateways', adminAuthMiddleware, adminController.getAllPaymentGateways);
+
 export default adminRoutes; // Export the router

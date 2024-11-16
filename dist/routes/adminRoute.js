@@ -77,5 +77,10 @@ adminRoutes.get('/sub/categories', adminAuthMiddleware_1.default, adminControlle
 // KYC
 adminRoutes.get('/kyc', adminAuthMiddleware_1.default, adminController.getAllKYC);
 adminRoutes.post('/kyc/approve-reject', adminAuthMiddleware_1.default, (0, validations_1.validateKYCNotification)(), validations_1.validate, adminController.approveOrRejectKYC);
+// Payment Gateway
+adminRoutes.post('/payment-gateway', adminAuthMiddleware_1.default, (0, validations_1.validatePaymentGateway)(), validations_1.validate, adminController.createPaymentGateway);
+adminRoutes.put('/payment-gateway', adminAuthMiddleware_1.default, (0, validations_1.validatePaymentGateway)(), validations_1.validate, adminController.updatePaymentGateway);
+adminRoutes.delete('/payment-gateway', adminAuthMiddleware_1.default, adminController.deletePaymentGateway);
+adminRoutes.get('/payment-gateways', adminAuthMiddleware_1.default, adminController.getAllPaymentGateways);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map

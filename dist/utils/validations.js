@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.updateAuctionProductValidation = exports.auctionProductValidation = exports.updateProductValidation = exports.addProductValidation = exports.updateStoreValidation = exports.createStoreValidation = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
+exports.validate = exports.validatePaymentGateway = exports.updateAuctionProductValidation = exports.auctionProductValidation = exports.updateProductValidation = exports.addProductValidation = exports.updateStoreValidation = exports.createStoreValidation = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
 // Registration validation rules
@@ -674,6 +674,22 @@ const updateAuctionProductValidation = () => {
     ];
 };
 exports.updateAuctionProductValidation = updateAuctionProductValidation;
+const validatePaymentGateway = () => {
+    return [
+        (0, express_validator_1.check)("name")
+            .isString()
+            .withMessage("Name is required and must be a string")
+            .isLength({ max: 100 })
+            .withMessage("Name should not exceed 100 characters"),
+        (0, express_validator_1.check)("publicKey")
+            .isString()
+            .withMessage("Public key is required and must be a string"),
+        (0, express_validator_1.check)("secretKey")
+            .isString()
+            .withMessage("Secret key is required and must be a string"),
+    ];
+};
+exports.validatePaymentGateway = validatePaymentGateway;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

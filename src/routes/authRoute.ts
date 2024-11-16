@@ -1,6 +1,7 @@
 // src/routes/authroute.ts
 import { Router } from 'express';
 import * as authController from '../controllers/authController';
+import * as homeController from '../controllers/homeController';
 import { registrationValidationRules, verificationValidationRules, loginValidationRules, resendVerificationValidationRules, forgotPasswordValidationRules, resetPasswordValidationRules, validate } from '../utils/validations'; // Import the service
 
 const authRoutes = Router();
@@ -18,5 +19,11 @@ authRoutes.post("/auth/password/reset", resetPasswordValidationRules(), validate
 
 // Admin
 authRoutes.post("/auth/admin/login", loginValidationRules(), validate, authController.adminLogin);
+
+
+// Frontend
+authRoutes.get('/categories', homeController.getCategoriesWithSubcategories); // Fetch categories with subcategories
+authRoutes.get("/products", homeController.products);
+authRoutes.get('/product', homeController.getProductById); // Fetch a single product by ID
 
 export default authRoutes; // Export the router

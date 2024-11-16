@@ -1,5 +1,6 @@
 // models/vendorsubscription.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
+import SubscriptionPlan from './subscriptionplan';
 
 class VendorSubscription extends Model {
   public id!: string;
@@ -10,6 +11,7 @@ class VendorSubscription extends Model {
   public isActive!: boolean;
   public createdAt!: Date;
   public updatedAt!: Date;
+  public subscriptionPlans?: SubscriptionPlan;
 
   static associate(models: any) {
     // Associate with User model

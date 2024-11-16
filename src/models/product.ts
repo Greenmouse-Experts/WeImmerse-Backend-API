@@ -1,5 +1,6 @@
 // models/product.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
+import User from './user';
 
 class Product extends Model {
   public id!: string;
@@ -21,6 +22,7 @@ class Product extends Model {
   public meta_description!: string | null;
   public keywords!: string | null;
   public status!: 'active' | 'inactive' | 'draft';
+  public vendor?: User;  // Declare the relationship to User (vendor)
   public createdAt!: Date;
   public updatedAt!: Date;
 

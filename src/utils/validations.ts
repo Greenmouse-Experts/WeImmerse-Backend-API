@@ -747,6 +747,25 @@ export const updateAuctionProductValidation = () => {
   ];
 };
 
+
+export const validatePaymentGateway = () => {
+  return [
+    check("name")
+      .isString()
+      .withMessage("Name is required and must be a string")
+      .isLength({ max: 100 })
+      .withMessage("Name should not exceed 100 characters"),
+
+    check("publicKey")
+      .isString()
+      .withMessage("Public key is required and must be a string"),
+
+    check("secretKey")
+      .isString()
+      .withMessage("Secret key is required and must be a string"),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,

@@ -11,6 +11,7 @@ import logger from "../middlewares/logger"; // Adjust the path to your logger.js
 import { capitalizeFirstLetter } from "../utils/helpers";
 import OTP from "../models/otp";
 import { AuthenticatedRequest } from "../types/index";
+import UserNotificationSetting from "../models/usernotificationsetting";
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -38,12 +39,38 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const profile = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const userId = (req as AuthenticatedRequest).user?.id;  // Assuming the user ID is passed in the URL params
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found." });
+      return;
+    }
+
+    res.status(200).json({
+      message: "Profile retrieved successfully.",
+      data: user,
+    });
+  } catch (error: any) {
+    logger.error("Error retrieving user profile:", error);
+
+    res.status(500).json({
+      message: "Server error during retrieving profile.",
+    });
+  }
+};
+
 export const updateProfile = async (
   req: Request,
   res: Response
 ) => {
   try {
-    const { firstName, lastName, dateOfBirth, photo, gender, location } =
+    const { firstName, lastName, dateOfBirth, gender, location } =
       req.body;
     const userId = (req as AuthenticatedRequest).user?.id;  // Assuming the user ID is passed in the URL params
 
@@ -59,7 +86,6 @@ export const updateProfile = async (
       : user.firstName;
     user.lastName = lastName ? capitalizeFirstLetter(lastName) : user.lastName;
     user.dateOfBirth = dateOfBirth || user.dateOfBirth;
-    user.photo = photo || user.photo;
     user.gender = gender || user.gender;
     user.location = location || user.location;
 
@@ -74,6 +100,39 @@ export const updateProfile = async (
 
     res.status(500).json({
       message: "Server error during profile update.",
+    });
+  }
+};
+
+export const updateProfilePhoto = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const { photo } =
+      req.body;
+    const userId = (req as AuthenticatedRequest).user?.id;  // Assuming the user ID is passed in the URL params
+
+    const user = await User.findByPk(userId);
+    if (!user) {
+      res.status(404).json({ message: "User not found." });
+      return;
+    }
+
+    // Update user profile photo
+    user.photo = photo || user.photo;
+
+    await user.save();
+
+    res.status(200).json({
+      message: "Profile photo updated successfully.",
+      data: user,
+    });
+  } catch (error: any) {
+    logger.error("Error updating user profile photo:", error);
+
+    res.status(500).json({
+      message: "Server error during profile photo update.",
     });
   }
 };
@@ -347,5 +406,77 @@ export const confirmPhoneNumberUpdate = async (
   } catch (error) {
     logger.error('Error updating profile email:', error);
     res.status(500).json({ message: 'An error occurred while updating the email' });
+  }
+};
+
+export const getUserNotificationSettings = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as AuthenticatedRequest).user?.id; // Get the authenticated user's ID
+
+  try {
+      // Step 1: Retrieve the user's notification settings
+      const userSettings = await UserNotificationSetting.findOne({
+          where: { userId },
+          attributes: ['hotDeals', 'auctionProducts', 'subscription'], // Include only relevant fields
+      });
+
+      // Step 2: Check if settings exist
+      if (!userSettings) {
+          res.status(404).json({
+              message: 'Notification settings not found for the user.',
+          });
+          return;
+      }
+
+      // Step 3: Send the settings as a response
+      res.status(200).json({
+          message: 'Notification settings retrieved successfully.',
+          settings: userSettings,
+      });
+  } catch (error) {
+      res.status(500).json({
+          message: 'Error retrieving notification settings.',
+      });
+  }
+};
+
+export const updateUserNotificationSettings = async (req: Request, res: Response): Promise<void> => {
+  const userId = (req as AuthenticatedRequest).user?.id; // Get the authenticated user's ID
+  const { hotDeals, auctionProducts, subscription } = req.body; // These values will be passed from the frontend
+
+  // Step 1: Validate the notification settings
+  if (typeof hotDeals !== 'boolean' || typeof auctionProducts !== 'boolean' || typeof subscription !== 'boolean') {
+      res.status(400).json({
+          message: 'All notification settings (hotDeals, auctionProducts, subscription) must be boolean values.',
+      });
+      return;
+  }
+
+  try {
+      // Step 2: Check if the user already has notification settings
+      const userSettings = await UserNotificationSetting.findOne({ where: { userId } });
+
+      if (userSettings) {
+          // Step 3: Update notification settings
+          await userSettings.update({
+              hotDeals,
+              auctionProducts,
+              subscription,
+          });
+
+          res.status(200).json({ message: 'Notification settings updated successfully.' });
+      } else {
+          // Step 4: If the settings don't exist (this shouldn't happen since they are created on signup), create them
+          await UserNotificationSetting.create({
+              userId,
+              hotDeals,
+              auctionProducts,
+              subscription,
+          });
+
+          res.status(200).json({ message: 'Notification settings created successfully.' });
+      }
+  } catch (error: any) {
+    logger.error(error);
+    res.status(500).json({ message: error.message || 'Error updating notification settings.' });
   }
 };

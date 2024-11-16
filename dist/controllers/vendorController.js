@@ -23,7 +23,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.viewAuctionProduct = exports.fetchVendorAuctionProducts = exports.cancelAuctionProduct = exports.deleteAuctionProduct = exports.updateAuctionProduct = exports.createAuctionProduct = exports.changeProductStatus = exports.moveToDraft = exports.viewProduct = exports.fetchVendorProducts = exports.deleteProduct = exports.updateProduct = exports.createProduct = exports.deleteStore = exports.updateStore = exports.createStore = exports.getStore = exports.getKYC = exports.submitOrUpdateKYC = void 0;
+exports.verifyCAC = exports.subscribe = exports.subscriptionPlans = exports.viewAuctionProduct = exports.fetchVendorAuctionProducts = exports.cancelAuctionProduct = exports.deleteAuctionProduct = exports.updateAuctionProduct = exports.createAuctionProduct = exports.changeProductStatus = exports.moveToDraft = exports.viewProduct = exports.fetchVendorProducts = exports.deleteProduct = exports.updateProduct = exports.createProduct = exports.deleteStore = exports.updateStore = exports.createStore = exports.getStore = exports.getKYC = exports.submitOrUpdateKYC = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const uuid_1 = require("uuid");
 const sequelize_1 = require("sequelize");
@@ -35,6 +35,13 @@ const subcategory_1 = __importDefault(require("../models/subcategory"));
 const helpers_1 = require("../utils/helpers");
 const auctionproduct_1 = __importDefault(require("../models/auctionproduct"));
 const bid_1 = __importDefault(require("../models/bid"));
+const https_1 = __importDefault(require("https"));
+const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
+const vendorsubscription_1 = __importDefault(require("../models/vendorsubscription"));
+const notification_1 = __importDefault(require("../models/notification"));
+const transaction_1 = __importDefault(require("../models/transaction"));
+const paymentgateway_1 = __importDefault(require("../models/paymentgateway"));
+const helpers_2 = require("../utils/helpers");
 const submitOrUpdateKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     const vendorId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Authenticated user ID from middleware
@@ -771,4 +778,273 @@ const viewAuctionProduct = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.viewAuctionProduct = viewAuctionProduct;
+// Subscription
+const subscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _w;
+    const vendorId = (_w = req.user) === null || _w === void 0 ? void 0 : _w.id; // Authenticated user ID from middleware
+    try {
+        // Fetch all subscription plans
+        const subscriptionPlans = yield subscriptionplan_1.default.findAll();
+        // Fetch the active subscription for the vendor
+        const activeSubscription = yield vendorsubscription_1.default.findOne({
+            where: {
+                vendorId: vendorId,
+                isActive: true, // Only get active subscriptions
+            },
+        });
+        // Check if the vendor has an active subscription
+        if (activeSubscription) {
+            // Mark the active plan in the list
+            subscriptionPlans.forEach((plan) => {
+                if (plan.id === activeSubscription.subscriptionPlanId) {
+                    plan.setDataValue('isActiveForVendor', true); // Mark this plan as active for this vendor
+                }
+                else {
+                    plan.setDataValue('isActiveForVendor', false); // Mark others as inactive for this vendor
+                }
+            });
+        }
+        res.status(200).json({ data: subscriptionPlans });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching subscription plans or active subscription:", error);
+        res.status(500).json({
+            message: error.message || "An error occurred while fetching subscription plans",
+        });
+    }
+});
+exports.subscriptionPlans = subscriptionPlans;
+const subscribe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _x;
+    const vendorId = (_x = req.user) === null || _x === void 0 ? void 0 : _x.id; // Authenticated user ID from middleware
+    const { subscriptionPlanId, isWallet, refId } = req.body; // Including isWallet and refId in the request body
+    if (!subscriptionPlanId) {
+        res.status(400).json({ message: 'Subscription plan ID is required.' });
+        return;
+    }
+    try {
+        // Step 1: Check for active subscription
+        const activeSubscription = yield vendorsubscription_1.default.findOne({
+            where: {
+                vendorId,
+                isActive: true,
+            },
+            include: [{
+                    model: subscriptionplan_1.default,
+                    as: "subscriptionPlans",
+                    attributes: ['id', 'name'],
+                }],
+        });
+        const startDate = new Date();
+        const endDate = new Date();
+        const handleTransaction = (amount) => __awaiter(void 0, void 0, void 0, function* () {
+            // If isWallet is true, deduct from wallet balance
+            if (isWallet) {
+                const vendor = yield user_1.default.findByPk(vendorId);
+                if (!vendor || vendor.wallet === undefined || vendor.wallet < amount) {
+                    res.status(400).json({ message: "Insufficient wallet balance." });
+                    return false;
+                }
+                // Deduct the amount from the wallet
+                yield vendor.update({ wallet: vendor.wallet - amount });
+            }
+            else {
+                const paymentGateway = yield paymentgateway_1.default.findOne({ where: { isActive: true } });
+                if (!paymentGateway) {
+                    res.status(400).json({ message: "No active payment gateway found." });
+                    return false;
+                }
+                // If refId is provided, verify the payment
+                if (!refId) {
+                    res.status(400).json({ message: 'Payment reference ID (refId) is required.' });
+                    return;
+                }
+                // Simulate a payment verification function
+                const isPaymentValid = yield (0, helpers_2.verifyPayment)(refId, paymentGateway.secretKey);
+                if (!isPaymentValid) {
+                    res.status(400).json({ message: 'Invalid or unverified payment reference.' });
+                    return false;
+                }
+            }
+            // Save the transaction in the database
+            yield transaction_1.default.create({
+                userId: vendorId,
+                amount,
+                transactionType: 'subscription',
+                status: 'success',
+                refId: isWallet ? null : refId,
+            });
+            return true;
+        });
+        if (activeSubscription) {
+            // Step 2: Handle active subscription
+            const activePlan = activeSubscription.subscriptionPlans;
+            // Step 2: Check if the active plan is defined and handle accordingly
+            if (!activePlan) {
+                res.status(400).json({ message: 'No subscription plan found for the vendor.' });
+                return;
+            }
+            if (activePlan.name === 'Free Plan') {
+                // If the active plan is free, proceed with the subscription
+                // Step 3: Mark the current free plan as inactive
+                yield activeSubscription.update({ isActive: false });
+                // Step 4: Create a new subscription for the vendor
+                const subscriptionPlan = yield subscriptionplan_1.default.findByPk(subscriptionPlanId);
+                if (!subscriptionPlan) {
+                    res.status(404).json({ message: 'Subscription plan not found' });
+                    return;
+                }
+                const transactionSuccess = yield handleTransaction(subscriptionPlan.price);
+                if (!transactionSuccess)
+                    return;
+                endDate.setMonth(startDate.getMonth() + subscriptionPlan.duration); // Set end date by adding months
+                const newSubscription = yield vendorsubscription_1.default.create({
+                    vendorId,
+                    subscriptionPlanId,
+                    startDate,
+                    endDate,
+                    isActive: true,
+                });
+                // Create a notification for the vendor
+                yield notification_1.default.create({
+                    userId: vendorId,
+                    message: `You have successfully subscribed to the ${subscriptionPlan.name} plan.`,
+                    type: 'subscription',
+                    isRead: false,
+                });
+                res.status(200).json({
+                    message: 'Subscribed to new plan successfully',
+                    subscription: newSubscription,
+                });
+            }
+            else {
+                // Create a notification about the existing active subscription
+                yield notification_1.default.create({
+                    userId: vendorId,
+                    message: 'You already have an active non-free subscription and cannot switch to a new plan.',
+                    type: 'subscription',
+                    isRead: false,
+                });
+                // If the existing subscription is not free, notify the vendor
+                res.status(400).json({
+                    message: 'You already have an active non-free subscription',
+                });
+            }
+        }
+        else {
+            // No active subscription exists, create a new one
+            const subscriptionPlan = yield subscriptionplan_1.default.findByPk(subscriptionPlanId);
+            if (!subscriptionPlan) {
+                res.status(404).json({ message: 'Subscription plan not found' });
+                return;
+            }
+            const transactionSuccess = yield handleTransaction(subscriptionPlan.price);
+            if (!transactionSuccess)
+                return;
+            endDate.setMonth(startDate.getMonth() + subscriptionPlan.duration); // Set end date by adding months
+            const newSubscription = yield vendorsubscription_1.default.create({
+                vendorId,
+                subscriptionPlanId,
+                startDate,
+                endDate,
+                isActive: true,
+            });
+            // Create a notification for the new subscription
+            yield notification_1.default.create({
+                userId: vendorId,
+                message: `You have successfully subscribed to the ${subscriptionPlan.name} plan.`,
+                type: 'subscription',
+                isRead: false,
+            });
+            res.status(200).json({
+                message: 'Subscribed to plan successfully',
+                subscription: newSubscription,
+            });
+        }
+    }
+    catch (error) {
+        logger_1.default.error('Error subscribing vendor:', error);
+        res.status(500).json({
+            message: error.message || 'An error occurred while processing the subscription.',
+        });
+    }
+});
+exports.subscribe = subscribe;
+const verifyCAC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const businessName = 'GREEN MOUSE TECHNOLOGIES ENTERPRISES';
+    const registrationNumber = 'BN 2182096';
+    const data = JSON.stringify({
+        bank_code: '011',
+        country_code: 'NG',
+        account_number: '3060096527',
+        account_name: 'Ezema Promise',
+        account_type: 'personal',
+        document_type: 'businessRegistrationNumber',
+        document_number: registrationNumber,
+    });
+    const options = {
+        hostname: 'api.paystack.co',
+        port: 443,
+        path: '/bank/validate',
+        method: 'POST',
+        headers: {
+            Authorization: 'Bearer sk_test_fde1e5319c69aa49534344c95485a8f1cef333ac',
+            'Content-Type': 'application/json',
+        },
+    };
+    try {
+        const request = https_1.default.request(options, (response) => {
+            let responseData = '';
+            // Collect response data
+            response.on('data', (chunk) => {
+                responseData += chunk;
+            });
+            // Process complete response
+            response.on('end', () => {
+                if (!responseData) {
+                    console.error('No response data received.');
+                    res.status(500).json({ message: 'No response data received from API.' });
+                    return;
+                }
+                try {
+                    const parsedData = JSON.parse(responseData);
+                    if (parsedData.status === true) {
+                        console.log('Vendor verified successfully!', parsedData);
+                        res.status(200).json({
+                            message: 'Vendor verified successfully!',
+                            data: parsedData,
+                        });
+                    }
+                    else {
+                        console.log('Verification failed:', parsedData.message);
+                        res.status(400).json({
+                            message: 'Verification failed',
+                            error: parsedData.message,
+                        });
+                    }
+                }
+                catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                    res.status(500).json({
+                        message: 'Error parsing API response',
+                        error: parseError.message,
+                    });
+                }
+            });
+        });
+        // Handle request errors
+        request.on('error', (error) => {
+            console.error('Error verifying CAC:', error);
+            res.status(500).json({ message: 'Request error', error: error.message });
+        });
+        // Write the data to the request body and send it
+        request.write(data);
+        request.end();
+    }
+    catch (error) {
+        console.error('Unexpected error:', error);
+        res.status(500).json({ message: 'Unexpected error', error: error });
+    }
+});
+exports.verifyCAC = verifyCAC;
 //# sourceMappingURL=vendorController.js.map

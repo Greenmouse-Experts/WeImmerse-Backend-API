@@ -85,6 +85,13 @@ const initModel = (sequelize) => {
         googleId: sequelize_1.DataTypes.STRING,
         accountType: sequelize_1.DataTypes.ENUM('Vendor', 'Customer'),
         status: sequelize_1.DataTypes.ENUM("active", "inactive"),
+        isVerified: {
+            type: sequelize_1.DataTypes.VIRTUAL,
+            get() {
+                // This will be populated during the query
+                return this.getDataValue('isVerified') === true;
+            },
+        },
     }, {
         sequelize,
         modelName: "User",
@@ -100,6 +107,32 @@ const initModel = (sequelize) => {
             },
         },
     });
+    // After finding a user, set the isVerified status
+    User.addHook("afterFind", (user) => __awaiter(void 0, void 0, void 0, function* () {
+        // If no user is found, exit early
+        if (!user)
+            return;
+        // Function to update the `isVerified` field
+        const setVerificationStatus = (userInstance) => __awaiter(void 0, void 0, void 0, function* () {
+            const kyc = yield kyc_1.default.findOne({
+                where: { vendorId: userInstance.id },
+            });
+            if (kyc) {
+                userInstance.setDataValue('isVerified', kyc.isVerified); // Set it correctly based on KYC data
+            }
+            else {
+                userInstance.setDataValue('isVerified', false); // Set as false if no KYC record exists
+            }
+        });
+        // If the result is an array of users (e.g., when using includes in a query), set for each one
+        if (Array.isArray(user)) {
+            yield Promise.all(user.map((userInstance) => setVerificationStatus(userInstance)));
+        }
+        else {
+            // For a single user, directly update the status
+            yield setVerificationStatus(user);
+        }
+    }));
     // Add the password hashing hook before saving
     User.addHook("beforeSave", (user) => __awaiter(void 0, void 0, void 0, function* () {
         if (user.changed("password") || user.isNewRecord) {

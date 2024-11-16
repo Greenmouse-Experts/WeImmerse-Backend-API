@@ -56,5 +56,9 @@ vendorRoutes.put("/auction/products", authMiddleware_1.default, authorizeVendor_
 vendorRoutes.delete("/auction/products", authMiddleware_1.default, authorizeVendor_1.default, vendorController.deleteAuctionProduct);
 vendorRoutes.patch("/auction/products", authMiddleware_1.default, authorizeVendor_1.default, vendorController.cancelAuctionProduct);
 vendorRoutes.get("/auction/product", authMiddleware_1.default, authorizeVendor_1.default, vendorController.viewAuctionProduct);
+// Subscription
+vendorRoutes.get("/subscription/plans", authMiddleware_1.default, authorizeVendor_1.default, vendorController.subscriptionPlans);
+vendorRoutes.post("/subscribe", authMiddleware_1.default, authorizeVendor_1.default, vendorController.subscribe);
+vendorRoutes.get("/verifyCAC", authMiddleware_1.default, authorizeVendor_1.default, vendorController.verifyCAC);
 exports.default = vendorRoutes;
 //# sourceMappingURL=vendorRoute.js.map

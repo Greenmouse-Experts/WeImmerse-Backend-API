@@ -26,6 +26,7 @@ const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
 const vendorsubscription_1 = __importDefault(require("../models/vendorsubscription"));
+const usernotificationsetting_1 = __importDefault(require("../models/usernotificationsetting"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.status(200).json({
         code: 200,
@@ -68,6 +69,13 @@ const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 isActive: true,
             });
         }
+        // Step 2: Create default notification settings for the user
+        yield usernotificationsetting_1.default.create({
+            userId: newUser.id,
+            hotDeals: false,
+            auctionProducts: false,
+            subscription: false, // Default value is false
+        });
         // Generate OTP for verification
         const otpCode = (0, helpers_1.generateOTP)();
         const otp = yield otp_1.default.create({
@@ -109,6 +117,13 @@ const customerRegister = (req, res) => __awaiter(void 0, void 0, void 0, functio
             lastName: (0, helpers_2.capitalizeFirstLetter)(lastName),
             phoneNumber,
             accountType: "Customer",
+        });
+        // Step 2: Create default notification settings for the user
+        yield usernotificationsetting_1.default.create({
+            userId: newUser.id,
+            hotDeals: false,
+            auctionProducts: false,
+            subscription: false, // Default value is false
         });
         // Generate OTP for verification
         const otpCode = (0, helpers_1.generateOTP)();
@@ -220,10 +235,6 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             });
             return;
         }
-        // Fetch the KYC relationship
-        const kyc = yield user.getKyc(); // Assuming a method exists to get the related KYC record
-        // Determine if the account is verified based on KYC status
-        const isVerified = kyc ? kyc.isVerified : false;
         // Check if the password is correct
         const isPasswordValid = yield user.checkPassword(password);
         if (!isPasswordValid) {
@@ -235,7 +246,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Successful login
         res.status(200).json({
             message: "Login successful",
-            data: Object.assign(Object.assign({}, user.get()), { isVerified }),
+            data: user.get(),
             token,
         });
     }

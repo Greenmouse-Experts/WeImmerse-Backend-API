@@ -1,5 +1,6 @@
 // utils/helpers.ts
 import http from 'http';
+import https from 'https';
 import querystring from 'querystring';
 import Admin from '../models/admin';
 import Role from '../models/role';
@@ -9,6 +10,12 @@ import SubscriptionPlan from '../models/subscriptionplan';
 import Product from '../models/product';
 import logger from '../middlewares/logger';
 import AuctionProduct from '../models/auctionproduct';
+
+interface PaystackResponse {
+  status: boolean;
+  message: string;
+  data?: any; // Replace `any` with the specific type of the Paystack `data` object if known
+}
 
 // Function to generate a 6-digit OTP
 const generateOTP = (): string => {
@@ -173,5 +180,46 @@ const checkVendorAuctionProductLimit = async (vendorId: string): Promise<{ statu
   }
 };
 
+const verifyPayment = (refId: string, paystackSecretKey: string): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: "api.paystack.co",
+      path: `/transaction/verify/${refId}`,
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${paystackSecretKey}`, // Use dynamic key
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = "";
+
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+
+      res.on("end", () => {
+        try {
+          const response: PaystackResponse = JSON.parse(data);
+
+          if (response.status) {
+            resolve(response.data);
+          } else {
+            reject(new Error(`Paystack Error: ${response.message}`));
+          }
+        } catch (err) {
+          reject(new Error("Invalid response from Paystack"));
+        }
+      });
+    });
+
+    req.on("error", (e) => {
+      reject(new Error(`Error validating payment: ${e.message}`));
+    });
+
+    req.end();
+  });
+};
+
 // Export functions
-export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, checkVendorProductLimit, checkVendorAuctionProductLimit };
+export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, checkVendorProductLimit, checkVendorAuctionProductLimit, verifyPayment };

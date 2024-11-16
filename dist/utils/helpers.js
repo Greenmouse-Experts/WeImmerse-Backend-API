@@ -12,9 +12,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkVendorAuctionProductLimit = exports.checkVendorProductLimit = exports.fetchAdminWithPermissions = exports.sendSMS = exports.capitalizeFirstLetter = exports.generateOTP = void 0;
+exports.verifyPayment = exports.checkVendorAuctionProductLimit = exports.checkVendorProductLimit = exports.fetchAdminWithPermissions = exports.sendSMS = exports.capitalizeFirstLetter = exports.generateOTP = void 0;
 // utils/helpers.ts
 const http_1 = __importDefault(require("http"));
+const https_1 = __importDefault(require("https"));
 const querystring_1 = __importDefault(require("querystring"));
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
@@ -169,4 +170,41 @@ const checkVendorAuctionProductLimit = (vendorId) => __awaiter(void 0, void 0, v
     }
 });
 exports.checkVendorAuctionProductLimit = checkVendorAuctionProductLimit;
+const verifyPayment = (refId, paystackSecretKey) => {
+    return new Promise((resolve, reject) => {
+        const options = {
+            hostname: "api.paystack.co",
+            path: `/transaction/verify/${refId}`,
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${paystackSecretKey}`, // Use dynamic key
+            },
+        };
+        const req = https_1.default.request(options, (res) => {
+            let data = "";
+            res.on("data", (chunk) => {
+                data += chunk;
+            });
+            res.on("end", () => {
+                try {
+                    const response = JSON.parse(data);
+                    if (response.status) {
+                        resolve(response.data);
+                    }
+                    else {
+                        reject(new Error(`Paystack Error: ${response.message}`));
+                    }
+                }
+                catch (err) {
+                    reject(new Error("Invalid response from Paystack"));
+                }
+            });
+        });
+        req.on("error", (e) => {
+            reject(new Error(`Error validating payment: ${e.message}`));
+        });
+        req.end();
+    });
+};
+exports.verifyPayment = verifyPayment;
 //# sourceMappingURL=helpers.js.map

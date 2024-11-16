@@ -34,11 +34,15 @@ const validations_1 = require("../utils/validations");
 const userRoutes = (0, express_1.Router)();
 // User routes
 userRoutes.post("/logout", authMiddleware_1.default, userController.logout);
+userRoutes.get('/profile', authMiddleware_1.default, userController.profile);
 userRoutes.put('/profile/update', authMiddleware_1.default, userController.updateProfile);
+userRoutes.patch('/profile/photo/update', authMiddleware_1.default, userController.updateProfilePhoto);
 userRoutes.put('/profile/update/email', authMiddleware_1.default, (0, validations_1.updateProfileEmailValidationRules)(), validations_1.validate, userController.updateProfileEmail);
 userRoutes.put('/profile/confirm/email', authMiddleware_1.default, (0, validations_1.confirmProfileEmailValidationRules)(), validations_1.validate, userController.confirmEmailUpdate);
 userRoutes.put('/profile/update/phone', authMiddleware_1.default, (0, validations_1.updateProfilePhoneNumberValidationRules)(), validations_1.validate, userController.updateProfilePhoneNumber);
 userRoutes.put('/profile/confirm/phone/number', authMiddleware_1.default, (0, validations_1.confirmProfilePhoneNumberValidationRules)(), validations_1.validate, userController.confirmPhoneNumberUpdate);
 userRoutes.put('/profile/update/password', authMiddleware_1.default, (0, validations_1.updatePasswordValidationRules)(), validations_1.validate, userController.updatePassword);
+userRoutes.get('/notification/settings', authMiddleware_1.default, userController.getUserNotificationSettings);
+userRoutes.put('/update/notification/settings', authMiddleware_1.default, userController.updateUserNotificationSettings);
 exports.default = userRoutes;
 //# sourceMappingURL=userRoute.js.map

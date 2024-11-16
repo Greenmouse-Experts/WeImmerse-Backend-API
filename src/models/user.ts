@@ -22,7 +22,7 @@ class User extends Model {
   public dateOfBirth?: string;
   public location?: Location; // This will be serialized as JSON
   public photo?: string;
-  public wallet?: string;
+  public wallet?: number;
   public accountType?: string;
   public status?: "active" | "inactive";
   public isVerified?: boolean;
@@ -97,6 +97,13 @@ const initModel = (sequelize: Sequelize) => {
       googleId: DataTypes.STRING,
       accountType: DataTypes.ENUM('Vendor', 'Customer'),
       status: DataTypes.ENUM("active", "inactive"),
+      isVerified: {
+        type: DataTypes.VIRTUAL,
+        get() {
+          // This will be populated during the query
+          return this.getDataValue('isVerified') === true;
+        },
+      },
     },
     {
       sequelize,
@@ -115,6 +122,33 @@ const initModel = (sequelize: Sequelize) => {
     }
   );
 
+  // After finding a user, set the isVerified status
+  User.addHook("afterFind", async (user: any) => {
+    // If no user is found, exit early
+    if (!user) return;
+  
+    // Function to update the `isVerified` field
+    const setVerificationStatus = async (userInstance: User) => {
+      const kyc = await KYC.findOne({
+        where: { vendorId: userInstance.id },
+      });
+
+      if (kyc) {
+        userInstance.setDataValue('isVerified', kyc.isVerified); // Set it correctly based on KYC data
+      } else {
+        userInstance.setDataValue('isVerified', false); // Set as false if no KYC record exists
+      }
+    };
+  
+    // If the result is an array of users (e.g., when using includes in a query), set for each one
+    if (Array.isArray(user)) {
+      await Promise.all(user.map((userInstance: User) => setVerificationStatus(userInstance)));
+    } else {
+      // For a single user, directly update the status
+      await setVerificationStatus(user);
+    }
+  });
+  
   // Add the password hashing hook before saving
   User.addHook("beforeSave", async (user: User) => {
     if (user.changed("password") || user.isNewRecord) {
