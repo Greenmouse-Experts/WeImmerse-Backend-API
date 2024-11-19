@@ -26,15 +26,15 @@ const initModel = (sequelize) => {
         },
         hotDeals: {
             type: sequelize_1.DataTypes.BOOLEAN,
-            defaultValue: false, // Default is false (not enabled)
+            defaultValue: true, // Default is false (not enabled)
         },
         auctionProducts: {
             type: sequelize_1.DataTypes.BOOLEAN,
-            defaultValue: false, // Default is false (not enabled)
+            defaultValue: true, // Default is false (not enabled)
         },
         subscription: {
             type: sequelize_1.DataTypes.BOOLEAN,
-            defaultValue: false, // Default is false (not enabled)
+            defaultValue: true, // Default is false (not enabled)
         },
     }, {
         sequelize,

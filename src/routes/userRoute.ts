@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import * as userController from '../controllers/userController';
 import authMiddleware from '../middlewares/authMiddleware';
-import { updatePasswordValidationRules, updateProfileEmailValidationRules, confirmProfileEmailValidationRules, updateProfilePhoneNumberValidationRules, confirmProfilePhoneNumberValidationRules, validate } from '../utils/validations';
+import { updatePasswordValidationRules, updateProfileEmailValidationRules, confirmProfileEmailValidationRules, updateProfilePhoneNumberValidationRules, confirmProfilePhoneNumberValidationRules, validateSendMessage, validate } from '../utils/validations';
 
 const userRoutes = Router();
 
@@ -19,5 +19,13 @@ userRoutes.put('/profile/update/password', authMiddleware, updatePasswordValidat
 
 userRoutes.get('/notification/settings', authMiddleware, userController.getUserNotificationSettings);
 userRoutes.put('/update/notification/settings', authMiddleware, userController.updateUserNotificationSettings);
+
+
+// Conversation and Message
+userRoutes.get('/conversations', authMiddleware, userController.getConversations);
+userRoutes.get('/messages', authMiddleware, userController.getAllConversationMessages);
+userRoutes.post('/messages', authMiddleware, validateSendMessage(), validate, userController.sendMessageHandler);
+userRoutes.delete('/messages', authMiddleware, userController.deleteMessageHandler);
+userRoutes.patch('/mark/message/read', authMiddleware, userController.markAsReadHandler);
 
 export default userRoutes;

@@ -14,13 +14,25 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const http_1 = __importDefault(require("http"));
+const socket_io_1 = require("socket.io");
 const express_service_1 = __importDefault(require("./services/express.service"));
 const sequelize_service_1 = __importDefault(require("./services/sequelize.service")); // Adjusted to match your service structure
 const authRoute_1 = __importDefault(require("./routes/authRoute")); // Import your routes here
+const socket_service_1 = require("./services/socket.service");
 dotenv_1.default.config();
 // Initialize the Express app
 const app = (0, express_service_1.default)();
+// Create the HTTP server
+const server = http_1.default.createServer(app);
+// Attach Socket.IO to the HTTP server
+const io = new socket_io_1.Server(server, {
+    cors: {
+        origin: "*", // Change to specific origins in production
+    },
+});
 app.use("/api", authRoute_1.default); // Mount the router to /api
+// Configure Socket.IO
+(0, socket_service_1.configureSocket)(io);
 // Initialize and sync Sequelize
 sequelize_service_1.default.init()
     .then(() => __awaiter(void 0, void 0, void 0, function* () {
@@ -35,8 +47,19 @@ sequelize_service_1.default.init()
     .catch((error) => console.error("Error connecting to the database:", error));
 // Create and start the HTTP server
 const port = process.env.SERVER_PORT || 3000; // Get the port from the environment variables
-const server = http_1.default.createServer(app);
 server.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
+});
+// Graceful shutdown
+process.on("SIGINT", () => {
+    console.log("Shutting down gracefully...");
+    server.close(() => {
+        var _a;
+        console.log("HTTP server closed.");
+        (_a = sequelize_service_1.default.connection) === null || _a === void 0 ? void 0 : _a.close().then(() => {
+            console.log("Database connection closed.");
+            process.exit(0);
+        });
+    });
 });
 //# sourceMappingURL=index.js.map

@@ -1425,3 +1425,39 @@ export const getAllPaymentGateways = async (req: Request, res: Response): Promis
         });
     }
 };
+
+export const setPaymentGatewayActive = async (req: Request, res: Response): Promise<void> => {
+    const id = req.query.id as string;
+
+    try {
+        const paymentGateway = await PaymentGateway.findByPk(id);
+
+        if (!paymentGateway) {
+            res.status(404).json({ message: 'Payment Gateway not found' });
+            return;
+        }
+
+        // Check if the payment gateway is already active
+        if (paymentGateway.isActive) {
+            res.status(200).json({ message: 'Payment Gateway is already active.' });
+            return;
+        }
+
+        // Set all other active gateways to false
+        await PaymentGateway.update(
+            { isActive: false },
+            { where: { isActive: true } }
+        );
+
+        // Set the specified gateway as active
+        await paymentGateway.update({ isActive: true });
+
+        res.status(200).json({
+            message: 'Payment Gateway successfully set to active.',
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while updating the payment gateway.',
+        });
+    }
+};

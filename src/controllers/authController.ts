@@ -13,9 +13,6 @@ import Admin from "../models/admin";
 import Role from "../models/role";
 import SubscriptionPlan from "../models/subscriptionplan";
 import VendorSubscription from "../models/vendorsubscription";
-import Product from "../models/product";
-import { Op, ForeignKeyConstraintError } from "sequelize";
-import SubCategory from "../models/subcategory";
 import UserNotificationSetting from "../models/usernotificationsetting";
 
 export const index = async (req: Request, res: Response) => {
@@ -98,7 +95,7 @@ export const vendorRegister = async (
     }
 
     // Return a success response
-    res.status(200).json({ message: "Vendor registered successfully" });
+    res.status(200).json({ message: "Vendor registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account." });
   } catch (error) {
     logger.error("Error during registration:", error);
     res.status(500).json({ message: "Server error" });
@@ -158,7 +155,7 @@ export const customerRegister = async (
     }
 
     // Return a success response
-    res.status(200).json({ message: "Customer registered successfully" });
+    res.status(200).json({ message: "Customer registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account." });
   } catch (error) {
     logger.error("Error during registration:", error);
     res.status(500).json({ message: "Server error" });

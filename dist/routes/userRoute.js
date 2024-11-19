@@ -44,5 +44,11 @@ userRoutes.put('/profile/confirm/phone/number', authMiddleware_1.default, (0, va
 userRoutes.put('/profile/update/password', authMiddleware_1.default, (0, validations_1.updatePasswordValidationRules)(), validations_1.validate, userController.updatePassword);
 userRoutes.get('/notification/settings', authMiddleware_1.default, userController.getUserNotificationSettings);
 userRoutes.put('/update/notification/settings', authMiddleware_1.default, userController.updateUserNotificationSettings);
+// Conversation and Message
+userRoutes.get('/conversations', authMiddleware_1.default, userController.getConversations);
+userRoutes.get('/messages', authMiddleware_1.default, userController.getAllConversationMessages);
+userRoutes.post('/messages', authMiddleware_1.default, (0, validations_1.validateSendMessage)(), validations_1.validate, userController.sendMessageHandler);
+userRoutes.delete('/messages', authMiddleware_1.default, userController.deleteMessageHandler);
+userRoutes.patch('/mark/message/read', authMiddleware_1.default, userController.markAsReadHandler);
 exports.default = userRoutes;
 //# sourceMappingURL=userRoute.js.map

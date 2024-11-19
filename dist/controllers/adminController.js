@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllPaymentGateways = exports.deletePaymentGateway = exports.updatePaymentGateway = exports.createPaymentGateway = exports.approveOrRejectKYC = exports.getAllKYC = exports.getAllSubCategories = exports.deleteSubCategory = exports.updateSubCategory = exports.createSubCategory = exports.getCategoriesWithSubCategories = exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getAllCategories = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.setPaymentGatewayActive = exports.getAllPaymentGateways = exports.deletePaymentGateway = exports.updatePaymentGateway = exports.createPaymentGateway = exports.approveOrRejectKYC = exports.getAllKYC = exports.getAllSubCategories = exports.deleteSubCategory = exports.updateSubCategory = exports.createSubCategory = exports.getCategoriesWithSubCategories = exports.deleteCategory = exports.updateCategory = exports.createCategory = exports.getAllCategories = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -1185,4 +1185,32 @@ const getAllPaymentGateways = (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.getAllPaymentGateways = getAllPaymentGateways;
+const setPaymentGatewayActive = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.query.id;
+    try {
+        const paymentGateway = yield paymentgateway_1.default.findByPk(id);
+        if (!paymentGateway) {
+            res.status(404).json({ message: 'Payment Gateway not found' });
+            return;
+        }
+        // Check if the payment gateway is already active
+        if (paymentGateway.isActive) {
+            res.status(200).json({ message: 'Payment Gateway is already active.' });
+            return;
+        }
+        // Set all other active gateways to false
+        yield paymentgateway_1.default.update({ isActive: false }, { where: { isActive: true } });
+        // Set the specified gateway as active
+        yield paymentGateway.update({ isActive: true });
+        res.status(200).json({
+            message: 'Payment Gateway successfully set to active.',
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while updating the payment gateway.',
+        });
+    }
+});
+exports.setPaymentGatewayActive = setPaymentGatewayActive;
 //# sourceMappingURL=adminController.js.map

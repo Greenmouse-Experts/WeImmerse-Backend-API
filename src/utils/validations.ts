@@ -766,6 +766,50 @@ export const validatePaymentGateway = () => {
   ];
 };
 
+export const validateSendMessage = () => {
+  return [
+    // Validate productId
+    check("productId")
+      .isString()
+      .withMessage("Product ID is required and must be a string")
+      .isUUID()
+      .withMessage("Product ID must be a valid UUID"),
+
+    // Validate receiverId
+    check("receiverId")
+      .isString()
+      .withMessage("Receiver ID is required and must be a string")
+      .isUUID()
+      .withMessage("Receiver ID must be a valid UUID"),
+
+    // Validate content
+    check("content")
+      .isString()
+      .withMessage("Content is required and must be a string")
+      .isLength({ min: 10 })
+      .withMessage("Content cannot be empty")
+      .isLength({ max: 1000 })
+      .withMessage("Content should not exceed 1000 characters"),
+
+    // Validate fileUrl (Optional)
+    check("fileUrl")
+      .optional()
+      .isURL()
+      .withMessage("File URL must be a valid URL"),
+
+    // Custom validation to ensure at least one of content or fileUrl is provided
+    check("content")
+      .custom((value, { req }) => {
+        const fileUrl = req.body.fileUrl;
+        if (!value && !fileUrl) {
+          throw new Error("Either content or fileUrl must be provided");
+        }
+        return true; // Everything is fine
+      })
+      .withMessage("Content or fileUrl is required"),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,

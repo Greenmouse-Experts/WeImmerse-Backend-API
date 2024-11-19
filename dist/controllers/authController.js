@@ -92,7 +92,7 @@ const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
             logger_1.default.error("Error sending email:", emailError); // Log error for internal use
         }
         // Return a success response
-        res.status(200).json({ message: "Vendor registered successfully" });
+        res.status(200).json({ message: "Vendor registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account." });
     }
     catch (error) {
         logger_1.default.error("Error during registration:", error);
@@ -141,7 +141,7 @@ const customerRegister = (req, res) => __awaiter(void 0, void 0, void 0, functio
             logger_1.default.error("Error sending email:", emailError); // Log error for internal use
         }
         // Return a success response
-        res.status(200).json({ message: "Customer registered successfully" });
+        res.status(200).json({ message: "Customer registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account." });
     }
     catch (error) {
         logger_1.default.error("Error during registration:", error);

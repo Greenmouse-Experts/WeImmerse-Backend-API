@@ -73,5 +73,6 @@ adminRoutes.post('/payment-gateway', adminAuthMiddleware, validatePaymentGateway
 adminRoutes.put('/payment-gateway', adminAuthMiddleware, validatePaymentGateway(), validate, adminController.updatePaymentGateway);
 adminRoutes.delete('/payment-gateway', adminAuthMiddleware, adminController.deletePaymentGateway);
 adminRoutes.get('/payment-gateways', adminAuthMiddleware, adminController.getAllPaymentGateways);
+adminRoutes.patch('/payment-gateways/status', adminAuthMiddleware, adminController.setPaymentGatewayActive);
 
 export default adminRoutes; // Export the router

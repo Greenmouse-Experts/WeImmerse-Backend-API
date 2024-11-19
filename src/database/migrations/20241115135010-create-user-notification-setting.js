@@ -15,15 +15,15 @@ module.exports = {
       },
       hotDeals: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false,  // Default is false (not enabled)
+        defaultValue: true,  // Default is false (not enabled)
       },
       auctionProducts: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false,  // Default is false (not enabled)
+        defaultValue: true,  // Default is false (not enabled)
       },
       subscription: {
         type: Sequelize.BOOLEAN,
-        defaultValue: false,  // Default is false (not enabled)
+        defaultValue: true,  // Default is false (not enabled)
       },
       createdAt: {
         allowNull: false,

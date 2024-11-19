@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.validatePaymentGateway = exports.updateAuctionProductValidation = exports.auctionProductValidation = exports.updateProductValidation = exports.addProductValidation = exports.updateStoreValidation = exports.createStoreValidation = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
+exports.validate = exports.validateSendMessage = exports.validatePaymentGateway = exports.updateAuctionProductValidation = exports.auctionProductValidation = exports.updateProductValidation = exports.addProductValidation = exports.updateStoreValidation = exports.createStoreValidation = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
 // Registration validation rules
@@ -690,6 +690,46 @@ const validatePaymentGateway = () => {
     ];
 };
 exports.validatePaymentGateway = validatePaymentGateway;
+const validateSendMessage = () => {
+    return [
+        // Validate productId
+        (0, express_validator_1.check)("productId")
+            .isString()
+            .withMessage("Product ID is required and must be a string")
+            .isUUID()
+            .withMessage("Product ID must be a valid UUID"),
+        // Validate receiverId
+        (0, express_validator_1.check)("receiverId")
+            .isString()
+            .withMessage("Receiver ID is required and must be a string")
+            .isUUID()
+            .withMessage("Receiver ID must be a valid UUID"),
+        // Validate content
+        (0, express_validator_1.check)("content")
+            .isString()
+            .withMessage("Content is required and must be a string")
+            .isLength({ min: 10 })
+            .withMessage("Content cannot be empty")
+            .isLength({ max: 1000 })
+            .withMessage("Content should not exceed 1000 characters"),
+        // Validate fileUrl (Optional)
+        (0, express_validator_1.check)("fileUrl")
+            .optional()
+            .isURL()
+            .withMessage("File URL must be a valid URL"),
+        // Custom validation to ensure at least one of content or fileUrl is provided
+        (0, express_validator_1.check)("content")
+            .custom((value, { req }) => {
+            const fileUrl = req.body.fileUrl;
+            if (!value && !fileUrl) {
+                throw new Error("Either content or fileUrl must be provided");
+            }
+            return true; // Everything is fine
+        })
+            .withMessage("Content or fileUrl is required"),
+    ];
+};
+exports.validateSendMessage = validateSendMessage;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
