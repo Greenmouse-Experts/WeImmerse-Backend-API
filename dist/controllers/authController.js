@@ -246,8 +246,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         // Successful login
         res.status(200).json({
             message: "Login successful",
-            data: user.get(),
-            token,
+            data: Object.assign(Object.assign({}, user.toJSON()), { token })
         });
     }
     catch (error) {

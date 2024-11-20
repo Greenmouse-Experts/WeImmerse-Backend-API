@@ -1019,7 +1019,7 @@ const getAllKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         logger_1.default.error("Error retrieving KYC records:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.getAllKYC = getAllKYC;
@@ -1073,7 +1073,7 @@ const approveOrRejectKYC = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
         logger_1.default.error("Error approving/rejecting KYC:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.approveOrRejectKYC = approveOrRejectKYC;

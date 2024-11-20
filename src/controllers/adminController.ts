@@ -43,7 +43,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
         res.status(200).json({
             message: "Logged out successfully.",
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error(error);
         res.status(500).json({
             message: "Server error during logout.",
@@ -1234,9 +1234,9 @@ export const getAllKYC = async (req: Request, res: Response): Promise<void> => {
         });
 
         res.status(200).json({ data: kycRecords });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error retrieving KYC records:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -1306,9 +1306,9 @@ export const approveOrRejectKYC = async (
                 ? "KYC approved successfully"
                 : "KYC rejected with note",
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error approving/rejecting KYC:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 

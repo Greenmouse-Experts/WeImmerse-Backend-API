@@ -281,8 +281,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Successful login
     res.status(200).json({
       message: "Login successful",
-      data: user.get(),
-      token,
+      data: {
+        ...user.toJSON(),
+        token
+      }
     });
   } catch (error) {
     logger.error("Error in login:", error);
