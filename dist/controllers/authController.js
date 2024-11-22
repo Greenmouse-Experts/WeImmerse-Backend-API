@@ -37,16 +37,23 @@ exports.index = index;
 const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, firstName, lastName, phoneNumber } = req.body;
     try {
+        // Validate input
+        if (!email || !password || !firstName || !lastName || !phoneNumber) {
+            res.status(400).json({ message: "All fields are required" });
+            return;
+        }
         // Check if the user already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
             res.status(400).json({ message: "Email already in use" });
-            return; // Make sure the function returns void here
+            return;
         }
         // Find the free subscription plan
-        const freePlan = yield subscriptionplan_1.default.findOne({
-            where: { name: "Free Plan" },
-        });
+        const freePlan = yield subscriptionplan_1.default.findOne({ where: { name: "Free Plan" } });
+        if (!freePlan) {
+            res.status(400).json({ message: "Free plan not found. Please contact support." });
+            return;
+        }
         // Create the new user
         const newUser = yield user_1.default.create({
             email,
@@ -56,53 +63,66 @@ const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
             phoneNumber,
             accountType: "Vendor",
         });
-        // Assign the free plan to the new user
-        if (freePlan) {
-            const startDate = new Date();
-            const endDate = new Date();
-            endDate.setMonth(startDate.getMonth() + freePlan.duration); // Set end date by adding months
-            yield vendorsubscription_1.default.create({
-                vendorId: newUser.id,
-                subscriptionPlanId: freePlan.id,
-                startDate,
-                endDate,
-                isActive: true,
-            });
+        if (!newUser) {
+            throw new Error("Failed to create new user");
         }
-        // Step 2: Create default notification settings for the user
+        // Assign the free plan to the new user
+        const startDate = new Date();
+        const endDate = new Date();
+        endDate.setMonth(startDate.getMonth() + freePlan.duration);
+        yield vendorsubscription_1.default.create({
+            vendorId: newUser.id,
+            subscriptionPlanId: freePlan.id,
+            startDate,
+            endDate,
+            isActive: true,
+        });
+        // Create default notification settings for the user
         yield usernotificationsetting_1.default.create({
             userId: newUser.id,
             hotDeals: false,
             auctionProducts: false,
-            subscription: false, // Default value is false
+            subscription: false,
         });
         // Generate OTP for verification
         const otpCode = (0, helpers_1.generateOTP)();
         const otp = yield otp_1.default.create({
             userId: newUser.id,
             otpCode: otpCode,
-            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // OTP expires in 1 hour
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000),
         });
         // Send mail
-        let message = messages_1.emailTemplates.verifyEmail(newUser, otp.otpCode);
+        const message = messages_1.emailTemplates.verifyEmail(newUser, otp.otpCode);
         try {
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            logger_1.default.error("Error sending email:", emailError);
         }
         // Return a success response
-        res.status(200).json({ message: "Vendor registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account." });
+        res.status(200).json({
+            message: "Vendor registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+        });
     }
     catch (error) {
         logger_1.default.error("Error during registration:", error);
-        res.status(500).json({ message: "Server error" });
+        if (error.message) {
+            res.status(400).json({ message: error.message });
+        }
+        else {
+            res.status(500).json({ message: "Server error" });
+        }
     }
 });
 exports.vendorRegister = vendorRegister;
 const customerRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password, firstName, lastName, phoneNumber } = req.body;
     try {
+        // Validate input
+        if (!email || !password || !firstName || !lastName || !phoneNumber) {
+            res.status(400).json({ message: "All fields are required" });
+            return;
+        }
         // Check if the user already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
