@@ -265,6 +265,12 @@ const resendVerificationEmail = (req, res) => __awaiter(void 0, void 0, void 0, 
             res.status(404).json({ message: "User not found." });
             return;
         }
+        if (user.email_verified_at) {
+            // If the email is already verified
+            res.status(200).json({
+                message: "Your account has already been verified. You can now log in.",
+            });
+        }
         // Generate a new OTP
         const otpCode = (0, helpers_1.generateOTP)();
         // Update or create the OTP record

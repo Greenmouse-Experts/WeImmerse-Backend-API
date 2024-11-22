@@ -308,6 +308,13 @@ export const resendVerificationEmail = async (
       return;
     }
 
+    if(user.email_verified_at) {
+      // If the email is already verified
+      res.status(200).json({
+        message: "Your account has already been verified. You can now log in.",
+      });
+    }
+
     // Generate a new OTP
     const otpCode = generateOTP();
 
