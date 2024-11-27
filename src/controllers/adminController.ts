@@ -242,7 +242,7 @@ export const createSubAdmin = async (
         res.status(200).json({ message: "Sub Admin created successfully." });
     } catch (error) {
         logger.error(error);
-        res.status(400).json({ message: `Error creating sub-admin: ${error}` });
+        res.status(500).json({ message: `Error creating sub-admin: ${error}` });
     }
 };
 
@@ -289,7 +289,7 @@ export const updateSubAdmin = async (
     } catch (error) {
         // Log and send the error message in the response
         logger.error("Error updating sub-admin:", error);
-        res.status(400).json({ message: `Error updating sub-admin: ${error}` });
+        res.status(500).json({ message: `Error updating sub-admin: ${error}` });
     }
 };
 
@@ -386,7 +386,7 @@ export const resendLoginDetailsSubAdmin = async (
     } catch (error) {
         logger.error(error);
         res
-            .status(400)
+            .status(500)
             .json({ message: "Error resending login details: ${error.message}" });
     }
 };

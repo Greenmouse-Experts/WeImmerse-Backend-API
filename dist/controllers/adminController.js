@@ -208,7 +208,7 @@ const createSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
     catch (error) {
         logger_1.default.error(error);
-        res.status(400).json({ message: `Error creating sub-admin: ${error}` });
+        res.status(500).json({ message: `Error creating sub-admin: ${error}` });
     }
 });
 exports.createSubAdmin = createSubAdmin;
@@ -248,7 +248,7 @@ const updateSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         // Log and send the error message in the response
         logger_1.default.error("Error updating sub-admin:", error);
-        res.status(400).json({ message: `Error updating sub-admin: ${error}` });
+        res.status(500).json({ message: `Error updating sub-admin: ${error}` });
     }
 });
 exports.updateSubAdmin = updateSubAdmin;
@@ -324,7 +324,7 @@ const resendLoginDetailsSubAdmin = (req, res) => __awaiter(void 0, void 0, void 
     catch (error) {
         logger_1.default.error(error);
         res
-            .status(400)
+            .status(500)
             .json({ message: "Error resending login details: ${error.message}" });
     }
 });

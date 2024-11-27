@@ -42,6 +42,13 @@ export const vendorRegister = async (
       return;
     }
 
+    // Check if the phone number already exists
+    const existingPhoneNumber = await User.findOne({ where: { phoneNumber } });
+    if (existingPhoneNumber) {
+      res.status(400).json({ message: "Phone number already in use" });
+      return;
+    }
+
     // Find the free subscription plan
     const freePlan = await SubscriptionPlan.findOne({ where: { name: "Free Plan" } });
     if (!freePlan) {
@@ -136,6 +143,13 @@ export const customerRegister = async (
     if (existingUser) {
       res.status(400).json({ message: "Email already in use" });
       return; // Make sure the function returns void here
+    }
+
+    // Check if the phone number already exists
+    const existingPhoneNumber = await User.findOne({ where: { phoneNumber } });
+    if (existingPhoneNumber) {
+      res.status(400).json({ message: "Phone number already in use" });
+      return;
     }
 
     // Create the new user

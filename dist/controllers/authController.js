@@ -48,6 +48,12 @@ const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function*
             res.status(400).json({ message: "Email already in use" });
             return;
         }
+        // Check if the phone number already exists
+        const existingPhoneNumber = yield user_1.default.findOne({ where: { phoneNumber } });
+        if (existingPhoneNumber) {
+            res.status(400).json({ message: "Phone number already in use" });
+            return;
+        }
         // Find the free subscription plan
         const freePlan = yield subscriptionplan_1.default.findOne({ where: { name: "Free Plan" } });
         if (!freePlan) {
@@ -128,6 +134,12 @@ const customerRegister = (req, res) => __awaiter(void 0, void 0, void 0, functio
         if (existingUser) {
             res.status(400).json({ message: "Email already in use" });
             return; // Make sure the function returns void here
+        }
+        // Check if the phone number already exists
+        const existingPhoneNumber = yield user_1.default.findOne({ where: { phoneNumber } });
+        if (existingPhoneNumber) {
+            res.status(400).json({ message: "Phone number already in use" });
+            return;
         }
         // Create the new user
         const newUser = yield user_1.default.create({
