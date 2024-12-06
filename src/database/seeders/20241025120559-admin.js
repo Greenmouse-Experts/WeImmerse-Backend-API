@@ -17,7 +17,7 @@ module.exports = {
     await queryInterface.bulkInsert('admins', [{
       id: adminId,
       name: 'Administrator',
-      email: "admin@kudumart.com",
+      email: "admin@weimmerse.com",
       password: await bcrypt.hash("Password", saltRounds),
       roleId: superadminRoleId, // Assigning the role
       createdAt: new Date(),

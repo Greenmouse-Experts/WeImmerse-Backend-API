@@ -8,9 +8,12 @@ import dotenv from 'dotenv';
 import path from 'path';
 import globalErrorHandler from '../middlewares/errorMiddleware';
 import apiRouter from '../routes/authRoute';
-import userRouter from '../routes/userRoute';
 import adminRouter from '../routes/adminRoute';
-import vendorRouter from '../routes/vendorRoute';
+import generalRouter from '../routes/generalRoute';
+import userRouter from '../routes/userRoute';
+import studentRouter from '../routes/studentRoute';
+import creatorRouter from '../routes/creatorRoute';
+import institutionRouter from '../routes/institutionRoute';
 
 dotenv.config();
 
@@ -36,10 +39,13 @@ const createExpressApp = () => {
     app.use(bodyParser.json());
 
     // Use your routes
-    app.use("/api", apiRouter);
-    app.use("/api/user", userRouter);
-    app.use("/api/vendor", vendorRouter);
-    app.use("/api/admin", adminRouter);
+    app.use("/v1/api/", apiRouter);
+    app.use("/v1/api/general", generalRouter);
+    app.use("/v1/api/user", userRouter);
+    app.use("/v1/api/institution", institutionRouter);
+    app.use("/v1/api/student", studentRouter);
+    app.use("/v1/api/creator", creatorRouter);
+    app.use("/v1/api/admin", adminRouter);
 
     // 404 handler (this should come after routes)
     app.use((req, res) => {

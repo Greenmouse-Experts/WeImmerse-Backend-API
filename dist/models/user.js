@@ -16,7 +16,6 @@ exports.initModel = void 0;
 // models/user.ts
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
-const kyc_1 = __importDefault(require("./kyc"));
 class User extends sequelize_1.Model {
     // Method to hash the password before saving
     static hashPassword(password) {
@@ -34,22 +33,6 @@ class User extends sequelize_1.Model {
             foreignKey: 'userId',
             onDelete: 'RESTRICT'
         });
-        this.hasMany(models.VendorSubscription, {
-            as: 'subscriptions',
-            foreignKey: 'vendorId',
-            onDelete: 'RESTRICT',
-        });
-        this.hasMany(models.Store, {
-            as: 'stores',
-            foreignKey: 'vendorId',
-            onDelete: 'RESTRICT',
-        });
-    }
-    // Add method to fetch KYC record
-    getKyc() {
-        return __awaiter(this, void 0, void 0, function* () {
-            return yield kyc_1.default.findOne({ where: { vendorId: this.id } }); // Assuming KYC has a userId field linking to User
-        });
     }
 }
 const initModel = (sequelize) => {
@@ -59,38 +42,79 @@ const initModel = (sequelize) => {
             primaryKey: true,
             defaultValue: sequelize_1.DataTypes.UUIDV4, // Automatically generate UUIDs
         },
-        firstName: sequelize_1.DataTypes.STRING,
-        lastName: sequelize_1.DataTypes.STRING,
-        gender: sequelize_1.DataTypes.STRING,
+        name: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
         email: {
             type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
             unique: true,
-            allowNull: false, // You might want to enforce this
+            validate: {
+                isEmail: true,
+            },
         },
-        email_verified_at: sequelize_1.DataTypes.DATE,
-        password: {
+        email_verified_at: {
+            allowNull: true,
+            type: sequelize_1.DataTypes.DATE,
+        },
+        gender: {
             type: sequelize_1.DataTypes.STRING,
-            allowNull: false, // Enforce password requirement
+            allowNull: true,
         },
         phoneNumber: {
             type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
             unique: true,
-            allowNull: false, // Enforce phone number requirement
         },
-        dateOfBirth: sequelize_1.DataTypes.STRING,
-        location: sequelize_1.DataTypes.JSON,
-        photo: sequelize_1.DataTypes.TEXT,
-        wallet: sequelize_1.DataTypes.DECIMAL(20, 2),
-        facebookId: sequelize_1.DataTypes.STRING,
-        googleId: sequelize_1.DataTypes.STRING,
-        accountType: sequelize_1.DataTypes.ENUM('Vendor', 'Customer'),
-        status: sequelize_1.DataTypes.ENUM("active", "inactive"),
-        isVerified: {
-            type: sequelize_1.DataTypes.VIRTUAL,
-            get() {
-                // This will be populated during the query
-                return this.getDataValue('isVerified') === true;
-            },
+        dateOfBirth: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true
+        },
+        educationalLevel: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+        },
+        schoolId: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+        },
+        professionalSkill: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+        },
+        industry: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+        },
+        jobTitle: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+        },
+        referralCode: {
+            type: sequelize_1.DataTypes.STRING,
+            unique: true,
+        },
+        password: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
+        photo: {
+            type: sequelize_1.DataTypes.TEXT,
+            allowNull: true,
+        },
+        evToken: {
+            type: sequelize_1.DataTypes.DECIMAL(20, 2),
+            allowNull: true,
+        },
+        accountType: {
+            type: sequelize_1.DataTypes.ENUM('student', 'user', 'institution', 'creator'),
+            allowNull: false,
+        },
+        status: {
+            type: sequelize_1.DataTypes.ENUM('active', 'inactive'),
+            allowNull: false,
+            defaultValue: 'active',
         },
     }, {
         sequelize,
@@ -107,32 +131,6 @@ const initModel = (sequelize) => {
             },
         },
     });
-    // After finding a user, set the isVerified status
-    User.addHook("afterFind", (user) => __awaiter(void 0, void 0, void 0, function* () {
-        // If no user is found, exit early
-        if (!user)
-            return;
-        // Function to update the `isVerified` field
-        const setVerificationStatus = (userInstance) => __awaiter(void 0, void 0, void 0, function* () {
-            const kyc = yield kyc_1.default.findOne({
-                where: { vendorId: userInstance.id },
-            });
-            if (kyc) {
-                userInstance.setDataValue('isVerified', kyc.isVerified); // Set it correctly based on KYC data
-            }
-            else {
-                userInstance.setDataValue('isVerified', false); // Set as false if no KYC record exists
-            }
-        });
-        // If the result is an array of users (e.g., when using includes in a query), set for each one
-        if (Array.isArray(user)) {
-            yield Promise.all(user.map((userInstance) => setVerificationStatus(userInstance)));
-        }
-        else {
-            // For a single user, directly update the status
-            yield setVerificationStatus(user);
-        }
-    }));
     // Add the password hashing hook before saving
     User.addHook("beforeSave", (user) => __awaiter(void 0, void 0, void 0, function* () {
         if (user.changed("password") || user.isNewRecord) {

@@ -26,13 +26,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // src/routes/authroute.ts
 const express_1 = require("express");
 const authController = __importStar(require("../controllers/authController"));
-const homeController = __importStar(require("../controllers/homeController"));
 const validations_1 = require("../utils/validations"); // Import the service
 const authRoutes = (0, express_1.Router)();
 // Auth routes
 authRoutes.get("/", authController.index);
-authRoutes.post("/auth/register/vendor", (0, validations_1.registrationValidationRules)(), validations_1.validate, authController.vendorRegister);
-authRoutes.post("/auth/register/customer", (0, validations_1.registrationValidationRules)(), validations_1.validate, authController.customerRegister);
+authRoutes.post("/auth/register/user", (0, validations_1.userRegistrationValidationRules)(), validations_1.validate, authController.userRegister);
+authRoutes.post("/auth/register/institution", (0, validations_1.institutionRegistrationValidationRules)(), validations_1.validate, authController.institutionRegister);
+authRoutes.post("/auth/register/creator", (0, validations_1.creatorRegistrationValidationRules)(), validations_1.validate, authController.creatorRegister);
+authRoutes.post("/auth/register/student", (0, validations_1.studentRegistrationValidationRules)(), validations_1.validate, authController.studentRegister);
 authRoutes.post("/auth/verify/email", (0, validations_1.verificationValidationRules)(), validations_1.validate, authController.verifyEmail);
 authRoutes.post("/auth/login", (0, validations_1.loginValidationRules)(), validations_1.validate, authController.login);
 authRoutes.post("/auth/resend/verification/email", (0, validations_1.resendVerificationValidationRules)(), validations_1.validate, authController.resendVerificationEmail);
@@ -41,9 +42,5 @@ authRoutes.post("/auth/password/code/check", (0, validations_1.verificationValid
 authRoutes.post("/auth/password/reset", (0, validations_1.resetPasswordValidationRules)(), validations_1.validate, authController.resetPassword);
 // Admin
 authRoutes.post("/auth/admin/login", (0, validations_1.loginValidationRules)(), validations_1.validate, authController.adminLogin);
-// Frontend
-authRoutes.get('/categories', homeController.getCategoriesWithSubcategories); // Fetch categories with subcategories
-authRoutes.get("/products", homeController.products);
-authRoutes.get('/product', homeController.getProductById); // Fetch a single product by ID
 exports.default = authRoutes; // Export the router
 //# sourceMappingURL=authRoute.js.map

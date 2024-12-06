@@ -4,7 +4,7 @@ import { Server } from "socket.io";
 import createExpressApp from "./services/express.service";
 import sequelizeService from "./services/sequelize.service"; // Adjusted to match your service structure
 import apiRouter from "./routes/authRoute"; // Import your routes here
-import { configureSocket } from "./services/socket.service";
+// import { configureSocket } from "./services/socket.service";
 
 dotenv.config();
 
@@ -24,7 +24,10 @@ const io = new Server(server, {
 app.use("/api", apiRouter); // Mount the router to /api
 
 // Configure Socket.IO
-configureSocket(io);
+// configureSocket(io);
+
+// Export the io instance so it can be used elsewhere
+export { io };
 
 // Initialize and sync Sequelize
 sequelizeService.init()

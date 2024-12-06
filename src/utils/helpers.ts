@@ -5,11 +5,8 @@ import querystring from 'querystring';
 import Admin from '../models/admin';
 import Role from '../models/role';
 import Permission from '../models/permission';
-import VendorSubscription from '../models/vendorsubscription';
 import SubscriptionPlan from '../models/subscriptionplan';
-import Product from '../models/product';
 import logger from '../middlewares/logger';
-import AuctionProduct from '../models/auctionproduct';
 
 interface PaystackResponse {
   status: boolean;
@@ -27,6 +24,10 @@ const generateOTP = (): string => {
 function capitalizeFirstLetter(string: string): string {
     return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
+
+function generateReferralCode(name: string): string {
+  return `${name.substring(0, 3)}${Date.now().toString().slice(-5)}`;
+};
 
 const sendSMS = async (mobile: string, messageContent: string): Promise<void> => {
   const apiUrl = 'portal.nigeriabulksms.com';
@@ -92,94 +93,6 @@ const fetchAdminWithPermissions = async (adminId: string) => {
   });
 };
 
-/**
- * Checks if a vendor has reached their product limit based on their active subscription plan.
- * @param vendorId - The ID of the vendor to check.
- * @returns A promise that resolves to an object indicating the status and a message.
- */
-const checkVendorProductLimit = async (vendorId: string): Promise<{ status: boolean, message: string }> => {
-  try {
-    // Find the active subscription for the vendor
-    const activeSubscription = await VendorSubscription.findOne({
-      where: {
-        vendorId,
-        isActive: true,
-      },
-    });
-
-    if (!activeSubscription) {
-      return { status: false, message: 'Vendor does not have an active subscription.' };
-    }
-
-    // Fetch the subscription plan details
-    const subscriptionPlan = await SubscriptionPlan.findByPk(activeSubscription.subscriptionPlanId);
-
-    if (!subscriptionPlan) {
-      return { status: false, message: 'Subscription plan not found.' };
-    }
-
-    const { productLimit } = subscriptionPlan;
-
-    // Count the number of products already created by the vendor
-    const productCount = await Product.count({
-      where: { vendorId },
-    });
-
-    if (productCount >= productLimit) {
-      return { status: false, message: 'You have reached the maximum number of products allowed for your current subscription plan. Please upgrade your plan to add more products.' };
-    }
-
-    return { status: true, message: 'Vendor can create more products.' };
-  } catch (error: any) {
-    // Error type should be handled more gracefully if you have custom error types
-    throw new Error(error.message || 'An error occurred while checking the product limit.');
-  }
-};
-
-const checkVendorAuctionProductLimit = async (vendorId: string): Promise<{ status: boolean, message: string }> => {
-  try {
-    // Find the active subscription for the vendor
-    const activeSubscription = await VendorSubscription.findOne({
-      where: {
-        vendorId,
-        isActive: true,
-      },
-    });
-
-    if (!activeSubscription) {
-      return { status: false, message: 'Vendor does not have an active subscription.' };
-    }
-
-    // Fetch the subscription plan details
-    const subscriptionPlan = await SubscriptionPlan.findByPk(activeSubscription.subscriptionPlanId);
-
-    if (!subscriptionPlan) {
-      return { status: false, message: 'Subscription plan not found.' };
-    }
-
-    const auctionProductLimit = subscriptionPlan.auctionProductLimit;
-
-    // Handle the case where auctionProductLimit is null
-    if (auctionProductLimit === null) {
-      return { status: false, message: 'Subscription plan does not define a limit for auction products.' };
-    }
-
-    // Count the number of products already created by the vendor
-    const auctionProductCount = await AuctionProduct.count({
-      where: { vendorId },
-    });
-
-    if (auctionProductCount >= auctionProductLimit) {
-      return { status: false, message: 'You have reached the maximum number of products allowed for your current subscription plan. Please upgrade your plan to add more products.' };
-    }
-
-    return { status: true, message: 'Vendor can create more auction products.' };
-  } catch (error: any) {
-    // Error type should be handled more gracefully if you have custom error types
-    throw new Error(error.message || 'An error occurred while checking the auction product limit.');
-  }
-};
-
 const verifyPayment = (refId: string, paystackSecretKey: string): Promise<any> => {
   return new Promise((resolve, reject) => {
     const options = {
@@ -221,5 +134,14 @@ const verifyPayment = (refId: string, paystackSecretKey: string): Promise<any> =
   });
 };
 
+// Utility function to shuffle an array
+const shuffleArray = <T>(array: T[]): T[] => {
+  for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 // Export functions
-export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, checkVendorProductLimit, checkVendorAuctionProductLimit, verifyPayment };
+export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, verifyPayment, shuffleArray, generateReferralCode };

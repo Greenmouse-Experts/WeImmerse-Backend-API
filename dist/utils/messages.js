@@ -117,6 +117,7 @@ exports.emailTemplates = {
     h2 {
         font-size: 28px;
         text-align:center;
+        color: #7008fa;
     }
     h3 {
         font-size: 22px;
@@ -212,7 +213,7 @@ exports.emailTemplates = {
                     <tr>
                         <td>
                             <h2>Activate your account</h2>
-                            <p>Hi ${user.firstName} ${user.lastName},</p>
+                            <p>Hi ${user.name},</p>
                             <p>Thank you for creating an account on ${process.env.APP_NAME}. To complete the registration and use ${user.email} to log in, please verify your email by using the code below:</p>
                             <table>
                                 <tr>
@@ -260,8 +261,7 @@ exports.emailTemplates = {
     
     </body>
     </html>
-    
-      `;
+    `;
     },
     forgotPassword: (user, code) => {
         const logoUrl = process.env.LOGO_URL;
@@ -362,6 +362,7 @@ exports.emailTemplates = {
     h2 {
         font-size: 28px;
         text-align:center;
+        color: #7008fa;
     }
     h3 {
         font-size: 22px;
@@ -435,7 +436,7 @@ exports.emailTemplates = {
                     <tr>
                         <td>
                             <h2>Password Reset Request</h2>
-                            <p>Hi ${user.firstName} ${user.lastName},</p>
+                            <p>Hi ${user.name},</p>
                             <p>We received a request to reset the password for your ${process.env.APP_NAME} account. If you made this request, use the code below to reset your password:</p>
                             <table>
                                 <tr>
@@ -585,6 +586,7 @@ exports.emailTemplates = {
     h2 {
         font-size: 28px;
         text-align:center;
+        color: #7008fa;
     }
     h3 {
         font-size: 22px;
@@ -658,7 +660,7 @@ exports.emailTemplates = {
                     <tr>
                         <td>
                             <h2>Password Reset Successful</h2>
-                            <p>Hi ${user.firstName} ${user.lastName},</p>
+                            <p>Hi ${user.name},</p>
                             <p>We wanted to let you know that your password has been successfully reset for your ${process.env.APP_NAME} account.</p>
                             <p>If you didn't make this change or suspect unauthorized access to your account, please contact our support team immediately.</p>
                             <p>Thank you,<br> The ${process.env.APP_NAME} Support Team.</p>
@@ -801,6 +803,7 @@ exports.emailTemplates = {
     h2 {
         font-size: 28px;
         text-align:center;
+        color: #7008fa;
     }
     h3 {
         font-size: 22px;
@@ -1017,6 +1020,7 @@ exports.emailTemplates = {
         h2 {
             font-size: 28px;
             text-align:center;
+            color: #7008fa;
         }
         h3 {
             font-size: 22px;
@@ -1095,7 +1099,7 @@ exports.emailTemplates = {
                         <tr>
                             <td>
                                 <h2>Verify Your New Email Address</h2>
-                                <p>Hi ${user.firstName} ${user.lastName},</p>
+                                <p>Hi ${user.name},</p>
                                 <p>We received a request to change the email address associated with your ${process.env.APP_NAME} account. To confirm this email address (${newEmail}), please enter the code below to complete the process:</p>
                                 <table>
                                     <tr>
@@ -1246,6 +1250,7 @@ exports.emailTemplates = {
         h2 {
             font-size: 28px;
             text-align:center;
+            color: #7008fa;
         }
         h3 {
             font-size: 22px;
@@ -1324,7 +1329,7 @@ exports.emailTemplates = {
                         <tr>
                             <td>
                                 <h2>Your Email Address Has Been Changed</h2>
-                                <p>Hi ${user.firstName} ${user.lastName},</p>
+                                <p>Hi ${user.name},</p>
                                 <p>This is a confirmation that your email address for your ${process.env.APP_NAME} account has been successfully updated to ${user.email}.</p>
                                 <p>If you did not make this request or you believe this is a mistake, please contact our support team immediately at <a href="mailto:${process.env.SUPPORT_EMAIL}">${process.env.SUPPORT_EMAIL}</a>.</p>
                                 <p>Thank you,<br> The ${process.env.APP_NAME} Support Team.</p>
@@ -1467,6 +1472,7 @@ exports.emailTemplates = {
         h2 {
             font-size: 28px;
             text-align:center;
+            color: #7008fa;
         }
         h3 {
             font-size: 22px;
@@ -1545,7 +1551,7 @@ exports.emailTemplates = {
                         <tr>
                             <td>
                                 <h2>Phone Number Updated</h2>
-                                <p>Hi ${user.firstName} ${user.lastName},</p>
+                                <p>Hi ${user.name},</p>
                                 <p>We wanted to inform you that the phone number associated with your ${process.env.APP_NAME} account has been successfully updated.</p>
                                 <p>If you did not request this change or believe this was done in error, please contact our support team immediately.</p>
                                 <p>Thank you for using ${process.env.APP_NAME}. We are here to ensure your account's security at all times.</p>
@@ -1689,6 +1695,7 @@ exports.emailTemplates = {
         h2 {
             font-size: 28px;
             text-align:center;
+            color: #7008fa;
         }
         h3 {
             font-size: 22px;
@@ -1919,6 +1926,7 @@ exports.emailTemplates = {
             h2 {
                 font-size: 28px;
                 text-align:center;
+                color: #7008fa;
             }
             h3 {
                 font-size: 22px;
@@ -2007,7 +2015,7 @@ exports.emailTemplates = {
                         <tr>
                             <td>
                                 <h2>KYC Status Update</h2>
-                                <p>Hi ${user.firstName} ${user.lastName},</p>
+                                <p>Hi ${user.name},</p>
                                 <p>Your KYC submission has been reviewed.</p>
                                 <p>Status: <strong>${isApproved ? "Approved" : "Rejected"}</strong></p>
                                 ${!isApproved ? `<p>Note: ${adminNote || "No additional notes provided."}</p>` : ''}
@@ -2050,7 +2058,7 @@ exports.emailTemplates = {
     </body>
     </html>
     `;
-    }
+    },
     // Add more templates as needed
 };
 //# sourceMappingURL=messages.js.map

@@ -9,17 +9,9 @@ module.exports = {
         allowNull: false,
         primaryKey: true,
       },
-      firstName: {
+      name: {
         type: Sequelize.STRING,
         allowNull: false,
-      },
-      lastName: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      gender: {
-        type: Sequelize.STRING,
-        allowNull: true,
       },
       email: {
         type: Sequelize.STRING,
@@ -29,60 +21,76 @@ module.exports = {
           isEmail: true,
         },
       },
+      email_verified_at: {
+        allowNull: true,
+        type: Sequelize.DATE,
+      },
+      gender: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      phoneNumber: {
+        type: Sequelize.STRING,
+        allowNull: true,
+        unique: true,
+      },
+      dateOfBirth: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      educationalLevel: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      schoolId: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      professionalSkill: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      industry: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      jobTitle: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      referralCode: {
+        type: Sequelize.STRING,
+        unique: true,
+      },
       password: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      email_verified_at: {
-        allowNull: true, // Set allowNull to true
-        type: Sequelize.DATE, // Use Sequelize.DATE for timestamp
-      },
-      phoneNumber: {
-        allowNull: false,
-        type: Sequelize.STRING,
-        unique: true,
-      },
-      dateOfBirth: {
-        allowNull: true,
-        type: Sequelize.STRING,
-      },
-      location: {
-        allowNull: true,
-        type: Sequelize.JSON,
-      },
       photo: {
-        allowNull: true,
         type: Sequelize.TEXT,
-      },
-      wallet: {
         allowNull: true,
+      },
+      evToken: {
         type: Sequelize.DECIMAL(20, 2),
-      },
-      facebookId: {
-        type: Sequelize.STRING,
-        allowNull: true,
-      },
-      googleId: {
-        type: Sequelize.STRING,
         allowNull: true,
       },
       accountType: {
+        type: Sequelize.ENUM('student', 'user', 'institution', 'creator'),
         allowNull: false,
-        type: Sequelize.ENUM('Vendor', 'Customer'),
       },
       status: {
-        allowNull: false,
         type: Sequelize.ENUM('active', 'inactive'),
-        defaultValue: 'active', // Set a default value if needed
+        allowNull: false,
+        defaultValue: 'active',
       },
       createdAt: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.NOW,
       },
       updatedAt: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
         defaultValue: Sequelize.NOW,
       },
     });

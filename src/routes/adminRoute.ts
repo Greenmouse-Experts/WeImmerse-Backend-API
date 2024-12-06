@@ -48,31 +48,4 @@ adminRoutes.get('/subscription/plans', adminAuthMiddleware, adminController.getA
 adminRoutes.post('/subscription/plan/create', adminAuthMiddleware, createSubscriptionPlanValidationRules(), validate, adminController.createSubscriptionPlan);
 adminRoutes.put('/subscription/plan/update', adminAuthMiddleware, updateSubscriptionPlanValidationRules(), validate, adminController.updateSubscriptionPlan);
 adminRoutes.delete('/subscription/plan/delete', adminAuthMiddleware, adminController.deleteSubscriptionPlan);
-
-// Create a category
-adminRoutes.post('/categories', adminAuthMiddleware, adminController.createCategory);
-// Update a category
-adminRoutes.put('/categories', adminAuthMiddleware, adminController.updateCategory);
-// Delete a category
-adminRoutes.delete('/categories', adminAuthMiddleware, adminController.deleteCategory);
-// Fetch all categories
-adminRoutes.get('/categories', adminAuthMiddleware, adminController.getAllCategories);
-adminRoutes.get('/categories/sub/categories', adminAuthMiddleware, adminController.getCategoriesWithSubCategories);
-
-adminRoutes.post('/sub/categories', adminAuthMiddleware, adminController.createSubCategory);
-adminRoutes.put('/sub/categories', adminAuthMiddleware, adminController.updateSubCategory);
-adminRoutes.delete('/sub/categories', adminAuthMiddleware, adminController.deleteSubCategory);
-adminRoutes.get('/sub/categories', adminAuthMiddleware, adminController.getAllSubCategories);
-
-// KYC
-adminRoutes.get('/kyc', adminAuthMiddleware, adminController.getAllKYC);
-adminRoutes.post('/kyc/approve-reject', adminAuthMiddleware, validateKYCNotification(), validate, adminController.approveOrRejectKYC);
-
-// Payment Gateway
-adminRoutes.post('/payment-gateway', adminAuthMiddleware, validatePaymentGateway(), validate, adminController.createPaymentGateway);
-adminRoutes.put('/payment-gateway', adminAuthMiddleware, validatePaymentGateway(), validate, adminController.updatePaymentGateway);
-adminRoutes.delete('/payment-gateway', adminAuthMiddleware, adminController.deletePaymentGateway);
-adminRoutes.get('/payment-gateways', adminAuthMiddleware, adminController.getAllPaymentGateways);
-adminRoutes.patch('/payment-gateways/status', adminAuthMiddleware, adminController.setPaymentGatewayActive);
-
 export default adminRoutes; // Export the router

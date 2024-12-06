@@ -5,10 +5,6 @@ exports.initModel = void 0;
 const sequelize_1 = require("sequelize");
 class SubscriptionPlan extends sequelize_1.Model {
     static associate(models) {
-        this.hasMany(models.VendorSubscription, {
-            as: 'vendorSubscriptions',
-            foreignKey: 'subscriptionPlanId',
-        });
     }
 }
 const initModel = (sequelize) => {

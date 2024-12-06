@@ -1,17 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.validateSendMessage = exports.validatePaymentGateway = exports.updateAuctionProductValidation = exports.auctionProductValidation = exports.updateProductValidation = exports.addProductValidation = exports.updateStoreValidation = exports.createStoreValidation = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.registrationValidationRules = void 0;
+exports.validate = exports.validateSendMessage = exports.validatePaymentGateway = exports.updateAuctionProductValidation = exports.auctionProductValidation = exports.updateProductValidation = exports.addProductValidation = exports.updateStoreValidation = exports.createStoreValidation = exports.validateKYCNotification = exports.kycValidationRules = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.confirmProfilePhoneNumberValidationRules = exports.updateProfilePhoneNumberValidationRules = exports.confirmProfileEmailValidationRules = exports.updateProfileEmailValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
-// Registration validation rules
-const registrationValidationRules = () => {
+// User registration validation rules
+const userRegistrationValidationRules = () => {
     return [
-        (0, express_validator_1.check)("email").isEmail().withMessage("Please provide a valid email"),
+        (0, express_validator_1.check)("name")
+            .not()
+            .isEmpty()
+            .withMessage("Name is required")
+            .isLength({ min: 3 })
+            .withMessage("Name must be at least 3 characters long"),
+        (0, express_validator_1.check)("email")
+            .isEmail()
+            .withMessage("Please provide a valid email"),
         (0, express_validator_1.check)("password")
             .isLength({ min: 6 })
             .withMessage("Password must be at least 6 characters"),
-        (0, express_validator_1.check)("firstName").not().isEmpty().withMessage("First name is required"),
-        (0, express_validator_1.check)("lastName").not().isEmpty().withMessage("Last name is required"),
         (0, express_validator_1.check)("phoneNumber")
             .isMobilePhone("any")
             .withMessage("Invalid phone number")
@@ -21,9 +27,135 @@ const registrationValidationRules = () => {
             }
             return true;
         }),
+        (0, express_validator_1.check)("referralCode")
+            .optional()
+            .isAlphanumeric()
+            .withMessage("Referral code must be alphanumeric")
     ];
 };
-exports.registrationValidationRules = registrationValidationRules;
+exports.userRegistrationValidationRules = userRegistrationValidationRules;
+// Student registration validation rules
+const studentRegistrationValidationRules = () => {
+    return [
+        (0, express_validator_1.check)("name")
+            .not()
+            .isEmpty()
+            .withMessage("Name is required")
+            .isLength({ min: 3 })
+            .withMessage("Name must be at least 3 characters long"),
+        (0, express_validator_1.check)("email")
+            .isEmail()
+            .withMessage("Please provide a valid email"),
+        (0, express_validator_1.check)("password")
+            .isLength({ min: 6 })
+            .withMessage("Password must be at least 6 characters"),
+        (0, express_validator_1.check)("phoneNumber")
+            .isMobilePhone("any")
+            .withMessage("Invalid phone number")
+            .custom((value) => {
+            if (value && !value.startsWith("+")) {
+                throw new Error("Phone number must start with '+'");
+            }
+            return true;
+        }),
+        (0, express_validator_1.check)("referralCode")
+            .optional()
+            .isAlphanumeric()
+            .withMessage("Referral code must be alphanumeric"),
+        (0, express_validator_1.check)("schoolId")
+            .optional()
+            .isInt()
+            .withMessage("School ID must be a valid integer"),
+        (0, express_validator_1.check)("educationalLevel")
+            .optional()
+            .isIn(["High School", "HND", "ND", "Bachelor's", "Master's", "PhD", "Diploma"])
+            .withMessage("Educational level must be one of the allowed values"),
+    ];
+};
+exports.studentRegistrationValidationRules = studentRegistrationValidationRules;
+// Creator registration validation rules
+const creatorRegistrationValidationRules = () => {
+    return [
+        (0, express_validator_1.check)("name")
+            .not()
+            .isEmpty()
+            .withMessage("Name is required")
+            .isLength({ min: 3 })
+            .withMessage("Name must be at least 3 characters long"),
+        (0, express_validator_1.check)("email")
+            .isEmail()
+            .withMessage("Please provide a valid email"),
+        (0, express_validator_1.check)("password")
+            .isLength({ min: 6 })
+            .withMessage("Password must be at least 6 characters"),
+        (0, express_validator_1.check)("phoneNumber")
+            .isMobilePhone("any")
+            .withMessage("Invalid phone number")
+            .custom((value) => {
+            if (value && !value.startsWith("+")) {
+                throw new Error("Phone number must start with '+'");
+            }
+            return true;
+        }),
+        (0, express_validator_1.check)("referralCode")
+            .optional()
+            .isAlphanumeric()
+            .withMessage("Referral code must be alphanumeric"),
+        (0, express_validator_1.check)("industry")
+            .optional()
+            .isString()
+            .withMessage("Industry must be a string"),
+        (0, express_validator_1.check)("professionalSkill")
+            .optional()
+            .isString()
+            .withMessage("Professional skill must be a string"),
+    ];
+};
+exports.creatorRegistrationValidationRules = creatorRegistrationValidationRules;
+const institutionRegistrationValidationRules = () => {
+    return [
+        (0, express_validator_1.check)("name")
+            .notEmpty()
+            .withMessage("User name is required"),
+        (0, express_validator_1.check)("email")
+            .isEmail()
+            .withMessage("Invalid email format"),
+        (0, express_validator_1.check)("password")
+            .isLength({ min: 6 })
+            .withMessage("Password must be at least 6 characters"),
+        (0, express_validator_1.check)("jobTitle")
+            .notEmpty()
+            .withMessage("Job title is required"),
+        (0, express_validator_1.check)("institutionName")
+            .notEmpty()
+            .withMessage("Institution name is required"),
+        (0, express_validator_1.check)("institutionEmail")
+            .isEmail()
+            .withMessage("Invalid institution email format"),
+        (0, express_validator_1.check)("institutionIndustry")
+            .notEmpty()
+            .withMessage("Industry is required"),
+        (0, express_validator_1.check)("institutionSize")
+            .notEmpty()
+            .withMessage("Institution size is required"),
+        (0, express_validator_1.check)("institutionPhoneNumber")
+            .isMobilePhone("any")
+            .withMessage("Invalid phone number")
+            .custom((value) => {
+            if (value && !value.startsWith("+")) {
+                throw new Error("Phone number must start with '+'");
+            }
+            return true;
+        }),
+        (0, express_validator_1.check)("institutionType")
+            .notEmpty()
+            .withMessage("Institution type is required"),
+        (0, express_validator_1.check)("institutionLocation")
+            .notEmpty()
+            .withMessage("Location is required"),
+    ];
+};
+exports.institutionRegistrationValidationRules = institutionRegistrationValidationRules;
 // Verification validation rules
 const verificationValidationRules = () => {
     return [
@@ -48,7 +180,9 @@ const loginValidationRules = () => {
 exports.loginValidationRules = loginValidationRules;
 // Login validation rules
 const resendVerificationValidationRules = () => {
-    return [(0, express_validator_1.check)("email").isEmail().withMessage("Please provide a valid email")];
+    return [
+        (0, express_validator_1.check)("email").isEmail().withMessage("Please provide a valid email")
+    ];
 };
 exports.resendVerificationValidationRules = resendVerificationValidationRules;
 // Forgot password validation rules

@@ -13,9 +13,12 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 const errorMiddleware_1 = __importDefault(require("../middlewares/errorMiddleware"));
 const authRoute_1 = __importDefault(require("../routes/authRoute"));
-const userRoute_1 = __importDefault(require("../routes/userRoute"));
 const adminRoute_1 = __importDefault(require("../routes/adminRoute"));
-const vendorRoute_1 = __importDefault(require("../routes/vendorRoute"));
+const generalRoute_1 = __importDefault(require("../routes/generalRoute"));
+const userRoute_1 = __importDefault(require("../routes/userRoute"));
+const studentRoute_1 = __importDefault(require("../routes/studentRoute"));
+const creatorRoute_1 = __importDefault(require("../routes/creatorRoute"));
+const institutionRoute_1 = __importDefault(require("../routes/institutionRoute"));
 dotenv_1.default.config();
 const createExpressApp = () => {
     const app = (0, express_1.default)();
@@ -34,10 +37,13 @@ const createExpressApp = () => {
     app.use((0, cookie_parser_1.default)());
     app.use(body_parser_1.default.json());
     // Use your routes
-    app.use("/api", authRoute_1.default);
-    app.use("/api/user", userRoute_1.default);
-    app.use("/api/vendor", vendorRoute_1.default);
-    app.use("/api/admin", adminRoute_1.default);
+    app.use("/v1/api/", authRoute_1.default);
+    app.use("/v1/api/general", generalRoute_1.default);
+    app.use("/v1/api/user", userRoute_1.default);
+    app.use("/v1/api/institution", institutionRoute_1.default);
+    app.use("/v1/api/student", studentRoute_1.default);
+    app.use("/v1/api/creator", creatorRoute_1.default);
+    app.use("/v1/api/admin", adminRoute_1.default);
     // 404 handler (this should come after routes)
     app.use((req, res) => {
         console.log(`404 error for path: ${req.path}`);

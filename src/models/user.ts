@@ -1,31 +1,25 @@
 // models/user.ts
 import bcrypt from "bcrypt";
 import { Model, DataTypes, Sequelize } from "sequelize";
-import KYC from "./kyc";
-
-interface Location {
-  country?: string;
-  state?: string;
-  city?: string;
-  // Add other fields as needed
-}
-
 class User extends Model {
   public id!: string; // Use '!' to indicate these fields are definitely assigned
-  public firstName!: string;
-  public lastName!: string;
-  public gender?: string;
+  public name!: string;
   public email!: string;
   public email_verified_at?: Date;
   public password!: string;
   public phoneNumber!: string;
-  public dateOfBirth?: string;
-  public location?: Location; // This will be serialized as JSON
+  public dateOfBirth!: string;
+  public educationalLevel?: string;
+  public gender?: string;
+  public schoolId?: string; // This will be serialized as JSON
+  public professionalSkill?: string;
+  public industry?: string;
+  public jobTitle?: string;
+  public referralCode?: string;
   public photo?: string;
-  public wallet?: number;
+  public evToken?: number;
   public accountType?: string;
   public status?: "active" | "inactive";
-  public isVerified?: boolean;
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -45,22 +39,8 @@ class User extends Model {
       foreignKey: 'userId', // Ensure the OTP model has a 'userId' column
       onDelete: 'RESTRICT'
     });
-    this.hasMany(models.VendorSubscription, { 
-      as: 'subscriptions', 
-      foreignKey: 'vendorId',
-      onDelete: 'RESTRICT', 
-    });
-    this.hasMany(models.Store, { 
-      as: 'stores', 
-      foreignKey: 'vendorId',
-      onDelete: 'RESTRICT', 
-    });
   }
 
-  // Add method to fetch KYC record
-  public async getKyc(): Promise<KYC | null> {
-    return await KYC.findOne({ where: { vendorId: this.id } }); // Assuming KYC has a userId field linking to User
-  }
 }
 
 const initModel = (sequelize: Sequelize) => {
@@ -71,38 +51,79 @@ const initModel = (sequelize: Sequelize) => {
         primaryKey: true,
         defaultValue: DataTypes.UUIDV4, // Automatically generate UUIDs
       },
-      firstName: DataTypes.STRING,
-      lastName: DataTypes.STRING,
-      gender: DataTypes.STRING,
+      name: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       email: {
         type: DataTypes.STRING,
-        unique: true, // Ensure unique emails
-        allowNull: false, // You might want to enforce this
+        allowNull: false,
+        unique: true,
+        validate: {
+          isEmail: true,
+        },
       },
-      email_verified_at: DataTypes.DATE,
-      password: {
+      email_verified_at: {
+        allowNull: true,
+        type: DataTypes.DATE,
+      },
+      gender: {
         type: DataTypes.STRING,
-        allowNull: false, // Enforce password requirement
+        allowNull: true,
       },
       phoneNumber: {
         type: DataTypes.STRING,
+        allowNull: true,
         unique: true,
-        allowNull: false, // Enforce phone number requirement
       },
-      dateOfBirth: DataTypes.STRING,
-      location: DataTypes.JSON,
-      photo: DataTypes.TEXT,
-      wallet: DataTypes.DECIMAL(20, 2),
-      facebookId: DataTypes.STRING,
-      googleId: DataTypes.STRING,
-      accountType: DataTypes.ENUM('Vendor', 'Customer'),
-      status: DataTypes.ENUM("active", "inactive"),
-      isVerified: {
-        type: DataTypes.VIRTUAL,
-        get() {
-          // This will be populated during the query
-          return this.getDataValue('isVerified') === true;
-        },
+      dateOfBirth: {
+        type: DataTypes.STRING,
+        allowNull: true
+      },
+      educationalLevel: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      schoolId: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      professionalSkill: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      industry: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      jobTitle: {
+        type: DataTypes.STRING,
+        allowNull: true,
+      },
+      referralCode: {
+        type: DataTypes.STRING,
+        unique: true,
+      },
+      password: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      photo: {
+        type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      evToken: {
+        type: DataTypes.DECIMAL(20, 2),
+        allowNull: true,
+      },
+      accountType: {
+        type: DataTypes.ENUM('student', 'user', 'institution', 'creator'),
+        allowNull: false,
+      },
+      status: {
+        type: DataTypes.ENUM('active', 'inactive'),
+        allowNull: false,
+        defaultValue: 'active',
       },
     },
     {
@@ -122,33 +143,6 @@ const initModel = (sequelize: Sequelize) => {
     }
   );
 
-  // After finding a user, set the isVerified status
-  User.addHook("afterFind", async (user: any) => {
-    // If no user is found, exit early
-    if (!user) return;
-  
-    // Function to update the `isVerified` field
-    const setVerificationStatus = async (userInstance: User) => {
-      const kyc = await KYC.findOne({
-        where: { vendorId: userInstance.id },
-      });
-
-      if (kyc) {
-        userInstance.setDataValue('isVerified', kyc.isVerified); // Set it correctly based on KYC data
-      } else {
-        userInstance.setDataValue('isVerified', false); // Set as false if no KYC record exists
-      }
-    };
-  
-    // If the result is an array of users (e.g., when using includes in a query), set for each one
-    if (Array.isArray(user)) {
-      await Promise.all(user.map((userInstance: User) => setVerificationStatus(userInstance)));
-    } else {
-      // For a single user, directly update the status
-      await setVerificationStatus(user);
-    }
-  });
-  
   // Add the password hashing hook before saving
   User.addHook("beforeSave", async (user: User) => {
     if (user.changed("password") || user.isNewRecord) {

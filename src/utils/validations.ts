@@ -3,15 +3,24 @@ import { Request, Response, NextFunction } from "express";
 
 // Validation rules for different functionalities
 
-// Registration validation rules
-export const registrationValidationRules = () => {
+// User registration validation rules
+export const userRegistrationValidationRules = () => {
   return [
-    check("email").isEmail().withMessage("Please provide a valid email"),
+    check("name")
+      .not()
+      .isEmpty()
+      .withMessage("Name is required")
+      .isLength({ min: 3 })
+      .withMessage("Name must be at least 3 characters long"),
+    
+    check("email")
+      .isEmail()
+      .withMessage("Please provide a valid email"),
+
     check("password")
       .isLength({ min: 6 })
       .withMessage("Password must be at least 6 characters"),
-    check("firstName").not().isEmpty().withMessage("First name is required"),
-    check("lastName").not().isEmpty().withMessage("Last name is required"),
+
     check("phoneNumber")
       .isMobilePhone("any")
       .withMessage("Invalid phone number")
@@ -21,6 +30,155 @@ export const registrationValidationRules = () => {
         }
         return true;
       }),
+
+    check("referralCode")
+      .optional()
+      .isAlphanumeric()
+      .withMessage("Referral code must be alphanumeric")
+  ];
+};
+
+// Student registration validation rules
+export const studentRegistrationValidationRules = () => {
+  return [
+    check("name")
+      .not()
+      .isEmpty()
+      .withMessage("Name is required")
+      .isLength({ min: 3 })
+      .withMessage("Name must be at least 3 characters long"),
+
+    check("email")
+      .isEmail()
+      .withMessage("Please provide a valid email"),
+
+    check("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+
+    check("phoneNumber")
+      .isMobilePhone("any")
+      .withMessage("Invalid phone number")
+      .custom((value) => {
+        if (value && !value.startsWith("+")) {
+          throw new Error("Phone number must start with '+'");
+        }
+        return true;
+      }),
+
+    check("referralCode")
+      .optional()
+      .isAlphanumeric()
+      .withMessage("Referral code must be alphanumeric"),
+
+    check("schoolId")
+      .optional()
+      .isInt()
+      .withMessage("School ID must be a valid integer"),
+
+    check("educationalLevel")
+      .optional()
+      .isIn(["High School", "HND", "ND", "Bachelor's", "Master's", "PhD", "Diploma"])
+      .withMessage("Educational level must be one of the allowed values"),
+  ];
+};
+
+// Creator registration validation rules
+export const creatorRegistrationValidationRules = () => {
+  return [
+    check("name")
+      .not()
+      .isEmpty()
+      .withMessage("Name is required")
+      .isLength({ min: 3 })
+      .withMessage("Name must be at least 3 characters long"),
+
+    check("email")
+      .isEmail()
+      .withMessage("Please provide a valid email"),
+
+    check("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+
+    check("phoneNumber")
+      .isMobilePhone("any")
+      .withMessage("Invalid phone number")
+      .custom((value) => {
+        if (value && !value.startsWith("+")) {
+          throw new Error("Phone number must start with '+'");
+        }
+        return true;
+      }),
+
+    check("referralCode")
+      .optional()
+      .isAlphanumeric()
+      .withMessage("Referral code must be alphanumeric"),
+
+    check("industry")
+      .optional()
+      .isString()
+      .withMessage("Industry must be a string"),
+
+    check("professionalSkill")
+      .optional()
+      .isString()
+      .withMessage("Professional skill must be a string"),
+  ];
+};
+
+export const institutionRegistrationValidationRules = () => {
+  return [
+    check("name")
+      .notEmpty()
+      .withMessage("User name is required"),
+    
+    check("email")
+      .isEmail()
+      .withMessage("Invalid email format"),
+
+    check("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters"),
+
+    check("jobTitle")
+      .notEmpty()
+      .withMessage("Job title is required"),
+
+    check("institutionName")
+      .notEmpty()
+      .withMessage("Institution name is required"),
+
+    check("institutionEmail")
+      .isEmail()
+      .withMessage("Invalid institution email format"),
+
+    check("institutionIndustry")
+      .notEmpty()
+      .withMessage("Industry is required"),
+
+    check("institutionSize")
+      .notEmpty()
+      .withMessage("Institution size is required"),
+
+    check("institutionPhoneNumber")
+      .isMobilePhone("any")
+      .withMessage("Invalid phone number")
+      .custom((value) => {
+        if (value && !value.startsWith("+")) {
+          throw new Error("Phone number must start with '+'");
+        }
+        return true;
+      }),
+
+    check("institutionType")
+      .notEmpty()
+      .withMessage("Institution type is required"),
+
+    check("institutionLocation")
+      .notEmpty()
+      .withMessage("Location is required"),
   ];
 };
 
@@ -48,7 +206,9 @@ export const loginValidationRules = () => {
 
 // Login validation rules
 export const resendVerificationValidationRules = () => {
-  return [check("email").isEmail().withMessage("Please provide a valid email")];
+  return [
+    check("email").isEmail().withMessage("Please provide a valid email")
+  ];
 };
 
 // Forgot password validation rules

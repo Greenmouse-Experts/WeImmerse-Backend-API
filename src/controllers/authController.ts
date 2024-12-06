@@ -8,12 +8,12 @@ import { sendMail } from "../services/mail.service";
 import { emailTemplates } from "../utils/messages";
 import JwtService from "../services/jwt.service";
 import logger from "../middlewares/logger"; // Adjust the path to your logger.js
-import { capitalizeFirstLetter } from "../utils/helpers";
+import { generateReferralCode } from "../utils/helpers";
 import Admin from "../models/admin";
 import Role from "../models/role";
 import SubscriptionPlan from "../models/subscriptionplan";
-import VendorSubscription from "../models/vendorsubscription";
 import UserNotificationSetting from "../models/usernotificationsetting";
+import InstitutionInformation from "../models/institutioninformation";
 
 export const index = async (req: Request, res: Response) => {
   res.status(200).json({
@@ -22,179 +22,290 @@ export const index = async (req: Request, res: Response) => {
   });
 };
 
-export const vendorRegister = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { email, password, firstName, lastName, phoneNumber } = req.body;
+export const userRegister = async (req: Request, res: Response): Promise<void> => {
+  const { name, phoneNumber, referralCode, email, password } = req.body;
 
   try {
-    // Validate input
-    if (!email || !password || !firstName || !lastName || !phoneNumber) {
-      res.status(400).json({ message: "All fields are required" });
-      return;
-    }
-
-    // Check if the user already exists
+    // Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       res.status(400).json({ message: "Email already in use" });
       return;
     }
 
-    // Check if the phone number already exists
+    // Check if phone number already exists
     const existingPhoneNumber = await User.findOne({ where: { phoneNumber } });
     if (existingPhoneNumber) {
       res.status(400).json({ message: "Phone number already in use" });
       return;
     }
 
-    // Find the free subscription plan
-    const freePlan = await SubscriptionPlan.findOne({ where: { name: "Free Plan" } });
-    if (!freePlan) {
-      res.status(400).json({ message: "Free plan not found. Please contact support." });
-      return;
+    // Check if the referral code exists (if provided)
+    let referrer = null;
+    if (referralCode) {
+      referrer = await User.findOne({ where: { referralCode } });
+      if (!referrer) {
+        res.status(400).json({ message: "Invalid referral code" });
+        return;
+      }
     }
 
-    // Create the new user
+    // Generate a unique referral code for the new user
+    const newReferralCode = generateReferralCode(name);
+
+    // Create new user
     const newUser = await User.create({
+      name: name,
+      phoneNumber,
       email,
       password,
-      firstName: capitalizeFirstLetter(firstName),
-      lastName: capitalizeFirstLetter(lastName),
-      phoneNumber,
-      accountType: "Vendor",
-    });
-    if (!newUser) {
-      throw new Error("Failed to create new user");
-    }
-
-    // Assign the free plan to the new user
-    const startDate = new Date();
-    const endDate = new Date();
-    endDate.setMonth(startDate.getMonth() + freePlan.duration);
-
-    await VendorSubscription.create({
-      vendorId: newUser.id,
-      subscriptionPlanId: freePlan.id,
-      startDate,
-      endDate,
-      isActive: true,
+      referralCode: generateReferralCode(name),
+      accountType: "user",
     });
 
-    // Create default notification settings for the user
-    await UserNotificationSetting.create({
-      userId: newUser.id,
-      hotDeals: false,
-      auctionProducts: false,
-      subscription: false,
-    });
+    if (!newUser) throw new Error("Failed to create new user");
 
-    // Generate OTP for verification
+    // Generate OTP for email verification
     const otpCode = generateOTP();
-    const otp = await OTP.create({
+    await OTP.create({
       userId: newUser.id,
       otpCode: otpCode,
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
     });
 
-    // Send mail
-    const message = emailTemplates.verifyEmail(newUser, otp.otpCode);
+    // Send verification email
+    const message = emailTemplates.verifyEmail(newUser, otpCode);
     try {
-      await sendMail(
-        email,
-        `${process.env.APP_NAME} - Verify Your Account`,
-        message
-      );
+      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
     } catch (emailError) {
       logger.error("Error sending email:", emailError);
     }
 
-    // Return a success response
+    // Send success response
     res.status(200).json({
       message:
-        "Vendor registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+        "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
     });
   } catch (error: any) {
     logger.error("Error during registration:", error);
-    if (error.message) {
-      res.status(400).json({ message: error.message });
-    } else {
-      res.status(500).json({ message: "Server error" });
-    }
+    res.status(500).json({ message: error.message || "Error during registration." });
   }
 };
 
-export const customerRegister = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const { email, password, firstName, lastName, phoneNumber } = req.body;
+export const studentRegister = async (req: Request, res: Response): Promise<void> => {
+  const { name, phoneNumber, referralCode, email, password, educationalLevel, schoolId } = req.body;
 
   try {
-    // Validate input
-    if (!email || !password || !firstName || !lastName || !phoneNumber) {
-      res.status(400).json({ message: "All fields are required" });
-      return;
-    }
-    
-    // Check if the user already exists
+    // Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       res.status(400).json({ message: "Email already in use" });
-      return; // Make sure the function returns void here
+      return;
     }
 
-    // Check if the phone number already exists
+    // Check if phone number already exists
     const existingPhoneNumber = await User.findOne({ where: { phoneNumber } });
     if (existingPhoneNumber) {
       res.status(400).json({ message: "Phone number already in use" });
       return;
     }
 
-    // Create the new user
-    const newUser = await User.create({
-      email,
-      password,
-      firstName: capitalizeFirstLetter(firstName),
-      lastName: capitalizeFirstLetter(lastName),
-      phoneNumber,
-      accountType: "Customer",
-    });
-
-    // Step 2: Create default notification settings for the user
-    await UserNotificationSetting.create({
-      userId: newUser.id,  // Link the settings to the new user
-      hotDeals: false,  // Default value is false
-      auctionProducts: false,  // Default value is false
-      subscription: false,  // Default value is false
-    });
-
-    // Generate OTP for verification
-    const otpCode = generateOTP();
-    const otp = await OTP.create({
-      userId: newUser.id,
-      otpCode: otpCode,
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // OTP expires in 1 hour
-    });
-
-    // Send mail
-    let message = emailTemplates.verifyEmail(newUser, otp.otpCode);
-    try {
-      await sendMail(
-        email,
-        `${process.env.APP_NAME} - Verify Your Account`,
-        message
-      );
-    } catch (emailError) {
-      logger.error("Error sending email:", emailError); // Log error for internal use
+    // Check if the referral code exists (if provided)
+    let referrer = null;
+    if (referralCode) {
+      referrer = await User.findOne({ where: { referralCode } });
+      if (!referrer) {
+        res.status(400).json({ message: "Invalid referral code" });
+        return;
+      }
     }
 
-    // Return a success response
-    res.status(200).json({ message: "Customer registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account." });
-  } catch (error) {
+    // Generate a unique referral code for the new user
+    const newReferralCode = generateReferralCode(name);
+
+    // Create new user
+    const newUser = await User.create({
+      name: name,
+      phoneNumber,
+      email,
+      password,
+      educationalLevel,
+      schoolId,
+      referralCode: newReferralCode,
+      accountType: "student",
+    });
+
+    if (!newUser) throw new Error("Failed to create new user");
+
+    // Generate OTP for email verification
+    const otpCode = generateOTP();
+    await OTP.create({
+      userId: newUser.id,
+      otpCode: otpCode,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
+    });
+
+    // Send verification email
+    const message = emailTemplates.verifyEmail(newUser, otpCode);
+    try {
+      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+    } catch (emailError) {
+      logger.error("Error sending email:", emailError);
+    }
+
+    // Send success response
+    res.status(200).json({
+      message:
+        "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+    });
+  } catch (error: any) {
     logger.error("Error during registration:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: error.message || "Error during registration." });
+  }
+};
+
+export const creatorRegister = async (req: Request, res: Response): Promise<void> => {
+  const { name, phoneNumber, referralCode, email, password, industry, professionalSkill } = req.body;
+
+  try {
+    // Check if email already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      res.status(400).json({ message: "Email already in use" });
+      return;
+    }
+
+    // Check if phone number already exists
+    const existingPhoneNumber = await User.findOne({ where: { phoneNumber } });
+    if (existingPhoneNumber) {
+      res.status(400).json({ message: "Phone number already in use" });
+      return;
+    }
+
+    // Check if the referral code exists (if provided)
+    let referrer = null;
+    if (referralCode) {
+      referrer = await User.findOne({ where: { referralCode } });
+      if (!referrer) {
+        res.status(400).json({ message: "Invalid referral code" });
+        return;
+      }
+    }
+
+    // Generate a unique referral code for the new user
+    const newReferralCode = generateReferralCode(name);
+
+    // Create new user
+    const newUser = await User.create({
+      name,
+      phoneNumber,
+      email,
+      password,
+      industry,
+      professionalSkill,
+      referralCode: newReferralCode,
+      accountType: "creator",
+    });
+
+    if (!newUser) throw new Error("Failed to create new user");
+
+    // Generate OTP for email verification
+    const otpCode = generateOTP();
+    await OTP.create({
+      userId: newUser.id,
+      otpCode,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
+    });
+
+    // Send verification email
+    const message = emailTemplates.verifyEmail(newUser, otpCode);
+    try {
+      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+    } catch (emailError) {
+      logger.error("Error sending email:", emailError);
+    }
+
+    // Send success response
+    res.status(200).json({
+      message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+    });
+  } catch (error: any) {
+    logger.error("Error during registration:", error);
+    res.status(500).json({ message: error.message || "Error during registration." });
+  }
+};
+
+export const institutionRegister = async (req: Request, res: Response): Promise<void> => {
+  const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionSize, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
+
+  try {
+    // Check if email already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      res.status(400).json({ message: "Email already in use" });
+      return;
+    }
+
+    // Check if the referral code exists (if provided)
+    let referrer = null;
+    if (referralCode) {
+      referrer = await User.findOne({ where: { referralCode } });
+      if (!referrer) {
+        res.status(400).json({ message: "Invalid referral code" });
+        return;
+      }
+    }
+
+    // Generate a unique referral code for the new user
+    const newReferralCode = generateReferralCode(name);
+
+    // Create new user
+    const newUser = await User.create({
+      name,
+      email,
+      password,
+      jobTitle,
+      referralCode: newReferralCode,
+      accountType: "institution",
+    });
+
+    if (!newUser) throw new Error("Failed to create new user");
+
+    // Create institution information
+    await InstitutionInformation.create({
+      userId: newUser.id,
+      institutionName,
+      institutionEmail,
+      institutionIndustry,
+      institutionSize,
+      institutionPhoneNumber,
+      institutionType,
+      institutionLocation
+    });
+
+    // Generate OTP for email verification
+    const otpCode = generateOTP();
+    await OTP.create({
+      userId: newUser.id,
+      otpCode,
+      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
+    });
+
+    // Send verification email
+    const message = emailTemplates.verifyEmail(newUser, otpCode);
+    try {
+      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+    } catch (emailError) {
+      logger.error("Error sending email:", emailError);
+    }
+
+    // Send success response
+    res.status(200).json({
+      message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+    });
+  } catch (error: any) {
+    logger.error("Error during registration:", error);
+    res.status(500).json({ message: error.message || "Error during registration." });
   }
 };
 
@@ -261,7 +372,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     // Check if user exists
     if (!user) {
-      res.status(400).json({ message: "Invalid email" });
+      res.status(400).json({ message: "Email doesn't exist" });
       return;
     }
 

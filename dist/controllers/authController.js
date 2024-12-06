@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.adminLogin = exports.resetPassword = exports.codeCheck = exports.forgetPassword = exports.resendVerificationEmail = exports.login = exports.verifyEmail = exports.customerRegister = exports.vendorRegister = exports.index = void 0;
+exports.adminLogin = exports.resetPassword = exports.codeCheck = exports.forgetPassword = exports.resendVerificationEmail = exports.login = exports.verifyEmail = exports.institutionRegister = exports.creatorRegister = exports.studentRegister = exports.userRegister = exports.index = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const helpers_1 = require("../utils/helpers");
@@ -24,9 +24,7 @@ const logger_1 = __importDefault(require("../middlewares/logger")); // Adjust th
 const helpers_2 = require("../utils/helpers");
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
-const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
-const vendorsubscription_1 = __importDefault(require("../models/vendorsubscription"));
-const usernotificationsetting_1 = __importDefault(require("../models/usernotificationsetting"));
+const institutioninformation_1 = __importDefault(require("../models/institutioninformation"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.status(200).json({
         code: 200,
@@ -34,153 +32,267 @@ const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     });
 });
 exports.index = index;
-const vendorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, firstName, lastName, phoneNumber } = req.body;
+const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, phoneNumber, referralCode, email, password } = req.body;
     try {
-        // Validate input
-        if (!email || !password || !firstName || !lastName || !phoneNumber) {
-            res.status(400).json({ message: "All fields are required" });
-            return;
-        }
-        // Check if the user already exists
+        // Check if email already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
             res.status(400).json({ message: "Email already in use" });
             return;
         }
-        // Check if the phone number already exists
+        // Check if phone number already exists
         const existingPhoneNumber = yield user_1.default.findOne({ where: { phoneNumber } });
         if (existingPhoneNumber) {
             res.status(400).json({ message: "Phone number already in use" });
             return;
         }
-        // Find the free subscription plan
-        const freePlan = yield subscriptionplan_1.default.findOne({ where: { name: "Free Plan" } });
-        if (!freePlan) {
-            res.status(400).json({ message: "Free plan not found. Please contact support." });
-            return;
+        // Check if the referral code exists (if provided)
+        let referrer = null;
+        if (referralCode) {
+            referrer = yield user_1.default.findOne({ where: { referralCode } });
+            if (!referrer) {
+                res.status(400).json({ message: "Invalid referral code" });
+                return;
+            }
         }
-        // Create the new user
+        // Generate a unique referral code for the new user
+        const newReferralCode = (0, helpers_2.generateReferralCode)(name);
+        // Create new user
         const newUser = yield user_1.default.create({
+            name: name,
+            phoneNumber,
             email,
             password,
-            firstName: (0, helpers_2.capitalizeFirstLetter)(firstName),
-            lastName: (0, helpers_2.capitalizeFirstLetter)(lastName),
-            phoneNumber,
-            accountType: "Vendor",
+            referralCode: (0, helpers_2.generateReferralCode)(name),
+            accountType: "user",
         });
-        if (!newUser) {
+        if (!newUser)
             throw new Error("Failed to create new user");
-        }
-        // Assign the free plan to the new user
-        const startDate = new Date();
-        const endDate = new Date();
-        endDate.setMonth(startDate.getMonth() + freePlan.duration);
-        yield vendorsubscription_1.default.create({
-            vendorId: newUser.id,
-            subscriptionPlanId: freePlan.id,
-            startDate,
-            endDate,
-            isActive: true,
-        });
-        // Create default notification settings for the user
-        yield usernotificationsetting_1.default.create({
-            userId: newUser.id,
-            hotDeals: false,
-            auctionProducts: false,
-            subscription: false,
-        });
-        // Generate OTP for verification
+        // Generate OTP for email verification
         const otpCode = (0, helpers_1.generateOTP)();
-        const otp = yield otp_1.default.create({
+        yield otp_1.default.create({
             userId: newUser.id,
             otpCode: otpCode,
-            expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
         });
-        // Send mail
-        const message = messages_1.emailTemplates.verifyEmail(newUser, otp.otpCode);
+        // Send verification email
+        const message = messages_1.emailTemplates.verifyEmail(newUser, otpCode);
         try {
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
         }
         catch (emailError) {
             logger_1.default.error("Error sending email:", emailError);
         }
-        // Return a success response
+        // Send success response
         res.status(200).json({
-            message: "Vendor registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+            message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
         });
     }
     catch (error) {
         logger_1.default.error("Error during registration:", error);
-        if (error.message) {
-            res.status(400).json({ message: error.message });
-        }
-        else {
-            res.status(500).json({ message: "Server error" });
-        }
+        res.status(500).json({ message: error.message || "Error during registration." });
     }
 });
-exports.vendorRegister = vendorRegister;
-const customerRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { email, password, firstName, lastName, phoneNumber } = req.body;
+exports.userRegister = userRegister;
+const studentRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, phoneNumber, referralCode, email, password, educationalLevel, schoolId } = req.body;
     try {
-        // Validate input
-        if (!email || !password || !firstName || !lastName || !phoneNumber) {
-            res.status(400).json({ message: "All fields are required" });
-            return;
-        }
-        // Check if the user already exists
+        // Check if email already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
             res.status(400).json({ message: "Email already in use" });
-            return; // Make sure the function returns void here
+            return;
         }
-        // Check if the phone number already exists
+        // Check if phone number already exists
         const existingPhoneNumber = yield user_1.default.findOne({ where: { phoneNumber } });
         if (existingPhoneNumber) {
             res.status(400).json({ message: "Phone number already in use" });
             return;
         }
-        // Create the new user
+        // Check if the referral code exists (if provided)
+        let referrer = null;
+        if (referralCode) {
+            referrer = yield user_1.default.findOne({ where: { referralCode } });
+            if (!referrer) {
+                res.status(400).json({ message: "Invalid referral code" });
+                return;
+            }
+        }
+        // Generate a unique referral code for the new user
+        const newReferralCode = (0, helpers_2.generateReferralCode)(name);
+        // Create new user
         const newUser = yield user_1.default.create({
+            name: name,
+            phoneNumber,
             email,
             password,
-            firstName: (0, helpers_2.capitalizeFirstLetter)(firstName),
-            lastName: (0, helpers_2.capitalizeFirstLetter)(lastName),
-            phoneNumber,
-            accountType: "Customer",
+            educationalLevel,
+            schoolId,
+            referralCode: newReferralCode,
+            accountType: "student",
         });
-        // Step 2: Create default notification settings for the user
-        yield usernotificationsetting_1.default.create({
-            userId: newUser.id,
-            hotDeals: false,
-            auctionProducts: false,
-            subscription: false, // Default value is false
-        });
-        // Generate OTP for verification
+        if (!newUser)
+            throw new Error("Failed to create new user");
+        // Generate OTP for email verification
         const otpCode = (0, helpers_1.generateOTP)();
-        const otp = yield otp_1.default.create({
+        yield otp_1.default.create({
             userId: newUser.id,
             otpCode: otpCode,
-            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // OTP expires in 1 hour
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
         });
-        // Send mail
-        let message = messages_1.emailTemplates.verifyEmail(newUser, otp.otpCode);
+        // Send verification email
+        const message = messages_1.emailTemplates.verifyEmail(newUser, otpCode);
         try {
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            logger_1.default.error("Error sending email:", emailError);
         }
-        // Return a success response
-        res.status(200).json({ message: "Customer registered successfully. A verification email has been sent to your email address. Please check your inbox to verify your account." });
+        // Send success response
+        res.status(200).json({
+            message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+        });
     }
     catch (error) {
         logger_1.default.error("Error during registration:", error);
-        res.status(500).json({ message: "Server error" });
+        res.status(500).json({ message: error.message || "Error during registration." });
     }
 });
-exports.customerRegister = customerRegister;
+exports.studentRegister = studentRegister;
+const creatorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, phoneNumber, referralCode, email, password, industry, professionalSkill } = req.body;
+    try {
+        // Check if email already exists
+        const existingUser = yield user_1.default.findOne({ where: { email } });
+        if (existingUser) {
+            res.status(400).json({ message: "Email already in use" });
+            return;
+        }
+        // Check if phone number already exists
+        const existingPhoneNumber = yield user_1.default.findOne({ where: { phoneNumber } });
+        if (existingPhoneNumber) {
+            res.status(400).json({ message: "Phone number already in use" });
+            return;
+        }
+        // Check if the referral code exists (if provided)
+        let referrer = null;
+        if (referralCode) {
+            referrer = yield user_1.default.findOne({ where: { referralCode } });
+            if (!referrer) {
+                res.status(400).json({ message: "Invalid referral code" });
+                return;
+            }
+        }
+        // Generate a unique referral code for the new user
+        const newReferralCode = (0, helpers_2.generateReferralCode)(name);
+        // Create new user
+        const newUser = yield user_1.default.create({
+            name,
+            phoneNumber,
+            email,
+            password,
+            industry,
+            professionalSkill,
+            referralCode: newReferralCode,
+            accountType: "creator",
+        });
+        if (!newUser)
+            throw new Error("Failed to create new user");
+        // Generate OTP for email verification
+        const otpCode = (0, helpers_1.generateOTP)();
+        yield otp_1.default.create({
+            userId: newUser.id,
+            otpCode,
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
+        });
+        // Send verification email
+        const message = messages_1.emailTemplates.verifyEmail(newUser, otpCode);
+        try {
+            yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+        }
+        catch (emailError) {
+            logger_1.default.error("Error sending email:", emailError);
+        }
+        // Send success response
+        res.status(200).json({
+            message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error during registration:", error);
+        res.status(500).json({ message: error.message || "Error during registration." });
+    }
+});
+exports.creatorRegister = creatorRegister;
+const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionSize, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
+    try {
+        // Check if email already exists
+        const existingUser = yield user_1.default.findOne({ where: { email } });
+        if (existingUser) {
+            res.status(400).json({ message: "Email already in use" });
+            return;
+        }
+        // Check if the referral code exists (if provided)
+        let referrer = null;
+        if (referralCode) {
+            referrer = yield user_1.default.findOne({ where: { referralCode } });
+            if (!referrer) {
+                res.status(400).json({ message: "Invalid referral code" });
+                return;
+            }
+        }
+        // Generate a unique referral code for the new user
+        const newReferralCode = (0, helpers_2.generateReferralCode)(name);
+        // Create new user
+        const newUser = yield user_1.default.create({
+            name,
+            email,
+            password,
+            jobTitle,
+            referralCode: newReferralCode,
+            accountType: "institution",
+        });
+        if (!newUser)
+            throw new Error("Failed to create new user");
+        // Create institution information
+        yield institutioninformation_1.default.create({
+            userId: newUser.id,
+            institutionName,
+            institutionEmail,
+            institutionIndustry,
+            institutionSize,
+            institutionPhoneNumber,
+            institutionType,
+            institutionLocation
+        });
+        // Generate OTP for email verification
+        const otpCode = (0, helpers_1.generateOTP)();
+        yield otp_1.default.create({
+            userId: newUser.id,
+            otpCode,
+            expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
+        });
+        // Send verification email
+        const message = messages_1.emailTemplates.verifyEmail(newUser, otpCode);
+        try {
+            yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+        }
+        catch (emailError) {
+            logger_1.default.error("Error sending email:", emailError);
+        }
+        // Send success response
+        res.status(200).json({
+            message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error during registration:", error);
+        res.status(500).json({ message: error.message || "Error during registration." });
+    }
+});
+exports.institutionRegister = institutionRegister;
 const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, otpCode } = req.body; // Assuming OTP and email are sent in the request body
     try {
@@ -234,7 +346,7 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const user = yield user_1.default.scope("auth").findOne({ where: { email } });
         // Check if user exists
         if (!user) {
-            res.status(400).json({ message: "Invalid email" });
+            res.status(400).json({ message: "Email doesn't exist" });
             return;
         }
         // Check if user is inactive

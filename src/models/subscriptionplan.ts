@@ -13,10 +13,7 @@ class SubscriptionPlan extends Model {
   public updatedAt!: Date;
 
   static associate(models: any) {
-    this.hasMany(models.VendorSubscription, {
-      as: 'vendorSubscriptions',
-      foreignKey: 'subscriptionPlanId',
-    });
+
   }
 }
 
