@@ -26,10 +26,6 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      institutionSize: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
       institutionPhoneNumber: {
         type: Sequelize.STRING,
         allowNull: false,

@@ -33,13 +33,6 @@ export const userRegister = async (req: Request, res: Response): Promise<void> =
       return;
     }
 
-    // Check if phone number already exists
-    const existingPhoneNumber = await User.findOne({ where: { phoneNumber } });
-    if (existingPhoneNumber) {
-      res.status(400).json({ message: "Phone number already in use" });
-      return;
-    }
-
     // Check if the referral code exists (if provided)
     let referrer = null;
     if (referralCode) {
@@ -100,13 +93,6 @@ export const studentRegister = async (req: Request, res: Response): Promise<void
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
       res.status(400).json({ message: "Email already in use" });
-      return;
-    }
-
-    // Check if phone number already exists
-    const existingPhoneNumber = await User.findOne({ where: { phoneNumber } });
-    if (existingPhoneNumber) {
-      res.status(400).json({ message: "Phone number already in use" });
       return;
     }
 
@@ -175,13 +161,6 @@ export const creatorRegister = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    // Check if phone number already exists
-    const existingPhoneNumber = await User.findOne({ where: { phoneNumber } });
-    if (existingPhoneNumber) {
-      res.status(400).json({ message: "Phone number already in use" });
-      return;
-    }
-
     // Check if the referral code exists (if provided)
     let referrer = null;
     if (referralCode) {
@@ -236,7 +215,7 @@ export const creatorRegister = async (req: Request, res: Response): Promise<void
 };
 
 export const institutionRegister = async (req: Request, res: Response): Promise<void> => {
-  const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionSize, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
+  const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
 
   try {
     // Check if email already exists
@@ -277,7 +256,6 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
       institutionName,
       institutionEmail,
       institutionIndustry,
-      institutionSize,
       institutionPhoneNumber,
       institutionType,
       institutionLocation

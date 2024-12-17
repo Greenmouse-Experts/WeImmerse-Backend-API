@@ -1,16 +1,9 @@
 // src/routes/institutionRoute.ts
 import { Router } from 'express';
-import * as vendorController from '../controllers/studentController';
+import * as institutionController from '../controllers/institutionController';
 import authMiddleware from '../middlewares/authMiddleware';
-import authorizeVendor from '../middlewares/authorizeVendor';
+import authorizeInstitution from '../middlewares/authorizeInstitution';
 import { 
-    kycValidationRules, 
-    createStoreValidation, 
-    updateStoreValidation, 
-    addProductValidation,
-    updateProductValidation,
-    auctionProductValidation,
-    updateAuctionProductValidation,
     validate } from '../utils/validations';
 
 const institutionRoutes = Router();

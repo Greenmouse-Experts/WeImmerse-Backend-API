@@ -1,16 +1,9 @@
 // src/routes/userRoute.ts
 import { Router } from 'express';
-import * as vendorController from '../controllers/studentController';
+import * as userController from '../controllers/userController';
 import authMiddleware from '../middlewares/authMiddleware';
-import authorizeVendor from '../middlewares/authorizeVendor';
+import authorizeUser from '../middlewares/authorizeUser';
 import { 
-    kycValidationRules, 
-    createStoreValidation, 
-    updateStoreValidation, 
-    addProductValidation,
-    updateProductValidation,
-    auctionProductValidation,
-    updateAuctionProductValidation,
     validate } from '../utils/validations';
 
 const userRoutes = Router();

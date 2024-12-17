@@ -2,50 +2,54 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('referrals', {
+    await queryInterface.createTable('course_reviews', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true,
       },
-      referrerId: {
+      userId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: 'users', // Replace with the actual users table name
           key: 'id',
         },
-        onUpdate: 'RESTRICT',
         onDelete: 'RESTRICT',
       },
-      referredUserId: {
+      courseId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: 'courses', // Replace with the actual courses table name
           key: 'id',
         },
-        onUpdate: 'RESTRICT',
         onDelete: 'RESTRICT',
       },
-      evToken: {
-        type: Sequelize.DECIMAL(20, 2),
+      rating: {
+        type: Sequelize.DECIMAL(4, 1),
+        allowNull: false,
+      },
+      title: {
+        type: Sequelize.STRING,
+        allowNull: true,
+      },
+      body: {
+        type: Sequelize.TEXT,
         allowNull: true,
       },
       createdAt: {
-        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
+        type: Sequelize.DATE
       },
       updatedAt: {
-        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
-      },
+        type: Sequelize.DATE
+      }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('referrals');
+    await queryInterface.dropTable('course_reviews');
   }
 };

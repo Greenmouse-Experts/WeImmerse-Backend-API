@@ -79,7 +79,6 @@ export const updateProfile = async (req: Request, res: Response) => {
       institutionName,
       institutionEmail,
       institutionIndustry,
-      institutionSize,
       institutionPhoneNumber,
       institutionType,
       institutionLocation
@@ -126,7 +125,6 @@ export const updateProfile = async (req: Request, res: Response) => {
         institutionInfo.institutionName = institutionName || institutionInfo.institutionName;
         institutionInfo.institutionEmail = institutionEmail || institutionInfo.institutionEmail;
         institutionInfo.institutionIndustry = institutionIndustry || institutionInfo.institutionIndustry;
-        institutionInfo.institutionSize = institutionSize || institutionInfo.institutionSize;
         institutionInfo.institutionPhoneNumber = institutionPhoneNumber || institutionInfo.institutionPhoneNumber;
         institutionInfo.institutionType = institutionType || institutionInfo.institutionType;
         institutionInfo.institutionLocation = institutionLocation || institutionInfo.institutionLocation;

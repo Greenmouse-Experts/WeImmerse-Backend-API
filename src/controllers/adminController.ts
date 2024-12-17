@@ -14,6 +14,8 @@ import Permission from "../models/permission";
 import RolePermission from "../models/rolepermission";
 import SubscriptionPlan from "../models/subscriptionplan";
 import User from "../models/user";
+import CourseCategory from "../models/coursecategory";
+import AssetCategory from "../models/assetcategory";
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -42,7 +44,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     } catch (error: any) {
         logger.error(error);
         res.status(500).json({
-            message: "Server error during logout.",
+            message: error.message || "Server error during logout.",
         });
     }
 };
@@ -89,7 +91,7 @@ export const updateProfile = async (
         logger.error("Error updating admin profile:", error);
 
         res.status(500).json({
-            message: "Server error during profile update.",
+            message: error.message || "Server error during profile update.",
         });
     }
 };
@@ -135,11 +137,11 @@ export const updatePassword = async (
         res.status(200).json({
             message: "Password updated successfully.",
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error(error);
 
         res.status(500).json({
-            message: "Server error during password update.",
+            message: error.message || "Server error during password update.",
         });
     }
 };
@@ -185,9 +187,13 @@ export const subAdmins = async (
         res
             .status(200)
             .json({ message: "Sub-admins retrieved successfully", data: subAdmins });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error retrieving sub-admins:", error);
-        res.status(500).json({ message: `Error retrieving sub-admins: ${error}` });
+        res
+            .status(500)
+            .json({
+                message: error.message || `Error retrieving sub-admins: ${error}`,
+            });
     }
 };
 
@@ -236,9 +242,11 @@ export const createSubAdmin = async (
         }
 
         res.status(200).json({ message: "Sub Admin created successfully." });
-    } catch (error) {
+    } catch (error: any) {
         logger.error(error);
-        res.status(500).json({ message: `Error creating sub-admin: ${error}` });
+        res
+            .status(500)
+            .json({ message: error.message || `Error creating sub-admin: ${error}` });
     }
 };
 
@@ -282,10 +290,12 @@ export const updateSubAdmin = async (
         });
 
         res.status(200).json({ message: "Sub Admin updated successfully." });
-    } catch (error) {
+    } catch (error: any) {
         // Log and send the error message in the response
         logger.error("Error updating sub-admin:", error);
-        res.status(500).json({ message: `Error updating sub-admin: ${error}` });
+        res
+            .status(500)
+            .json({ message: error.message || `Error updating sub-admin: ${error}` });
     }
 };
 
@@ -293,7 +303,7 @@ export const deactivateOrActivateSubAdmin = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<void> => {
-    const { subAdminId } = req.body;
+    const subAdminId = req.query.subAdminId as string;
 
     try {
         // Find the sub-admin by ID
@@ -313,12 +323,14 @@ export const deactivateOrActivateSubAdmin = async (
         res
             .status(200)
             .json({ message: `Sub-admin status updated to ${newStatus}.` });
-    } catch (error) {
+    } catch (error: any) {
         // Log the error and send the response
         logger.error("Error updating sub-admin status:", error);
         res
             .status(500)
-            .json({ message: `Error updating sub-admin status: ${error}` });
+            .json({
+                message: error.message || `Error updating sub-admin status: ${error}`,
+            });
     }
 };
 
@@ -337,11 +349,13 @@ export const deleteSubAdmin = async (
 
         await subAdmin.destroy();
         res.status(200).json({ message: "Sub-admin deleted successfully" });
-    } catch (error) {
+    } catch (error: any) {
         logger.error(error);
         res
             .status(500)
-            .json({ message: "Error deleting sub-admin: ${error.message}" });
+            .json({
+                message: error.message || "Error deleting sub-admin: ${error.message}",
+            });
     }
 };
 
@@ -349,7 +363,7 @@ export const resendLoginDetailsSubAdmin = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<void> => {
-    const { subAdminId } = req.body;
+    const subAdminId = req.query.subAdminId as string;
 
     try {
         const subAdmin = await Admin.findByPk(subAdminId);
@@ -379,11 +393,14 @@ export const resendLoginDetailsSubAdmin = async (
         }
 
         res.status(200).json({ message: "Login details resent successfully" });
-    } catch (error) {
+    } catch (error: any) {
         logger.error(error);
         res
             .status(500)
-            .json({ message: "Error resending login details: ${error.message}" });
+            .json({
+                message:
+                    error.message || "Error resending login details: ${error.message}",
+            });
     }
 };
 
@@ -411,9 +428,9 @@ export const createRole = async (
         // Create the new role
         const role = await Role.create({ name });
         res.status(200).json({ message: "Role created successfully" });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error creating role:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -425,9 +442,9 @@ export const getRoles = async (
     try {
         const roles = await Role.findAll();
         res.status(200).json({ data: roles });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error fetching roles:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -468,9 +485,9 @@ export const updateRole = async (
         await role.save();
 
         res.status(200).json({ message: "Role updated successfully", role });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error updating role:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -492,9 +509,9 @@ export const viewRolePermissions = async (
         }
 
         res.status(200).json({ data: role });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error fetching role permissions:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -534,9 +551,9 @@ export const assignPermissionToRole = async (
         res
             .status(200)
             .json({ message: "Permission assigned to role successfully" });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error assigning permission to role:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -545,7 +562,7 @@ export const deletePermissionFromRole = async (
     req: Request,
     res: Response
 ): Promise<void> => {
-    const { roleId, permissionId } = req.query;
+    const { roleId, permissionId } = req.body;
 
     try {
         const role = await Role.findOne({
@@ -571,9 +588,9 @@ export const deletePermissionFromRole = async (
         res
             .status(200)
             .json({ message: "Permission removed from role successfully" });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error deleting permission from role:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -603,9 +620,9 @@ export const createPermission = async (
         res.status(201).json({
             message: "Permission created successfully",
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error creating permission:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -617,9 +634,9 @@ export const getPermissions = async (
     try {
         const permissions = await Permission.findAll();
         res.status(200).json({ data: permissions });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error fetching permissions:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -660,9 +677,9 @@ export const updatePermission = async (
         await permission.save();
 
         res.status(200).json({ message: "Permission updated successfully" });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error updating permission:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -690,9 +707,221 @@ export const deletePermission = async (
             message:
                 "Permission and associated role permissions deleted successfully",
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error deleting permission:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
+    }
+};
+
+// Get all course categories
+export const getCourseCategories = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const categories = await CourseCategory.findAll();
+        res.status(200).json({ data: categories });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Create a new course category
+export const createCourseCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { name } = req.body;
+
+        // Check if a category with the same name already exists
+        const existingCategory = await CourseCategory.findOne({ where: { name } });
+        if (existingCategory) {
+            res.status(400).json({ message: "A course category with the same name already exists." });
+            return;
+        }
+
+        const category = await CourseCategory.create({ name });
+        res
+            .status(200)
+            .json({
+                message: "Course category created successfully",
+                data: category,
+            });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Update an existing course category
+export const updateCourseCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id, name } = req.body;
+
+        const category = await CourseCategory.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Course category not found" });
+            return;
+        }
+
+        // Check if another category with the same name exists (exclude the current category)
+        const existingCategory = await CourseCategory.findOne({
+            where: { name, id: { [Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
+        });
+        if (existingCategory) {
+            res.status(400).json({ message: "Another course category with the same name already exists." });
+            return;
+        }
+
+        await category.update({ name });
+        res
+            .status(200)
+            .json({
+                message: "Course category updated successfully",
+                data: category,
+            });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Delete a course category
+export const deleteCourseCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const id = req.query.id as string;
+
+        const category = await CourseCategory.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Course category not found" });
+            return;
+        }
+
+        await category.destroy();
+        res.status(200).json({ message: "Course category deleted successfully" });
+    } catch (error: any) {
+        if (error instanceof ForeignKeyConstraintError) {
+            res.status(400).json({
+                message:
+                    "Cannot delete course category plan because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+            });
+        } else {
+            logger.error("Error deleting course category:", error);
+            res
+                .status(500)
+                .json({ message: error.message || "Error deleting course category" });
+        }
+    }
+};
+
+// Get all asset categories
+export const getAssetCategories = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const assets = await AssetCategory.findAll();
+        res.status(200).json({ data: assets });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Create a new asset category
+export const createAssetCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { name } = req.body;
+
+        // Check if a category with the same name already exists
+        const existingCategory = await AssetCategory.findOne({ where: { name } });
+        if (existingCategory) {
+            res.status(400).json({ message: "A asset category with the same name already exists." });
+            return;
+        }
+
+        const category = await AssetCategory.create({ name });
+        res
+            .status(200)
+            .json({
+                message: "Asset category created successfully",
+                data: category,
+            });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Update an existing asset category
+export const updateAssetCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id, name } = req.body;
+
+        const category = await AssetCategory.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Asset category not found" });
+            return;
+        }
+
+        // Check if another category with the same name exists (exclude the current category)
+        const existingCategory = await AssetCategory.findOne({
+            where: { name, id: { [Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
+        });
+        if (existingCategory) {
+            res.status(400).json({ message: "Another asset category with the same name already exists." });
+            return;
+        }
+
+        await category.update({ name });
+        res
+            .status(200)
+            .json({
+                message: "Asset category updated successfully",
+                data: category,
+            });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+// Delete a asset category
+export const deleteAssetCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const id = req.query.id as string;
+
+        const category = await AssetCategory.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Asset category not found" });
+            return;
+        }
+
+        await category.destroy();
+        res.status(200).json({ message: "Asset category deleted successfully" });
+    } catch (error: any) {
+        if (error instanceof ForeignKeyConstraintError) {
+            res.status(400).json({
+                message:
+                    "Cannot delete asset category plan because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+            });
+        } else {
+            logger.error("Error deleting asset category:", error);
+            res
+                .status(500)
+                .json({ message: error.message || "Error deleting asset category" });
+        }
     }
 };
 
@@ -717,9 +946,9 @@ export const getAllSubscriptionPlans = async (
 
         const plans = await SubscriptionPlan.findAll(queryOptions); // Use query options
         res.status(200).json({ data: plans });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error fetching subscription plans:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -760,9 +989,9 @@ export const createSubscriptionPlan = async (
         res.status(200).json({
             message: "Subscription plan created successfully.",
         });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error creating subscription plan:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -818,9 +1047,9 @@ export const updateSubscriptionPlan = async (
         await plan.save();
 
         res.status(200).json({ message: "Subscription plan updated successfully" });
-    } catch (error) {
+    } catch (error: any) {
         logger.error("Error updating subscription plan:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 };
 
@@ -849,7 +1078,7 @@ export const deleteSubscriptionPlan = async (
         res
             .status(200)
             .json({ message: "Subscription plan deleted successfully." });
-    } catch (error) {
+    } catch (error: any) {
         if (error instanceof ForeignKeyConstraintError) {
             res.status(400).json({
                 message:
@@ -857,7 +1086,9 @@ export const deleteSubscriptionPlan = async (
             });
         } else {
             logger.error("Error deleting subscription plan:", error);
-            res.status(500).json({ message: "Error deleting subscription plan" });
+            res
+                .status(500)
+                .json({ message: error.message || "Error deleting subscription plan" });
         }
     }
 };

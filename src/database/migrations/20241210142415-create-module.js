@@ -2,50 +2,41 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('referrals', {
+    await queryInterface.createTable('modules', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true,
       },
-      referrerId: {
+      courseId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'users',
+          model: 'courses', // Replace with your courses table name
           key: 'id',
         },
-        onUpdate: 'RESTRICT',
         onDelete: 'RESTRICT',
       },
-      referredUserId: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'users',
-          key: 'id',
-        },
-        onUpdate: 'RESTRICT',
-        onDelete: 'RESTRICT',
-      },
-      evToken: {
-        type: Sequelize.DECIMAL(20, 2),
+      title: {
+        type: Sequelize.STRING,
         allowNull: true,
       },
-      createdAt: {
-        type: Sequelize.DATE,
+      sortOrder: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
+      },
+      createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
       },
       updatedAt: {
-        type: Sequelize.DATE,
         allowNull: false,
-        defaultValue: Sequelize.NOW,
-      },
+        type: Sequelize.DATE
+      }
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('referrals');
+    await queryInterface.dropTable('modules');
   }
 };

@@ -40,8 +40,8 @@ const initModel = (sequelize: Sequelize) => {
           model: 'users',
           key: 'id',
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
+        onUpdate: 'RESTRICT',
+        onDelete: 'RESTRICT',
       },
       referredUserId: {
         type: DataTypes.UUID,
@@ -50,8 +50,8 @@ const initModel = (sequelize: Sequelize) => {
           model: 'users',
           key: 'id',
         },
-        onUpdate: 'CASCADE',
-        onDelete: 'CASCADE',
+        onUpdate: 'RESTRICT',
+        onDelete: 'RESTRICT',
       },
       evToken: {
         type: DataTypes.DECIMAL(20, 2),

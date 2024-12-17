@@ -3,8 +3,7 @@ import { AuthenticatedRequest } from "../types/index";
 
 
 // Middleware to authorize based on account type
-const authorizeCustomer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-
+const authorizeUser = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   // Check if the user is authenticated and has an account type
   const user = (req as AuthenticatedRequest).user;
 
@@ -16,9 +15,9 @@ const authorizeCustomer = async (req: Request, res: Response, next: NextFunction
     return;
   }
 
-  // Check if the account type is 'Customer'
-  if (user.accountType !== 'Customer') {
-    res.status(403).json({ message: 'Access forbidden: Customer only.' });
+  // Check if the account type is 'user'
+  if (user.accountType !== 'user') {
+    res.status(403).json({ message: 'Access forbidden: User only.' });
     return;
   }
 
@@ -26,5 +25,4 @@ const authorizeCustomer = async (req: Request, res: Response, next: NextFunction
   next();
 };
 
-export default authorizeCustomer;
-
+export default authorizeUser;

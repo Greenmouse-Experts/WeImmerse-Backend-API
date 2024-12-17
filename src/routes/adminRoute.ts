@@ -9,7 +9,6 @@ import {
     updateSubAdminValidationRules, 
     createSubscriptionPlanValidationRules, 
     updateSubscriptionPlanValidationRules,
-    validateKYCNotification,
     validatePaymentGateway,
     validate } from '../utils/validations'; // Import the service
 import checkPermission from '../middlewares/checkPermissionMiddleware';
@@ -17,7 +16,7 @@ import checkPermission from '../middlewares/checkPermissionMiddleware';
 const adminRoutes = Router();
 
 // User routes
-adminRoutes.get("/logout", adminAuthMiddleware, adminController.logout);
+adminRoutes.post("/logout", adminAuthMiddleware, adminController.logout);
 adminRoutes.put('/profile/update', adminAuthMiddleware, adminUpdateProfileValidationRules(), validate, checkPermission('update-profile'), adminController.updateProfile);
 adminRoutes.put('/profile/update/password', adminAuthMiddleware, updatePasswordValidationRules(), validate, checkPermission('update-password'), adminController.updatePassword);
 
@@ -42,6 +41,18 @@ adminRoutes.get('/permissions', adminAuthMiddleware, checkPermission('view-permi
 adminRoutes.post('/permission/create', adminAuthMiddleware, checkPermission('create-permission'), adminController.createPermission);
 adminRoutes.put('/permission/update', adminAuthMiddleware, checkPermission('update-permission'), adminController.updatePermission);
 adminRoutes.delete('/permission/delete', adminAuthMiddleware, checkPermission('delete-permission'), adminController.deletePermission);
+
+// Course Category
+adminRoutes.get('/course/categories', adminAuthMiddleware, adminController.getCourseCategories);
+adminRoutes.post('/course/category/create', adminAuthMiddleware, adminController.createCourseCategory);
+adminRoutes.put('/course/category/update', adminAuthMiddleware, adminController.updateCourseCategory);
+adminRoutes.delete('/course/category/delete', adminAuthMiddleware, adminController.deleteCourseCategory);
+
+// Asset Category
+adminRoutes.get('/asset/categories', adminAuthMiddleware, adminController.getAssetCategories);
+adminRoutes.post('/asset/category/create', adminAuthMiddleware, adminController.createAssetCategory);
+adminRoutes.put('/asset/category/update', adminAuthMiddleware, adminController.updateAssetCategory);
+adminRoutes.delete('/asset/category/delete', adminAuthMiddleware, adminController.deleteAssetCategory);
 
 // Subscription Plan
 adminRoutes.get('/subscription/plans', adminAuthMiddleware, adminController.getAllSubscriptionPlans);

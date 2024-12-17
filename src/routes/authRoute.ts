@@ -1,6 +1,7 @@
 // src/routes/authroute.ts
 import { Router } from 'express';
 import * as authController from '../controllers/authController';
+import * as frontendController from '../controllers/frontendController';
 import { userRegistrationValidationRules, studentRegistrationValidationRules, creatorRegistrationValidationRules, institutionRegistrationValidationRules, verificationValidationRules, loginValidationRules, resendVerificationValidationRules, forgotPasswordValidationRules, resetPasswordValidationRules, validate } from '../utils/validations'; // Import the service
 
 const authRoutes = Router();
@@ -20,5 +21,12 @@ authRoutes.post("/auth/password/reset", resetPasswordValidationRules(), validate
 
 // Admin
 authRoutes.post("/auth/admin/login", loginValidationRules(), validate, authController.adminLogin);
+
+
+// Frontend
+authRoutes.get("/fetch/digital/assets", frontendController.fetchDigitalAssets);
+authRoutes.get("/view/digital/asset", frontendController.viewDigitalAsset);
+authRoutes.get("/fetch/physical/assets", frontendController.fetchPhysicalAssets);
+authRoutes.get("/view/physical/asset", frontendController.viewPhysicalAsset);
 
 export default authRoutes; // Export the router

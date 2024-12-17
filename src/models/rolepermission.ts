@@ -37,7 +37,7 @@ const initModel = (sequelize: Sequelize) => {
         model: 'roles',
         key: 'id',
       },
-      onDelete: 'CASCADE',
+      onDelete: 'RESTRICT',
     },
     permissionId: {
       type: DataTypes.UUID,
@@ -45,7 +45,7 @@ const initModel = (sequelize: Sequelize) => {
         model: 'permissions',
         key: 'id',
       },
-      onDelete: 'CASCADE',
+      onDelete: 'RESTRICT',
     },
   }, {
     sequelize,
