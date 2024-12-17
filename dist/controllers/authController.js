@@ -41,12 +41,6 @@ const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             res.status(400).json({ message: "Email already in use" });
             return;
         }
-        // Check if phone number already exists
-        const existingPhoneNumber = yield user_1.default.findOne({ where: { phoneNumber } });
-        if (existingPhoneNumber) {
-            res.status(400).json({ message: "Phone number already in use" });
-            return;
-        }
         // Check if the referral code exists (if provided)
         let referrer = null;
         if (referralCode) {
@@ -102,12 +96,6 @@ const studentRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
             res.status(400).json({ message: "Email already in use" });
-            return;
-        }
-        // Check if phone number already exists
-        const existingPhoneNumber = yield user_1.default.findOne({ where: { phoneNumber } });
-        if (existingPhoneNumber) {
-            res.status(400).json({ message: "Phone number already in use" });
             return;
         }
         // Check if the referral code exists (if provided)
@@ -169,12 +157,6 @@ const creatorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
             res.status(400).json({ message: "Email already in use" });
             return;
         }
-        // Check if phone number already exists
-        const existingPhoneNumber = yield user_1.default.findOne({ where: { phoneNumber } });
-        if (existingPhoneNumber) {
-            res.status(400).json({ message: "Phone number already in use" });
-            return;
-        }
         // Check if the referral code exists (if provided)
         let referrer = null;
         if (referralCode) {
@@ -226,7 +208,7 @@ const creatorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 exports.creatorRegister = creatorRegister;
 const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionSize, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
+    const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
     try {
         // Check if email already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
@@ -262,7 +244,6 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
             institutionName,
             institutionEmail,
             institutionIndustry,
-            institutionSize,
             institutionPhoneNumber,
             institutionType,
             institutionLocation

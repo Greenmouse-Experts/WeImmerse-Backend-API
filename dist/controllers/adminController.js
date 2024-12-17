@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -24,6 +24,8 @@ const role_1 = __importDefault(require("../models/role"));
 const permission_1 = __importDefault(require("../models/permission"));
 const rolepermission_1 = __importDefault(require("../models/rolepermission"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
+const coursecategory_1 = __importDefault(require("../models/coursecategory"));
+const assetcategory_1 = __importDefault(require("../models/assetcategory"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -43,7 +45,7 @@ const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: "Server error during logout.",
+            message: error.message || "Server error during logout.",
         });
     }
 });
@@ -83,7 +85,7 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     catch (error) {
         logger_1.default.error("Error updating admin profile:", error);
         res.status(500).json({
-            message: "Server error during profile update.",
+            message: error.message || "Server error during profile update.",
         });
     }
 });
@@ -123,7 +125,7 @@ const updatePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: "Server error during password update.",
+            message: error.message || "Server error during password update.",
         });
     }
 });
@@ -163,7 +165,11 @@ const subAdmins = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         logger_1.default.error("Error retrieving sub-admins:", error);
-        res.status(500).json({ message: `Error retrieving sub-admins: ${error}` });
+        res
+            .status(500)
+            .json({
+            message: error.message || `Error retrieving sub-admins: ${error}`,
+        });
     }
 });
 exports.subAdmins = subAdmins;
@@ -203,7 +209,9 @@ const createSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
     catch (error) {
         logger_1.default.error(error);
-        res.status(500).json({ message: `Error creating sub-admin: ${error}` });
+        res
+            .status(500)
+            .json({ message: error.message || `Error creating sub-admin: ${error}` });
     }
 });
 exports.createSubAdmin = createSubAdmin;
@@ -243,12 +251,14 @@ const updateSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         // Log and send the error message in the response
         logger_1.default.error("Error updating sub-admin:", error);
-        res.status(500).json({ message: `Error updating sub-admin: ${error}` });
+        res
+            .status(500)
+            .json({ message: error.message || `Error updating sub-admin: ${error}` });
     }
 });
 exports.updateSubAdmin = updateSubAdmin;
 const deactivateOrActivateSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { subAdminId } = req.body;
+    const subAdminId = req.query.subAdminId;
     try {
         // Find the sub-admin by ID
         const subAdmin = yield admin_1.default.findByPk(subAdminId);
@@ -270,7 +280,9 @@ const deactivateOrActivateSubAdmin = (req, res) => __awaiter(void 0, void 0, voi
         logger_1.default.error("Error updating sub-admin status:", error);
         res
             .status(500)
-            .json({ message: `Error updating sub-admin status: ${error}` });
+            .json({
+            message: error.message || `Error updating sub-admin status: ${error}`,
+        });
     }
 });
 exports.deactivateOrActivateSubAdmin = deactivateOrActivateSubAdmin;
@@ -289,12 +301,14 @@ const deleteSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
         logger_1.default.error(error);
         res
             .status(500)
-            .json({ message: "Error deleting sub-admin: ${error.message}" });
+            .json({
+            message: error.message || "Error deleting sub-admin: ${error.message}",
+        });
     }
 });
 exports.deleteSubAdmin = deleteSubAdmin;
 const resendLoginDetailsSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { subAdminId } = req.body;
+    const subAdminId = req.query.subAdminId;
     try {
         const subAdmin = yield admin_1.default.findByPk(subAdminId);
         if (!subAdmin) {
@@ -320,7 +334,9 @@ const resendLoginDetailsSubAdmin = (req, res) => __awaiter(void 0, void 0, void 
         logger_1.default.error(error);
         res
             .status(500)
-            .json({ message: "Error resending login details: ${error.message}" });
+            .json({
+            message: error.message || "Error resending login details: ${error.message}",
+        });
     }
 });
 exports.resendLoginDetailsSubAdmin = resendLoginDetailsSubAdmin;
@@ -345,7 +361,7 @@ const createRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
     catch (error) {
         logger_1.default.error("Error creating role:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.createRole = createRole;
@@ -357,7 +373,7 @@ const getRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         logger_1.default.error("Error fetching roles:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.getRoles = getRoles;
@@ -391,7 +407,7 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
     catch (error) {
         logger_1.default.error("Error updating role:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.updateRole = updateRole;
@@ -410,7 +426,7 @@ const viewRolePermissions = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
     catch (error) {
         logger_1.default.error("Error fetching role permissions:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.viewRolePermissions = viewRolePermissions;
@@ -443,13 +459,13 @@ const assignPermissionToRole = (req, res) => __awaiter(void 0, void 0, void 0, f
     }
     catch (error) {
         logger_1.default.error("Error assigning permission to role:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.assignPermissionToRole = assignPermissionToRole;
 // Delete a Permission from a Role
 const deletePermissionFromRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { roleId, permissionId } = req.query;
+    const { roleId, permissionId } = req.body;
     try {
         const role = yield role_1.default.findOne({
             where: { id: roleId },
@@ -472,7 +488,7 @@ const deletePermissionFromRole = (req, res) => __awaiter(void 0, void 0, void 0,
     }
     catch (error) {
         logger_1.default.error("Error deleting permission from role:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.deletePermissionFromRole = deletePermissionFromRole;
@@ -499,7 +515,7 @@ const createPermission = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
     catch (error) {
         logger_1.default.error("Error creating permission:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.createPermission = createPermission;
@@ -511,7 +527,7 @@ const getPermissions = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
     catch (error) {
         logger_1.default.error("Error fetching permissions:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.getPermissions = getPermissions;
@@ -545,7 +561,7 @@ const updatePermission = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
     catch (error) {
         logger_1.default.error("Error updating permission:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.updatePermission = updatePermission;
@@ -568,10 +584,192 @@ const deletePermission = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
     catch (error) {
         logger_1.default.error("Error deleting permission:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.deletePermission = deletePermission;
+// Get all course categories
+const getCourseCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const categories = yield coursecategory_1.default.findAll();
+        res.status(200).json({ data: categories });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getCourseCategories = getCourseCategories;
+// Create a new course category
+const createCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name } = req.body;
+        // Check if a category with the same name already exists
+        const existingCategory = yield coursecategory_1.default.findOne({ where: { name } });
+        if (existingCategory) {
+            res.status(400).json({ message: "A course category with the same name already exists." });
+            return;
+        }
+        const category = yield coursecategory_1.default.create({ name });
+        res
+            .status(200)
+            .json({
+            message: "Course category created successfully",
+            data: category,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.createCourseCategory = createCourseCategory;
+// Update an existing course category
+const updateCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, name } = req.body;
+        const category = yield coursecategory_1.default.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Course category not found" });
+            return;
+        }
+        // Check if another category with the same name exists (exclude the current category)
+        const existingCategory = yield coursecategory_1.default.findOne({
+            where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
+        });
+        if (existingCategory) {
+            res.status(400).json({ message: "Another course category with the same name already exists." });
+            return;
+        }
+        yield category.update({ name });
+        res
+            .status(200)
+            .json({
+            message: "Course category updated successfully",
+            data: category,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.updateCourseCategory = updateCourseCategory;
+// Delete a course category
+const deleteCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = req.query.id;
+        const category = yield coursecategory_1.default.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Course category not found" });
+            return;
+        }
+        yield category.destroy();
+        res.status(200).json({ message: "Course category deleted successfully" });
+    }
+    catch (error) {
+        if (error instanceof sequelize_1.ForeignKeyConstraintError) {
+            res.status(400).json({
+                message: "Cannot delete course category plan because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+            });
+        }
+        else {
+            logger_1.default.error("Error deleting course category:", error);
+            res
+                .status(500)
+                .json({ message: error.message || "Error deleting course category" });
+        }
+    }
+});
+exports.deleteCourseCategory = deleteCourseCategory;
+// Get all asset categories
+const getAssetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const assets = yield assetcategory_1.default.findAll();
+        res.status(200).json({ data: assets });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getAssetCategories = getAssetCategories;
+// Create a new asset category
+const createAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name } = req.body;
+        // Check if a category with the same name already exists
+        const existingCategory = yield assetcategory_1.default.findOne({ where: { name } });
+        if (existingCategory) {
+            res.status(400).json({ message: "A asset category with the same name already exists." });
+            return;
+        }
+        const category = yield assetcategory_1.default.create({ name });
+        res
+            .status(200)
+            .json({
+            message: "Asset category created successfully",
+            data: category,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.createAssetCategory = createAssetCategory;
+// Update an existing asset category
+const updateAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, name } = req.body;
+        const category = yield assetcategory_1.default.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Asset category not found" });
+            return;
+        }
+        // Check if another category with the same name exists (exclude the current category)
+        const existingCategory = yield assetcategory_1.default.findOne({
+            where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
+        });
+        if (existingCategory) {
+            res.status(400).json({ message: "Another asset category with the same name already exists." });
+            return;
+        }
+        yield category.update({ name });
+        res
+            .status(200)
+            .json({
+            message: "Asset category updated successfully",
+            data: category,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.updateAssetCategory = updateAssetCategory;
+// Delete a asset category
+const deleteAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = req.query.id;
+        const category = yield assetcategory_1.default.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Asset category not found" });
+            return;
+        }
+        yield category.destroy();
+        res.status(200).json({ message: "Asset category deleted successfully" });
+    }
+    catch (error) {
+        if (error instanceof sequelize_1.ForeignKeyConstraintError) {
+            res.status(400).json({
+                message: "Cannot delete asset category plan because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+            });
+        }
+        else {
+            logger_1.default.error("Error deleting asset category:", error);
+            res
+                .status(500)
+                .json({ message: error.message || "Error deleting asset category" });
+        }
+    }
+});
+exports.deleteAssetCategory = deleteAssetCategory;
 // Subscription Plan
 const getAllSubscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -590,7 +788,7 @@ const getAllSubscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, 
     }
     catch (error) {
         logger_1.default.error("Error fetching subscription plans:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.getAllSubscriptionPlans = getAllSubscriptionPlans;
@@ -620,7 +818,7 @@ const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
     }
     catch (error) {
         logger_1.default.error("Error creating subscription plan:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.createSubscriptionPlan = createSubscriptionPlan;
@@ -662,7 +860,7 @@ const updateSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
     }
     catch (error) {
         logger_1.default.error("Error updating subscription plan:", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: error.message || "Internal server error" });
     }
 });
 exports.updateSubscriptionPlan = updateSubscriptionPlan;
@@ -694,7 +892,9 @@ const deleteSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
         }
         else {
             logger_1.default.error("Error deleting subscription plan:", error);
-            res.status(500).json({ message: "Error deleting subscription plan" });
+            res
+                .status(500)
+                .json({ message: error.message || "Error deleting subscription plan" });
         }
     }
 });

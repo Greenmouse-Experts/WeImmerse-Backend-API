@@ -28,17 +28,17 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 // src/routes/generalRoute.ts
 const express_1 = require("express");
-const userController = __importStar(require("../controllers/generalController"));
+const generalController = __importStar(require("../controllers/generalController"));
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
 const validations_1 = require("../utils/validations");
 const generalRoutes = (0, express_1.Router)();
 // User routes
-generalRoutes.post("/logout", authMiddleware_1.default, userController.logout);
-generalRoutes.get('/profile', authMiddleware_1.default, userController.profile);
-generalRoutes.put('/profile/update', authMiddleware_1.default, userController.updateProfile);
-generalRoutes.patch('/profile/photo/update', authMiddleware_1.default, userController.updateProfilePhoto);
-generalRoutes.put('/profile/update/password', authMiddleware_1.default, (0, validations_1.updatePasswordValidationRules)(), validations_1.validate, userController.updatePassword);
-generalRoutes.get('/notification/settings', authMiddleware_1.default, userController.getUserNotificationSettings);
-generalRoutes.put('/update/notification/settings', authMiddleware_1.default, userController.updateUserNotificationSettings);
+generalRoutes.post("/logout", authMiddleware_1.default, generalController.logout);
+generalRoutes.get('/profile', authMiddleware_1.default, generalController.profile);
+generalRoutes.put('/profile/update', authMiddleware_1.default, generalController.updateProfile);
+generalRoutes.patch('/profile/photo/update', authMiddleware_1.default, generalController.updateProfilePhoto);
+generalRoutes.put('/profile/update/password', authMiddleware_1.default, (0, validations_1.updatePasswordValidationRules)(), validations_1.validate, generalController.updatePassword);
+generalRoutes.get('/notification/settings', authMiddleware_1.default, generalController.getUserNotificationSettings);
+generalRoutes.put('/update/notification/settings', authMiddleware_1.default, generalController.updateUserNotificationSettings);
 exports.default = generalRoutes;
 //# sourceMappingURL=generalRoute.js.map

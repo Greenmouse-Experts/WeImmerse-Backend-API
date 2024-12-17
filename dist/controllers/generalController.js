@@ -69,7 +69,7 @@ exports.profile = profile;
 const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _b;
     try {
-        const { name, email, phoneNumber, dateOfBirth, gender, educationalLevel, schoolId, professionalSkill, industry, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionSize, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
+        const { name, email, phoneNumber, dateOfBirth, gender, educationalLevel, schoolId, professionalSkill, industry, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
         const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id; // Assuming the user ID is passed in the URL params
         const user = yield user_1.default.findByPk(userId);
         if (!user) {
@@ -105,7 +105,6 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                 institutionInfo.institutionName = institutionName || institutionInfo.institutionName;
                 institutionInfo.institutionEmail = institutionEmail || institutionInfo.institutionEmail;
                 institutionInfo.institutionIndustry = institutionIndustry || institutionInfo.institutionIndustry;
-                institutionInfo.institutionSize = institutionSize || institutionInfo.institutionSize;
                 institutionInfo.institutionPhoneNumber = institutionPhoneNumber || institutionInfo.institutionPhoneNumber;
                 institutionInfo.institutionType = institutionType || institutionInfo.institutionType;
                 institutionInfo.institutionLocation = institutionLocation || institutionInfo.institutionLocation;

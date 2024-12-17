@@ -26,6 +26,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // src/routes/authroute.ts
 const express_1 = require("express");
 const authController = __importStar(require("../controllers/authController"));
+const frontendController = __importStar(require("../controllers/frontendController"));
 const validations_1 = require("../utils/validations"); // Import the service
 const authRoutes = (0, express_1.Router)();
 // Auth routes
@@ -42,5 +43,10 @@ authRoutes.post("/auth/password/code/check", (0, validations_1.verificationValid
 authRoutes.post("/auth/password/reset", (0, validations_1.resetPasswordValidationRules)(), validations_1.validate, authController.resetPassword);
 // Admin
 authRoutes.post("/auth/admin/login", (0, validations_1.loginValidationRules)(), validations_1.validate, authController.adminLogin);
+// Frontend
+authRoutes.get("/fetch/digital/assets", frontendController.fetchDigitalAssets);
+authRoutes.get("/view/digital/asset", frontendController.viewDigitalAsset);
+authRoutes.get("/fetch/physical/assets", frontendController.fetchPhysicalAssets);
+authRoutes.get("/view/physical/asset", frontendController.viewPhysicalAsset);
 exports.default = authRoutes; // Export the router
 //# sourceMappingURL=authRoute.js.map
