@@ -32,7 +32,7 @@ export const userRegistrationValidationRules = () => {
       }),
 
     check("referralCode")
-      .optional()
+      .optional({ checkFalsy: true })
       .isAlphanumeric()
       .withMessage("Referral code must be alphanumeric")
   ];
@@ -67,17 +67,17 @@ export const studentRegistrationValidationRules = () => {
       }),
 
     check("referralCode")
-      .optional()
+      .optional({ checkFalsy: true })
       .isAlphanumeric()
       .withMessage("Referral code must be alphanumeric"),
 
     check("schoolId")
-      .optional()
+      .optional({ checkFalsy: true })
       .isAlphanumeric()
       .withMessage("School ID must be alphanumeric"),
 
     check("educationalLevel")
-      .optional()
+      .optional({ checkFalsy: true })
       .isIn(["High School", "HND", "ND", "Bachelor's", "Master's", "PhD", "Diploma"])
       .withMessage("Educational level must be one of the allowed values"),
   ];
@@ -112,7 +112,7 @@ export const creatorRegistrationValidationRules = () => {
       }),
 
     check("referralCode")
-      .optional()
+      .optional({ checkFalsy: true })
       .isAlphanumeric()
       .withMessage("Referral code must be alphanumeric"),
 

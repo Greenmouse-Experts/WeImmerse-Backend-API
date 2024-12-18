@@ -1096,26 +1096,131 @@ export const deleteSubscriptionPlan = async (
 export const getAllCreator = async (
     req: Request,
     res: Response
-): Promise<void> => { 
+): Promise<void> => {
     try {
-        const assets = await AssetCategory.findAll();
-        res.status(200).json({ data: assets });
+      const { name, status, email } = req.query; // Extract filter parameters from query
+  
+      // Build search conditions
+      const searchConditions: any = { accountType: "creator" }; // Filter by accountType
+  
+      if (name) {
+        searchConditions.name = { [Op.like]: `%${name}%` }; // Partial match for name
+      }
+      if (status) {
+        searchConditions.status = status; // Exact match for status
+      }
+      if (email) {
+        searchConditions.email = { [Op.like]: `%${email}%` }; // Partial match for email
+      }
+  
+      // Fetch creators with optional filters
+      const creators = await User.findAll({
+        where: searchConditions,
+        order: [["createdAt", "DESC"]], // Order by creation date descending
+      });
+  
+      res.status(200).json({ data: creators });
     } catch (error: any) {
-        res.status(500).json({ message: error.message });
+      logger.error("Error fetching creators:", error);
+      res.status(500).json({ message: error.message || "Failed to fetch creators." });
     }
-}
-
+};
+  
 export const getAllUser = async (
     req: Request,
     res: Response
-): Promise<void> => { }
+): Promise<void> => { 
+    try {
+        const { name, status, email } = req.query; // Extract filter parameters from query
+    
+        // Build search conditions
+        const searchConditions: any = { accountType: "user" }; // Filter by accountType
+    
+        if (name) {
+          searchConditions.name = { [Op.like]: `%${name}%` }; // Partial match for name
+        }
+        if (status) {
+          searchConditions.status = status; // Exact match for status
+        }
+        if (email) {
+          searchConditions.email = { [Op.like]: `%${email}%` }; // Partial match for email
+        }
+    
+        // Fetch users with optional filters
+        const users = await User.findAll({
+          where: searchConditions,
+          order: [["createdAt", "DESC"]], // Order by creation date descending
+        });
+    
+        res.status(200).json({ data: users });
+    } catch (error: any) {
+        logger.error("Error fetching general users:", error);
+        res.status(500).json({ message: error.message || "Failed to fetch general users." });
+    }
+}
 
 export const getAllStudent = async (
     req: Request,
     res: Response
-): Promise<void> => { }
+): Promise<void> => { 
+    try {
+        const { name, status, email } = req.query; // Extract filter parameters from query
+    
+        // Build search conditions
+        const searchConditions: any = { accountType: "student" }; // Filter by accountType
+    
+        if (name) {
+          searchConditions.name = { [Op.like]: `%${name}%` }; // Partial match for name
+        }
+        if (status) {
+          searchConditions.status = status; // Exact match for status
+        }
+        if (email) {
+          searchConditions.email = { [Op.like]: `%${email}%` }; // Partial match for email
+        }
+    
+        // Fetch students with optional filters
+        const students = await User.findAll({
+          where: searchConditions,
+          order: [["createdAt", "DESC"]], // Order by creation date descending
+        });
+    
+        res.status(200).json({ data: students });
+    } catch (error: any) {
+        logger.error("Error fetching students:", error);
+        res.status(500).json({ message: error.message || "Failed to fetch students." });
+    }
+}
 
 export const getAllInstitution = async (
     req: Request,
     res: Response
-): Promise<void> => { }
+): Promise<void> => {
+    try {
+        const { name, status, email } = req.query; // Extract filter parameters from query
+    
+        // Build search conditions
+        const searchConditions: any = { accountType: "institution" }; // Filter by accountType
+    
+        if (name) {
+          searchConditions.name = { [Op.like]: `%${name}%` }; // Partial match for name
+        }
+        if (status) {
+          searchConditions.status = status; // Exact match for status
+        }
+        if (email) {
+          searchConditions.email = { [Op.like]: `%${email}%` }; // Partial match for email
+        }
+    
+        // Fetch institutions with optional filters
+        const institutions = await User.findAll({
+          where: searchConditions,
+          order: [["createdAt", "DESC"]], // Order by creation date descending
+        });
+    
+        res.status(200).json({ data: institutions });
+    } catch (error: any) {
+        logger.error("Error fetching institutions:", error);
+        res.status(500).json({ message: error.message || "Failed to fetch institutions." });
+    }
+}

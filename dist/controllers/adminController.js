@@ -24,6 +24,7 @@ const role_1 = __importDefault(require("../models/role"));
 const permission_1 = __importDefault(require("../models/permission"));
 const rolepermission_1 = __importDefault(require("../models/rolepermission"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
+const user_1 = __importDefault(require("../models/user"));
 const coursecategory_1 = __importDefault(require("../models/coursecategory"));
 const assetcategory_1 = __importDefault(require("../models/assetcategory"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -901,18 +902,110 @@ const deleteSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
 exports.deleteSubscriptionPlan = deleteSubscriptionPlan;
 const getAllCreator = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const assets = yield assetcategory_1.default.findAll();
-        res.status(200).json({ data: assets });
+        const { name, status, email } = req.query; // Extract filter parameters from query
+        // Build search conditions
+        const searchConditions = { accountType: "creator" }; // Filter by accountType
+        if (name) {
+            searchConditions.name = { [sequelize_1.Op.like]: `%${name}%` }; // Partial match for name
+        }
+        if (status) {
+            searchConditions.status = status; // Exact match for status
+        }
+        if (email) {
+            searchConditions.email = { [sequelize_1.Op.like]: `%${email}%` }; // Partial match for email
+        }
+        // Fetch creators with optional filters
+        const creators = yield user_1.default.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Order by creation date descending
+        });
+        res.status(200).json({ data: creators });
     }
     catch (error) {
-        res.status(500).json({ message: error.message });
+        logger_1.default.error("Error fetching creators:", error);
+        res.status(500).json({ message: error.message || "Failed to fetch creators." });
     }
 });
 exports.getAllCreator = getAllCreator;
-const getAllUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () { });
+const getAllUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name, status, email } = req.query; // Extract filter parameters from query
+        // Build search conditions
+        const searchConditions = { accountType: "user" }; // Filter by accountType
+        if (name) {
+            searchConditions.name = { [sequelize_1.Op.like]: `%${name}%` }; // Partial match for name
+        }
+        if (status) {
+            searchConditions.status = status; // Exact match for status
+        }
+        if (email) {
+            searchConditions.email = { [sequelize_1.Op.like]: `%${email}%` }; // Partial match for email
+        }
+        // Fetch users with optional filters
+        const users = yield user_1.default.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Order by creation date descending
+        });
+        res.status(200).json({ data: users });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching general users:", error);
+        res.status(500).json({ message: error.message || "Failed to fetch general users." });
+    }
+});
 exports.getAllUser = getAllUser;
-const getAllStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () { });
+const getAllStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name, status, email } = req.query; // Extract filter parameters from query
+        // Build search conditions
+        const searchConditions = { accountType: "student" }; // Filter by accountType
+        if (name) {
+            searchConditions.name = { [sequelize_1.Op.like]: `%${name}%` }; // Partial match for name
+        }
+        if (status) {
+            searchConditions.status = status; // Exact match for status
+        }
+        if (email) {
+            searchConditions.email = { [sequelize_1.Op.like]: `%${email}%` }; // Partial match for email
+        }
+        // Fetch students with optional filters
+        const students = yield user_1.default.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Order by creation date descending
+        });
+        res.status(200).json({ data: students });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching students:", error);
+        res.status(500).json({ message: error.message || "Failed to fetch students." });
+    }
+});
 exports.getAllStudent = getAllStudent;
-const getAllInstitution = (req, res) => __awaiter(void 0, void 0, void 0, function* () { });
+const getAllInstitution = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name, status, email } = req.query; // Extract filter parameters from query
+        // Build search conditions
+        const searchConditions = { accountType: "institution" }; // Filter by accountType
+        if (name) {
+            searchConditions.name = { [sequelize_1.Op.like]: `%${name}%` }; // Partial match for name
+        }
+        if (status) {
+            searchConditions.status = status; // Exact match for status
+        }
+        if (email) {
+            searchConditions.email = { [sequelize_1.Op.like]: `%${email}%` }; // Partial match for email
+        }
+        // Fetch institutions with optional filters
+        const institutions = yield user_1.default.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Order by creation date descending
+        });
+        res.status(200).json({ data: institutions });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching institutions:", error);
+        res.status(500).json({ message: error.message || "Failed to fetch institutions." });
+    }
+});
 exports.getAllInstitution = getAllInstitution;
 //# sourceMappingURL=adminController.js.map

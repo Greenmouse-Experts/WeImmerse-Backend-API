@@ -28,7 +28,7 @@ const userRegistrationValidationRules = () => {
             return true;
         }),
         (0, express_validator_1.check)("referralCode")
-            .optional()
+            .optional({ checkFalsy: true })
             .isAlphanumeric()
             .withMessage("Referral code must be alphanumeric")
     ];
@@ -59,15 +59,15 @@ const studentRegistrationValidationRules = () => {
             return true;
         }),
         (0, express_validator_1.check)("referralCode")
-            .optional()
+            .optional({ checkFalsy: true })
             .isAlphanumeric()
             .withMessage("Referral code must be alphanumeric"),
         (0, express_validator_1.check)("schoolId")
-            .optional()
+            .optional({ checkFalsy: true })
             .isAlphanumeric()
             .withMessage("School ID must be alphanumeric"),
         (0, express_validator_1.check)("educationalLevel")
-            .optional()
+            .optional({ checkFalsy: true })
             .isIn(["High School", "HND", "ND", "Bachelor's", "Master's", "PhD", "Diploma"])
             .withMessage("Educational level must be one of the allowed values"),
     ];
@@ -98,7 +98,7 @@ const creatorRegistrationValidationRules = () => {
             return true;
         }),
         (0, express_validator_1.check)("referralCode")
-            .optional()
+            .optional({ checkFalsy: true })
             .isAlphanumeric()
             .withMessage("Referral code must be alphanumeric"),
         (0, express_validator_1.check)("industry")
