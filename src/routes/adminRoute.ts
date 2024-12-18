@@ -59,4 +59,10 @@ adminRoutes.get('/subscription/plans', adminAuthMiddleware, adminController.getA
 adminRoutes.post('/subscription/plan/create', adminAuthMiddleware, createSubscriptionPlanValidationRules(), validate, adminController.createSubscriptionPlan);
 adminRoutes.put('/subscription/plan/update', adminAuthMiddleware, updateSubscriptionPlanValidationRules(), validate, adminController.updateSubscriptionPlan);
 adminRoutes.delete('/subscription/plan/delete', adminAuthMiddleware, adminController.deleteSubscriptionPlan);
+
+// Users
+adminRoutes.get('/creators', adminAuthMiddleware, adminController.getAllSubscriptionPlans);
+adminRoutes.get('/users', adminAuthMiddleware, adminController.getAllSubscriptionPlans);
+adminRoutes.get('/students', adminAuthMiddleware, adminController.getAllSubscriptionPlans);
+adminRoutes.get('/institutions', adminAuthMiddleware, adminController.getAllSubscriptionPlans);
 export default adminRoutes; // Export the router

@@ -73,8 +73,8 @@ export const studentRegistrationValidationRules = () => {
 
     check("schoolId")
       .optional()
-      .isInt()
-      .withMessage("School ID must be a valid integer"),
+      .isAlphanumeric()
+      .withMessage("School ID must be alphanumeric"),
 
     check("educationalLevel")
       .optional()
@@ -157,10 +157,6 @@ export const institutionRegistrationValidationRules = () => {
     check("institutionIndustry")
       .notEmpty()
       .withMessage("Industry is required"),
-
-    check("institutionSize")
-      .notEmpty()
-      .withMessage("Institution size is required"),
 
     check("institutionPhoneNumber")
       .isMobilePhone("any")
