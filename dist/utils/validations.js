@@ -64,8 +64,8 @@ const studentRegistrationValidationRules = () => {
             .withMessage("Referral code must be alphanumeric"),
         (0, express_validator_1.check)("schoolId")
             .optional()
-            .isInt()
-            .withMessage("School ID must be a valid integer"),
+            .isAlphanumeric()
+            .withMessage("School ID must be alphanumeric"),
         (0, express_validator_1.check)("educationalLevel")
             .optional()
             .isIn(["High School", "HND", "ND", "Bachelor's", "Master's", "PhD", "Diploma"])
@@ -135,9 +135,6 @@ const institutionRegistrationValidationRules = () => {
         (0, express_validator_1.check)("institutionIndustry")
             .notEmpty()
             .withMessage("Industry is required"),
-        (0, express_validator_1.check)("institutionSize")
-            .notEmpty()
-            .withMessage("Institution size is required"),
         (0, express_validator_1.check)("institutionPhoneNumber")
             .isMobilePhone("any")
             .withMessage("Invalid phone number")

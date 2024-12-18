@@ -1092,3 +1092,30 @@ export const deleteSubscriptionPlan = async (
         }
     }
 };
+
+export const getAllCreator = async (
+    req: Request,
+    res: Response
+): Promise<void> => { 
+    try {
+        const assets = await AssetCategory.findAll();
+        res.status(200).json({ data: assets });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const getAllUser = async (
+    req: Request,
+    res: Response
+): Promise<void> => { }
+
+export const getAllStudent = async (
+    req: Request,
+    res: Response
+): Promise<void> => { }
+
+export const getAllInstitution = async (
+    req: Request,
+    res: Response
+): Promise<void> => { }

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -899,4 +899,20 @@ const deleteSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.deleteSubscriptionPlan = deleteSubscriptionPlan;
+const getAllCreator = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const assets = yield assetcategory_1.default.findAll();
+        res.status(200).json({ data: assets });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getAllCreator = getAllCreator;
+const getAllUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () { });
+exports.getAllUser = getAllUser;
+const getAllStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* () { });
+exports.getAllStudent = getAllStudent;
+const getAllInstitution = (req, res) => __awaiter(void 0, void 0, void 0, function* () { });
+exports.getAllInstitution = getAllInstitution;
 //# sourceMappingURL=adminController.js.map
