@@ -7,7 +7,6 @@ class InstitutionInformation extends Model {
   public institutionName!: string;
   public institutionEmail!: string;
   public institutionIndustry!: string;
-  public institutionSize!: string;
   public institutionPhoneNumber!: string;
   public institutionType!: string;
   public institutionLocation!: string;
@@ -46,10 +45,6 @@ const initModel = (sequelize: Sequelize) => {
         allowNull: false,
       },
       institutionIndustry: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      institutionSize: {
         type: DataTypes.STRING,
         allowNull: false,
       },

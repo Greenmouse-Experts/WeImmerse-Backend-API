@@ -36,10 +36,6 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
-        institutionSize: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: false,
-        },
         institutionPhoneNumber: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,

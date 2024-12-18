@@ -14,6 +14,7 @@ import Role from "../models/role";
 import SubscriptionPlan from "../models/subscriptionplan";
 import UserNotificationSetting from "../models/usernotificationsetting";
 import InstitutionInformation from "../models/institutioninformation";
+import sequelizeService from "../services/sequelize.service";
 
 export const index = async (req: Request, res: Response) => {
   res.status(200).json({
@@ -217,9 +218,15 @@ export const creatorRegister = async (req: Request, res: Response): Promise<void
 export const institutionRegister = async (req: Request, res: Response): Promise<void> => {
   const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
 
+  // Start transaction
+  const transaction = await sequelizeService.connection!.transaction();
+
   try {
     // Check if email already exists
-    const existingUser = await User.findOne({ where: { email } });
+    const existingUser = await User.findOne({
+      where: { email },
+      transaction, // Pass transaction in options
+    });
     if (existingUser) {
       res.status(400).json({ message: "Email already in use" });
       return;
@@ -228,7 +235,10 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
     // Check if the referral code exists (if provided)
     let referrer = null;
     if (referralCode) {
-      referrer = await User.findOne({ where: { referralCode } });
+      referrer = await User.findOne({
+        where: { referralCode },
+        transaction, // Pass transaction in options
+      });
       if (!referrer) {
         res.status(400).json({ message: "Invalid referral code" });
         return;
@@ -246,7 +256,7 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
       jobTitle,
       referralCode: newReferralCode,
       accountType: "institution",
-    });
+    }, { transaction });
 
     if (!newUser) throw new Error("Failed to create new user");
 
@@ -259,7 +269,7 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
       institutionPhoneNumber,
       institutionType,
       institutionLocation
-    });
+    }, { transaction });
 
     // Generate OTP for email verification
     const otpCode = generateOTP();
@@ -267,7 +277,7 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
       userId: newUser.id,
       otpCode,
       expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
-    });
+    }, { transaction });
 
     // Send verification email
     const message = emailTemplates.verifyEmail(newUser, otpCode);
@@ -277,11 +287,17 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
       logger.error("Error sending email:", emailError);
     }
 
+    // Commit transaction
+    await transaction.commit();
+
     // Send success response
     res.status(200).json({
       message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
     });
   } catch (error: any) {
+    // Rollback transaction in case of error
+    await transaction.rollback();
+
     logger.error("Error during registration:", error);
     res.status(500).json({ message: error.message || "Error during registration." });
   }

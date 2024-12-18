@@ -25,6 +25,7 @@ const helpers_2 = require("../utils/helpers");
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
 const institutioninformation_1 = __importDefault(require("../models/institutioninformation"));
+const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.status(200).json({
         code: 200,
@@ -209,9 +210,14 @@ const creatorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.creatorRegister = creatorRegister;
 const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
+    // Start transaction
+    const transaction = yield sequelize_service_1.default.connection.transaction();
     try {
         // Check if email already exists
-        const existingUser = yield user_1.default.findOne({ where: { email } });
+        const existingUser = yield user_1.default.findOne({
+            where: { email },
+            transaction, // Pass transaction in options
+        });
         if (existingUser) {
             res.status(400).json({ message: "Email already in use" });
             return;
@@ -219,7 +225,10 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
         // Check if the referral code exists (if provided)
         let referrer = null;
         if (referralCode) {
-            referrer = yield user_1.default.findOne({ where: { referralCode } });
+            referrer = yield user_1.default.findOne({
+                where: { referralCode },
+                transaction, // Pass transaction in options
+            });
             if (!referrer) {
                 res.status(400).json({ message: "Invalid referral code" });
                 return;
@@ -235,7 +244,7 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
             jobTitle,
             referralCode: newReferralCode,
             accountType: "institution",
-        });
+        }, { transaction });
         if (!newUser)
             throw new Error("Failed to create new user");
         // Create institution information
@@ -247,14 +256,14 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
             institutionPhoneNumber,
             institutionType,
             institutionLocation
-        });
+        }, { transaction });
         // Generate OTP for email verification
         const otpCode = (0, helpers_1.generateOTP)();
         yield otp_1.default.create({
             userId: newUser.id,
             otpCode,
             expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
-        });
+        }, { transaction });
         // Send verification email
         const message = messages_1.emailTemplates.verifyEmail(newUser, otpCode);
         try {
@@ -263,12 +272,16 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
         catch (emailError) {
             logger_1.default.error("Error sending email:", emailError);
         }
+        // Commit transaction
+        yield transaction.commit();
         // Send success response
         res.status(200).json({
             message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
         });
     }
     catch (error) {
+        // Rollback transaction in case of error
+        yield transaction.rollback();
         logger_1.default.error("Error during registration:", error);
         res.status(500).json({ message: error.message || "Error during registration." });
     }
