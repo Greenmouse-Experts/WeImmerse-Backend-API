@@ -49,6 +49,7 @@ creatorRoutes.post("/course/module/lesson/create", authMiddleware_1.default, aut
 creatorRoutes.put("/course/module/lesson/update", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.lessonUpdatingValidationRules)(), creatorValidations_1.validate, creatorController.updateModuleLesson);
 creatorRoutes.delete("/course/module/lesson/delete", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleDeletionValidationRules)(), creatorValidations_1.validate, creatorController.deleteModuleLesson);
 // creatorRoutes.patch("/course/module/lesson/draggable", authMiddleware, authorizeCreator, moduleDraggableValidationRules(), validate, creatorController.updateDraggableModule);
+creatorRoutes.get("/asset/categories", authMiddleware_1.default, authorizeCreator_1.default, creatorController.assetCategories);
 // Digital Asset
 creatorRoutes.get("/digital/assets", authMiddleware_1.default, authorizeCreator_1.default, creatorController.getDigitalAssets);
 creatorRoutes.get("/digital/asset/view", authMiddleware_1.default, authorizeCreator_1.default, creatorController.viewDigitalAsset);

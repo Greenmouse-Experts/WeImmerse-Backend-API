@@ -585,6 +585,27 @@ export const deleteModuleLesson = async (
     }
 };
 
+export const assetCategories = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const assetCategory = await AssetCategory.findAll();
+
+        res.status(200).json({
+            data: assetCategory, // You can populate related data as needed
+        });
+    } catch (error: any) {
+        logger.error(error);
+
+        res.status(500).json({
+            message:
+                error.message ||
+                "fetching asset category failed. Please try again later.",
+        });
+    }
+};
+
 // Digital Asset
 export const createDigitalAsset = async (
     req: Request,

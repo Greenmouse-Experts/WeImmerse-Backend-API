@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getCourseLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getCourseLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
 const logger_1 = __importDefault(require("../middlewares/logger"));
 const sequelize_1 = require("sequelize");
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
@@ -467,6 +467,22 @@ const deleteModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.deleteModuleLesson = deleteModuleLesson;
+const assetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const assetCategory = yield assetcategory_1.default.findAll();
+        res.status(200).json({
+            data: assetCategory, // You can populate related data as needed
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.message ||
+                "fetching asset category failed. Please try again later.",
+        });
+    }
+});
+exports.assetCategories = assetCategories;
 // Digital Asset
 const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _b;
