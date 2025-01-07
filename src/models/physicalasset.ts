@@ -26,6 +26,14 @@ class PhysicalAsset extends Model {
       as: "assetCategory",
       foreignKey: "categoryId",
     });
+    this.belongsTo(models.User, {
+      as: "user",
+      foreignKey: "creatorId",
+    });
+    this.belongsTo(models.Admin, {
+      as: "admin",
+      foreignKey: "creatorId",
+    });
   }
 }
 
@@ -41,11 +49,6 @@ const initModel = (sequelize: Sequelize) => {
       creatorId: {
         type: DataTypes.UUID,
         allowNull: false,   
-        references: {
-          model: "users", // Ensure this matches the name of the Users table
-          key: "id",
-        },
-        onDelete: "RESTRICT",
       },
       categoryId: {
         type: DataTypes.UUID,
@@ -54,7 +57,8 @@ const initModel = (sequelize: Sequelize) => {
           model: 'asset_categories', // Ensure the related table is correct
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       assetName: {
         type: DataTypes.STRING,

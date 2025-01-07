@@ -35,7 +35,8 @@ const initModel = (sequelize: Sequelize) => {
         model: 'users', // Ensure this matches the users table name
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
     courseId: {
       type: DataTypes.UUID,
@@ -44,7 +45,8 @@ const initModel = (sequelize: Sequelize) => {
         model: 'courses', // Ensure this matches the courses table name
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
     rating: {
       type: DataTypes.DECIMAL(4, 1),

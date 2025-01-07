@@ -4,8 +4,8 @@ import { Model, DataTypes, Sequelize, Op } from "sequelize";
 import { courseMethods } from "./course/method";
 import Module from "./module";
 import Lesson from "./lesson";
-import ModuleQuiz from "./modulequiz";
-import ModuleQuizQuestion from "./modulequizquestion";
+import LessonQuiz from "./lessonquiz";
+import LessonQuizQuestion from "./lessonquizquestion";
 import CourseReview from "./coursereview";
 import CourseLike from "./courselike";
 import CourseEnrollment from "./courseenrollment";
@@ -32,8 +32,8 @@ class Course extends Model {
   // Association methods
   public getCourseModules!: () => Promise<Module[]>;
   public getCourseLessons!: (options?: { where: object }) => Promise<Lesson[]>;
-  public getCourseQuizzes!: () => Promise<ModuleQuiz[]>;
-  public getCourseQuizQuestions!: () => Promise<ModuleQuizQuestion[]>;
+  public getCourseQuizzes!: () => Promise<LessonQuiz[]>;
+  public getCourseQuizQuestions!: () => Promise<LessonQuizQuestion[]>;
   public getCourseReviews!: () => Promise<CourseReview[]>;
   public getCourseLikes!: () => Promise<CourseLike[]>;
   public getCourseEnrollments!: (options?: { where: object }) => Promise<CourseEnrollment[]>;
@@ -47,8 +47,8 @@ class Course extends Model {
     });
     this.hasMany(models.Module, { as: "modules", foreignKey: "courseId" });
     this.hasMany(models.Lesson, { as: "lessons", foreignKey: "courseId" });
-    this.hasMany(models.ModuleQuiz, { as: "quizzes", foreignKey: "courseId" });
-    this.hasMany(models.ModuleQuizQuestion, {
+    this.hasMany(models.LessonQuiz, { as: "quizzes", foreignKey: "courseId" });
+    this.hasMany(models.LessonQuizQuestion, {
       as: "questions",
       foreignKey: "courseId",
     });
@@ -137,12 +137,7 @@ const initModel = (sequelize: Sequelize) => {
       },
       creatorId: {
         type: DataTypes.UUID,
-        allowNull: false,
-        references: {
-          model: "users", // Ensure this matches the name of the Users table
-          key: "id",
-        },
-        onDelete: "SET NULL",
+        allowNull: false
       },
       categoryId: {
         type: DataTypes.UUID,
@@ -151,7 +146,8 @@ const initModel = (sequelize: Sequelize) => {
           model: "course_categories", // Ensure this matches the name of the CourseCategory table
           key: "id",
         },
-        onDelete: "SET NULL",
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       title: {
         type: DataTypes.STRING,

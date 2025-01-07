@@ -37,7 +37,8 @@ const initModel = (sequelize: Sequelize) => {
         model: 'courses', // Table name for `courses`
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
     userId: {
       type: DataTypes.UUID,
@@ -46,7 +47,8 @@ const initModel = (sequelize: Sequelize) => {
         model: 'users', // Table name for `users`
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
     liked: {
       type: DataTypes.BOOLEAN,

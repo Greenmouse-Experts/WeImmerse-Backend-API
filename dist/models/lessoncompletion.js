@@ -26,7 +26,8 @@ const initModel = (sequelize) => {
                 model: 'users',
                 key: 'id',
             },
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
         lessonId: {
             type: sequelize_1.DataTypes.UUID,
@@ -35,7 +36,8 @@ const initModel = (sequelize) => {
                 model: 'lessons',
                 key: 'id',
             },
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
     }, {
         sequelize,

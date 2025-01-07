@@ -28,5 +28,7 @@ authRoutes.get("/fetch/digital/assets", frontendController.fetchDigitalAssets);
 authRoutes.get("/view/digital/asset", frontendController.viewDigitalAsset);
 authRoutes.get("/fetch/physical/assets", frontendController.fetchPhysicalAssets);
 authRoutes.get("/view/physical/asset", frontendController.viewPhysicalAsset);
+authRoutes.get("/fetch/jobs", frontendController.fetchJobs);
+authRoutes.get("/view/job", frontendController.viewJob);
 
 export default authRoutes; // Export the router

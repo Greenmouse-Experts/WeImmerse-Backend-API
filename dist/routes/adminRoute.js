@@ -31,6 +31,7 @@ const express_1 = require("express");
 const adminController = __importStar(require("../controllers/adminController"));
 const adminAuthMiddleware_1 = __importDefault(require("../middlewares/adminAuthMiddleware"));
 const validations_1 = require("../utils/validations"); // Import the service
+const adminValidations_1 = require("../utils/validations/adminValidations");
 const checkPermissionMiddleware_1 = __importDefault(require("../middlewares/checkPermissionMiddleware"));
 const adminRoutes = (0, express_1.Router)();
 // User routes
@@ -66,6 +67,11 @@ adminRoutes.get('/asset/categories', adminAuthMiddleware_1.default, adminControl
 adminRoutes.post('/asset/category/create', adminAuthMiddleware_1.default, adminController.createAssetCategory);
 adminRoutes.put('/asset/category/update', adminAuthMiddleware_1.default, adminController.updateAssetCategory);
 adminRoutes.delete('/asset/category/delete', adminAuthMiddleware_1.default, adminController.deleteAssetCategory);
+// Job Category
+adminRoutes.get('/job/categories', adminAuthMiddleware_1.default, adminController.getJobCategories);
+adminRoutes.post('/job/category/create', adminAuthMiddleware_1.default, adminController.createJobCategory);
+adminRoutes.put('/job/category/update', adminAuthMiddleware_1.default, adminController.updateJobCategory);
+adminRoutes.delete('/job/category/delete', adminAuthMiddleware_1.default, adminController.deleteJobCategory);
 // Subscription Plan
 adminRoutes.get('/subscription/plans', adminAuthMiddleware_1.default, adminController.getAllSubscriptionPlans);
 adminRoutes.post('/subscription/plan/create', adminAuthMiddleware_1.default, (0, validations_1.createSubscriptionPlanValidationRules)(), validations_1.validate, adminController.createSubscriptionPlan);
@@ -76,5 +82,21 @@ adminRoutes.get('/creators', adminAuthMiddleware_1.default, adminController.getA
 adminRoutes.get('/users', adminAuthMiddleware_1.default, adminController.getAllUser);
 adminRoutes.get('/students', adminAuthMiddleware_1.default, adminController.getAllStudent);
 adminRoutes.get('/institutions', adminAuthMiddleware_1.default, adminController.getAllInstitution);
+// Digital Asset
+adminRoutes.get("/all/digital/assets", adminAuthMiddleware_1.default, adminController.getAllDigitalAssets);
+adminRoutes.get("/digital/assets", adminAuthMiddleware_1.default, adminController.getDigitalAssets);
+adminRoutes.get("/digital/asset/view", adminAuthMiddleware_1.default, adminController.viewDigitalAsset);
+adminRoutes.post("/digital/asset/create", adminAuthMiddleware_1.default, (0, adminValidations_1.digitalAssetValidationRules)(), validations_1.validate, adminController.createDigitalAsset);
+adminRoutes.put("/digital/asset/update", adminAuthMiddleware_1.default, (0, adminValidations_1.digitalAssetValidationRules)(), validations_1.validate, adminController.updateDigitalAsset);
+adminRoutes.delete("/digital/asset/delete", adminAuthMiddleware_1.default, adminController.deleteDigitalAsset);
+adminRoutes.patch("/digital/asset/update/status", adminAuthMiddleware_1.default, adminController.updateDigitalAssetStatus);
+// Physical Asset
+adminRoutes.get("/all/physical/assets", adminAuthMiddleware_1.default, adminController.getAllPhysicalAssets);
+adminRoutes.get("/physical/assets", adminAuthMiddleware_1.default, adminController.getPhysicalAssets);
+adminRoutes.get("/physical/asset/view", adminAuthMiddleware_1.default, adminController.viewPhysicalAsset);
+adminRoutes.post("/physical/asset/create", adminAuthMiddleware_1.default, (0, adminValidations_1.physicalAssetValidationRules)(), validations_1.validate, adminController.createPhysicalAsset);
+adminRoutes.put("/physical/asset/update", adminAuthMiddleware_1.default, (0, adminValidations_1.physicalAssetValidationRules)(), validations_1.validate, adminController.updatePhysicalAsset);
+adminRoutes.delete("/physical/asset/delete", adminAuthMiddleware_1.default, adminController.deletePhysicalAsset);
+adminRoutes.patch("/physical/asset/update/status", adminAuthMiddleware_1.default, adminController.updatePhysicalAssetStatus);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map

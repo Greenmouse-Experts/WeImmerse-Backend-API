@@ -52,14 +52,8 @@ class Lesson extends sequelize_1.Model {
     }
     static updateDraggable(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            for (const item of data) {
-                const lesson = yield Lesson.findByPk(item.lessonId);
-                if (lesson) {
-                    lesson.sortOrder = item.sortOrder;
-                    lesson.moduleId = item.moduleId;
-                    yield lesson.save();
-                }
-            }
+            const updates = data.map(item => this.update({ sortOrder: item.sortOrder }, { where: { id: item.lessonId } }));
+            yield Promise.all(updates);
         });
     }
 }
@@ -78,7 +72,8 @@ const initModel = (sequelize) => {
                 model: 'modules',
                 key: 'id',
             },
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
         courseId: {
             type: sequelize_1.DataTypes.UUID,
@@ -87,7 +82,8 @@ const initModel = (sequelize) => {
                 model: 'courses',
                 key: 'id',
             },
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
         title: {
             type: sequelize_1.DataTypes.STRING,

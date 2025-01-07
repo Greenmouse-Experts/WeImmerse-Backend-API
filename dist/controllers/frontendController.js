@@ -12,25 +12,29 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.viewPhysicalAsset = exports.fetchPhysicalAssets = exports.viewDigitalAsset = exports.fetchDigitalAssets = void 0;
+exports.viewJob = exports.fetchJobs = exports.viewPhysicalAsset = exports.fetchPhysicalAssets = exports.viewDigitalAsset = exports.fetchDigitalAssets = void 0;
 const sequelize_1 = require("sequelize");
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const logger_1 = __importDefault(require("../middlewares/logger"));
 const assetcategory_1 = __importDefault(require("../models/assetcategory"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
+const job_1 = __importDefault(require("../models/job"));
+const helpers_1 = require("../utils/helpers");
+const user_1 = __importDefault(require("../models/user"));
+const admin_1 = __importDefault(require("../models/admin"));
+const role_1 = __importDefault(require("../models/role"));
 const fetchDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { assetName, pricingType, status } = req.query; // Extract search parameters
+        const { assetName, pricingType } = req.query; // Extract search parameters
         // Build search conditions
-        const searchConditions = {};
+        const searchConditions = {
+            status: 'published',
+        };
         if (assetName) {
             searchConditions.assetName = { [sequelize_1.Op.like]: `%${assetName}%` }; // Partial match
         }
         if (pricingType) {
             searchConditions.pricingType = pricingType;
-        }
-        if (status) {
-            searchConditions.status = status;
         }
         // Fetch assets with optional search criteria
         const assets = yield digitalasset_1.default.findAll({
@@ -41,6 +45,22 @@ const fetchDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, funct
                     as: 'assetCategory',
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
+                {
+                    model: user_1.default,
+                    as: "user",
+                    attributes: ["id", "accountType", "name", "email"],
+                },
+                {
+                    model: admin_1.default,
+                    as: "admin",
+                    attributes: ["id", "name", "email"],
+                    include: [
+                        {
+                            model: role_1.default,
+                            as: "role", // Make sure this alias matches the one you used in the association
+                        },
+                    ],
+                }
             ],
             order: [["createdAt", "DESC"]], // Sort by creation date descending
         });
@@ -66,6 +86,22 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
                     as: 'assetCategory',
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
+                {
+                    model: user_1.default,
+                    as: "user",
+                    attributes: ["id", "accountType", "name", "email"],
+                },
+                {
+                    model: admin_1.default,
+                    as: "admin",
+                    attributes: ["id", "name", "email"],
+                    include: [
+                        {
+                            model: role_1.default,
+                            as: "role", // Make sure this alias matches the one you used in the association
+                        },
+                    ],
+                }
             ],
             order: [["createdAt", "DESC"]], // Sort by creation date descending
         });
@@ -81,14 +117,13 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.viewDigitalAsset = viewDigitalAsset;
 const fetchPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { assetName, status } = req.query; // Extract search parameters
+        const { assetName } = req.query; // Extract search parameters
         // Build search conditions
-        const searchConditions = {};
+        const searchConditions = {
+            status: 'published',
+        };
         if (assetName) {
             searchConditions.assetName = { [sequelize_1.Op.like]: `%${assetName}%` }; // Partial match
-        }
-        if (status) {
-            searchConditions.status = status;
         }
         // Fetch assets with optional search criteria
         const assets = yield physicalasset_1.default.findAll({
@@ -99,6 +134,22 @@ const fetchPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, func
                     as: 'assetCategory',
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
+                {
+                    model: user_1.default,
+                    as: "user",
+                    attributes: ["id", "accountType", "name", "email"],
+                },
+                {
+                    model: admin_1.default,
+                    as: "admin",
+                    attributes: ["id", "name", "email"],
+                    include: [
+                        {
+                            model: role_1.default,
+                            as: "role", // Make sure this alias matches the one you used in the association
+                        },
+                    ],
+                }
             ],
             order: [["createdAt", "DESC"]], // Sort by creation date descending
         });
@@ -124,6 +175,22 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
                     as: 'assetCategory',
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
+                {
+                    model: user_1.default,
+                    as: "user",
+                    attributes: ["id", "accountType", "name", "email"],
+                },
+                {
+                    model: admin_1.default,
+                    as: "admin",
+                    attributes: ["id", "name", "email"],
+                    include: [
+                        {
+                            model: role_1.default,
+                            as: "role", // Make sure this alias matches the one you used in the association
+                        },
+                    ],
+                }
             ],
             order: [["createdAt", "DESC"]], // Sort by creation date descending
         });
@@ -137,4 +204,44 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.viewPhysicalAsset = viewPhysicalAsset;
+const fetchJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { keyword } = req.query;
+        const jobs = yield (0, helpers_1.getJobsBySearch)(keyword, 20);
+        res.status(200).json({
+            message: 'All jobs retrieved successfully.',
+            data: jobs,
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.fetchJobs = fetchJobs;
+const viewJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const jobId = req.query.jobId;
+        const job = yield job_1.default.findByPk(jobId);
+        if (!job) {
+            res.status(404).json({
+                message: 'Not found in our database.',
+            });
+            return;
+        }
+        // Ensure `views` is not null before incrementing
+        job.views = ((_a = job.views) !== null && _a !== void 0 ? _a : 0) + 1;
+        yield job.save();
+        res.status(200).json({
+            message: 'Job retrieved successfully.',
+            data: job,
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.viewJob = viewJob;
 //# sourceMappingURL=frontendController.js.map

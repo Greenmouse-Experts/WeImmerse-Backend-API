@@ -12,7 +12,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getCourseLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJobs = exports.postJob = exports.addJob = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+const mail_service_1 = require("../services/mail.service");
+const messages_1 = require("../utils/messages");
 const logger_1 = __importDefault(require("../middlewares/logger"));
 const sequelize_1 = require("sequelize");
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
@@ -20,11 +22,19 @@ const course_1 = __importDefault(require("../models/course"));
 const lesson_1 = __importDefault(require("../models/lesson"));
 const module_1 = __importDefault(require("../models/module"));
 const coursecategory_1 = __importDefault(require("../models/coursecategory"));
-const modulequiz_1 = __importDefault(require("../models/modulequiz"));
-const modulequizquestion_1 = __importDefault(require("../models/modulequizquestion"));
+const lessonquiz_1 = __importDefault(require("../models/lessonquiz"));
+const lessonquizquestion_1 = __importDefault(require("../models/lessonquizquestion"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const assetcategory_1 = __importDefault(require("../models/assetcategory"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
+const jobcategory_1 = __importDefault(require("../models/jobcategory"));
+const job_1 = __importDefault(require("../models/job"));
+const uuid_1 = require("uuid");
+const applicant_1 = __importDefault(require("../models/applicant"));
+const user_1 = __importDefault(require("../models/user"));
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
+const lessonassignment_1 = __importDefault(require("../models/lessonassignment"));
 const courseCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Create courseCategory
@@ -291,9 +301,9 @@ const deleteCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
             // Delete all lessons associated with the module
             yield lesson_1.default.destroy({ where: { moduleId: module.id } });
             // Delete all quizzes associated with the module
-            yield modulequiz_1.default.destroy({ where: { moduleId: module.id } });
+            yield lessonquiz_1.default.destroy({ where: { moduleId: module.id } });
             // Delete all quizzes associated with the module
-            yield modulequizquestion_1.default.destroy({ where: { moduleId: module.id } });
+            yield lessonquizquestion_1.default.destroy({ where: { moduleId: module.id } });
             // Delete the module
             yield module.destroy();
             res.status(200).json({
@@ -336,7 +346,7 @@ const updateDraggableCourseModule = (req, res) => __awaiter(void 0, void 0, void
 });
 exports.updateDraggableCourseModule = updateDraggableCourseModule;
 // Lesson
-const getCourseLessons = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const getModuleLessons = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const moduleId = req.query.moduleId;
     try {
         const module = yield module_1.default.findByPk(moduleId);
@@ -358,14 +368,13 @@ const getCourseLessons = (req, res) => __awaiter(void 0, void 0, void 0, functio
         });
     }
 });
-exports.getCourseLessons = getCourseLessons;
+exports.getModuleLessons = getModuleLessons;
 const createModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { moduleId, courseId, title, content, contentType, contentUrl, duration, } = req.body;
+        const { moduleId, title, content, contentType, contentUrl, duration } = req.body;
         // Create a new lesson object
         const newLesson = {
             moduleId,
-            courseId,
             title,
             content,
             contentType,
@@ -396,7 +405,7 @@ const createModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
             const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
             yield lesson_1.default.create({
                 moduleId,
-                courseId,
+                courseId: module.courseId,
                 title,
                 content,
                 contentType,
@@ -415,7 +424,6 @@ const createModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
     catch (error) {
         res.status(500).json({
             message: error.message || "Error creating lesson",
-            error: error.message,
         });
     }
 });
@@ -437,6 +445,7 @@ const updateModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
             lesson.contentType = contentType || lesson.contentType;
             lesson.contentUrl = contentUrl || lesson.contentUrl;
             lesson.duration = duration || lesson.duration;
+            lesson.save();
             res.status(200).json({ message: "Lesson updated successfully" });
         }
         else {
@@ -467,6 +476,522 @@ const deleteModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.deleteModuleLesson = deleteModuleLesson;
+const updateDraggableLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { data } = req.body;
+    if (!Array.isArray(data)) {
+        res.status(400).json({
+            message: 'Invalid data format. Expected an array of objects with "moduleId" and "sortOrder".',
+        });
+        return;
+    }
+    try {
+        // Call the static updateDraggable function on the Lesson model
+        yield lesson_1.default.updateDraggable(data);
+        res.status(200).json({
+            message: "Lessons updated successfully.",
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || "An error occurred while processing your request.",
+        });
+    }
+});
+exports.updateDraggableLesson = updateDraggableLesson;
+const createLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _b;
+    try {
+        const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id; // Assuming the user ID is passed in the URL params
+        const { moduleId, lessonTitle, title, description, timePerQuestion } = req.body;
+        const module = yield module_1.default.findByPk(moduleId);
+        if (!module) {
+            res.status(404).json({
+                message: "Module not found in our database.",
+            });
+            return;
+        }
+        const course = yield course_1.default.findByPk(module.courseId);
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+        if (course.canEdit()) {
+            // Fetch the lesson with the highest sortOrder
+            const maxSortLesson = yield lesson_1.default.findOne({
+                where: { moduleId: module.id },
+                order: [["sortOrder", "DESC"]], // Sort by sortOrder in descending order
+            });
+            // Calculate the new sortOrder
+            const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
+            const lesson = yield lesson_1.default.create({
+                moduleId,
+                courseId: module.courseId,
+                title: lessonTitle,
+                contentType: "quiz",
+                sortOrder,
+            });
+            const newQuiz = yield lessonquiz_1.default.create({
+                creatorId: userId,
+                courseId: module.courseId,
+                moduleId,
+                lessonId: lesson.id,
+                title,
+                description,
+                timePerQuestion,
+            });
+            res
+                .status(200)
+                .json({ message: "Module Quiz created successfully.", data: newQuiz });
+        }
+        else {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+        }
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to create Module Quiz." });
+    }
+});
+exports.createLessonQuiz = createLessonQuiz;
+const updateLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { quizId, title, description, timePerQuestion } = req.body;
+        const quiz = yield lessonquiz_1.default.findByPk(quizId);
+        if (!quiz) {
+            res.status(404).json({ message: "Module Quiz not found." });
+            return;
+        }
+        const course = yield course_1.default.findByPk(quiz.courseId);
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+        // Ensure course can be edited
+        if (!course.canEdit()) {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+            return;
+        }
+        // Update fields
+        quiz.title = title || quiz.title;
+        quiz.description = description || quiz.description;
+        quiz.timePerQuestion = timePerQuestion || quiz.timePerQuestion;
+        yield quiz.save();
+        res
+            .status(200)
+            .json({ message: "Module Quiz updated successfully.", data: quiz });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to update Module Quiz." });
+    }
+});
+exports.updateLessonQuiz = updateLessonQuiz;
+const deleteLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const quizId = req.query.quizId; // Quiz ID from URL
+        const quiz = yield lessonquiz_1.default.findByPk(quizId);
+        if (!quiz) {
+            res.status(404).json({ message: "Module Quiz not found." });
+            return;
+        }
+        const course = yield course_1.default.findByPk(quiz.courseId);
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+        // Ensure course can be edited
+        if (!course.canEdit()) {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+            return;
+        }
+        // Find the lesson by ID (replace with actual DB logic)
+        const lesson = yield lesson_1.default.findByPk(quiz.lessonId);
+        if (!lesson) {
+            res.status(404).json({ message: "Lesson not found" });
+            return;
+        }
+        yield quiz.destroy();
+        yield lesson.destroy();
+        res.status(200).json({ message: "Module Quiz deleted successfully." });
+    }
+    catch (error) {
+        if (error instanceof sequelize_1.ForeignKeyConstraintError) {
+            res.status(400).json({
+                message: "Cannot delete job category because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+            });
+        }
+        else {
+            logger_1.default.error(error);
+            res
+                .status(500)
+                .json({ message: error.message || "Failed to delete Module Quiz." });
+        }
+    }
+});
+exports.deleteLessonQuiz = deleteLessonQuiz;
+const getLessonQuizzes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { moduleId, page = 1, limit = 10 } = req.query;
+        // Pagination setup
+        const offset = (Number(page) - 1) * Number(limit);
+        const searchConditions = {};
+        if (moduleId) {
+            searchConditions.moduleId = moduleId;
+        }
+        // Fetch quizzes with filters and pagination
+        const { rows: quizzes, count: total } = yield lessonquiz_1.default.findAndCountAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]],
+            offset,
+            limit: Number(limit),
+        });
+        res.status(200).json({
+            data: quizzes,
+            pagination: {
+                total,
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / Number(limit)),
+                limit: Number(limit),
+            },
+        });
+    }
+    catch (error) {
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to fetch Module Quizzes." });
+    }
+});
+exports.getLessonQuizzes = getLessonQuizzes;
+/**
+ * Create a new LessonQuizQuestion
+ */
+const createLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
+    try {
+        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c.id; // Assuming the user ID is passed in the URL params
+        const { lessonQuizId, question, options, correctOption, score } = req.body;
+        // Validate associated LessonQuiz
+        const quiz = yield lessonquiz_1.default.findByPk(lessonQuizId);
+        if (!quiz) {
+            res.status(404).json({ message: "Module quiz not found." });
+            return;
+        }
+        // Create new question
+        const newQuestion = yield lessonquizquestion_1.default.create({
+            creatorId: userId,
+            courseId: quiz.courseId,
+            moduleId: quiz.moduleId,
+            lessonQuizId,
+            lessonId: quiz.lessonId,
+            question,
+            options,
+            correctOption,
+            score,
+        });
+        res
+            .status(200)
+            .json({ message: "Question created successfully.", data: newQuestion });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to create question." });
+    }
+});
+exports.createLessonQuizQuestion = createLessonQuizQuestion;
+/**
+ * Update a LessonQuizQuestion
+ */
+const updateLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { questionId, question, options, correctOption, score } = req.body;
+        // Find existing question
+        const existingQuestion = yield lessonquizquestion_1.default.findByPk(questionId);
+        if (!existingQuestion) {
+            res.status(404).json({ message: "Question not found." });
+            return;
+        }
+        // Update question
+        yield existingQuestion.update({
+            question,
+            options,
+            correctOption,
+            score,
+        });
+        res
+            .status(200)
+            .json({
+            message: "Question updated successfully.",
+            data: existingQuestion,
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to update question." });
+    }
+});
+exports.updateLessonQuizQuestion = updateLessonQuizQuestion;
+/**
+ * Delete a LessonQuizQuestion
+ */
+const deleteLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const questionId = req.query.questionId;
+        // Find and delete the question
+        const question = yield lessonquizquestion_1.default.findByPk(questionId);
+        if (!question) {
+            res.status(404).json({ message: "Question not found." });
+            return;
+        }
+        yield question.destroy();
+        res.status(200).json({ message: "Question deleted successfully." });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to delete question." });
+    }
+});
+exports.deleteLessonQuizQuestion = deleteLessonQuizQuestion;
+/**
+ * Get all questions for a LessonQuiz
+ */
+const getLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { lessonQuizId, limit = 10, page = 1 } = req.query; // Defaults: limit = 10, page = 1
+        const offset = (Number(page) - 1) * Number(limit);
+        // Find questions with pagination
+        const { count, rows: questions } = yield lessonquizquestion_1.default.findAndCountAll({
+            where: { lessonQuizId },
+            limit: Number(limit),
+            offset,
+            order: [["createdAt", "DESC"]], // Optional: Sort by creation date
+        });
+        if (!questions || questions.length === 0) {
+            res
+                .status(404)
+                .json({ message: "No questions found for the given LessonQuizId." });
+            return;
+        }
+        res.status(200).json({
+            data: questions,
+            pagination: {
+                total: count,
+                currentPage: Number(page),
+                totalPages: Math.ceil(count / Number(limit)),
+                limit: Number(limit),
+            },
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to fetch questions." });
+    }
+});
+exports.getLessonQuizQuestion = getLessonQuizQuestion;
+const createLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
+    try {
+        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id; // Assuming the user ID is passed in the URL params
+        const { moduleId, lessonTitle, title, description, dueDate } = req.body;
+        const module = yield module_1.default.findByPk(moduleId);
+        if (!module) {
+            res.status(404).json({
+                message: "Module not found in our database.",
+            });
+            return;
+        }
+        const course = yield course_1.default.findByPk(module.courseId);
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+        if (course.canEdit()) {
+            // Fetch the lesson with the highest sortOrder
+            const maxSortLesson = yield lesson_1.default.findOne({
+                where: { moduleId: module.id },
+                order: [["sortOrder", "DESC"]], // Sort by sortOrder in descending order
+            });
+            // Calculate the new sortOrder
+            const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
+            const lesson = yield lesson_1.default.create({
+                moduleId,
+                courseId: module.courseId,
+                title: lessonTitle,
+                contentType: "quiz",
+                sortOrder,
+            });
+            const lessonAssignment = yield lessonassignment_1.default.create({
+                creatorId: userId,
+                courseId: module.courseId,
+                moduleId,
+                lessonId: lesson.id,
+                title,
+                description,
+                dueDate,
+            });
+            res.status(201).json({
+                message: "Lesson Assignment created successfully.",
+                data: lessonAssignment,
+            });
+        }
+        else {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+        }
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || "Failed to create Lesson Assignment.",
+            error: error.message,
+        });
+    }
+});
+exports.createLessonAssignment = createLessonAssignment;
+const getLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const lessonAssignment = yield lessonassignment_1.default.findByPk(id);
+        if (!lessonAssignment) {
+            res.status(404).json({ message: "Lesson Assignment not found." });
+            return;
+        }
+        res.status(200).json({ data: lessonAssignment });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || "Failed to fetch Lesson Assignment.",
+            error: error.message,
+        });
+    }
+});
+exports.getLessonAssignment = getLessonAssignment;
+const getLessonAssignments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { moduleId, page = 1, limit = 10 } = req.query;
+        // Pagination setup
+        const offset = (Number(page) - 1) * Number(limit);
+        const searchConditions = {};
+        if (moduleId) {
+            searchConditions.moduleId = moduleId;
+        }
+        // Fetch assignments with filters and pagination
+        const { rows: assignments, count: total } = yield lessonassignment_1.default.findAndCountAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]],
+            offset,
+            limit: Number(limit),
+        });
+        res.status(200).json({
+            data: assignments,
+            pagination: {
+                total,
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / Number(limit)),
+                limit: Number(limit),
+            },
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || "Failed to fetch Lesson Assignments.",
+        });
+    }
+});
+exports.getLessonAssignments = getLessonAssignments;
+const updateLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { assignmentId, title, description, dueDate } = req.body;
+        const lessonAssignment = yield lessonassignment_1.default.findByPk(assignmentId);
+        if (!lessonAssignment) {
+            res.status(404).json({ message: "Lesson Assignment not found." });
+            return;
+        }
+        const updatedAssignment = yield lessonAssignment.update({
+            title,
+            description,
+            dueDate,
+        });
+        res.status(200).json({
+            message: "Lesson Assignment updated successfully.",
+            data: updatedAssignment,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || "Failed to update Lesson Assignment.",
+            error: error.message,
+        });
+    }
+});
+exports.updateLessonAssignment = updateLessonAssignment;
+const deleteLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const assignmentId = req.query.assignmentId;
+        const lessonAssignment = yield lessonassignment_1.default.findByPk(assignmentId);
+        if (!lessonAssignment) {
+            res.status(404).json({ message: "Lesson Assignment not found." });
+            return;
+        }
+        const course = yield course_1.default.findByPk(lessonAssignment.courseId);
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+        // Ensure course can be edited
+        if (!course.canEdit()) {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+            return;
+        }
+        // Find the lesson by ID (replace with actual DB logic)
+        const lesson = yield lesson_1.default.findByPk(lessonAssignment.lessonId);
+        if (!lesson) {
+            res.status(404).json({ message: "Lesson not found" });
+            return;
+        }
+        yield lessonAssignment.destroy();
+        yield lesson.destroy();
+        res
+            .status(200)
+            .json({ message: "Lesson Assignment deleted successfully." });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || "Failed to delete Lesson Assignment.",
+            error: error.message,
+        });
+    }
+});
+exports.deleteLessonAssignment = deleteLessonAssignment;
 const assetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const assetCategory = yield assetcategory_1.default.findAll();
@@ -485,10 +1010,10 @@ const assetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.assetCategories = assetCategories;
 // Digital Asset
 const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
+    var _e;
     try {
         const { categoryId } = req.body;
-        const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id; // Extract user ID from authenticated request
+        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e.id; // Extract user ID from authenticated request
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -515,8 +1040,8 @@ const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.createDigitalAsset = createDigitalAsset;
 const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
-    const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c.id; // Extract authenticated user's ID
+    var _f;
+    const userId = (_f = req.user) === null || _f === void 0 ? void 0 : _f.id; // Extract authenticated user's ID
     try {
         const { assetName, pricingType, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -548,8 +1073,8 @@ const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.getDigitalAssets = getDigitalAssets;
 const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d;
-    const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id; // Extract authenticated user's ID
+    var _g;
+    const userId = (_g = req.user) === null || _g === void 0 ? void 0 : _g.id; // Extract authenticated user's ID
     try {
         const { id } = req.query; // Extract search parameters
         // Fetch asset with optional search criteria
@@ -626,10 +1151,10 @@ const deleteDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
 exports.deleteDigitalAsset = deleteDigitalAsset;
 // Physical Asset
 const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _e;
+    var _h;
     try {
         const { categoryId } = req.body;
-        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e.id; // Extract user ID from authenticated request
+        const userId = (_h = req.user) === null || _h === void 0 ? void 0 : _h.id; // Extract user ID from authenticated request
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -656,8 +1181,8 @@ const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.createPhysicalAsset = createPhysicalAsset;
 const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f;
-    const userId = (_f = req.user) === null || _f === void 0 ? void 0 : _f.id; // Extract authenticated user's ID
+    var _j;
+    const userId = (_j = req.user) === null || _j === void 0 ? void 0 : _j.id; // Extract authenticated user's ID
     try {
         const { assetName, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -686,13 +1211,13 @@ const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.getPhysicalAssets = getPhysicalAssets;
 const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g;
-    const userId = (_g = req.user) === null || _g === void 0 ? void 0 : _g.id; // Extract authenticated user's ID
+    var _k;
+    const userId = (_k = req.user) === null || _k === void 0 ? void 0 : _k.id; // Extract authenticated user's ID
     try {
         const { id } = req.query; // Extract search parameters
         // Fetch asset with optional search criteria
         const asset = yield physicalasset_1.default.findOne({
-            where: { id },
+            where: { id, creatorId: userId },
             include: [
                 {
                     model: assetcategory_1.default,
@@ -762,4 +1287,391 @@ const deletePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.deletePhysicalAsset = deletePhysicalAsset;
+const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _l;
+    try {
+        const { categoryId, title, company, logo, workplaceType, location, jobType, } = req.body;
+        // Extract user ID from authenticated request
+        const userId = (_l = req.user) === null || _l === void 0 ? void 0 : _l.id;
+        // Validate category
+        const category = yield jobcategory_1.default.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+        // Create the job
+        const newJob = yield job_1.default.create({
+            creatorId: userId,
+            categoryId,
+            title,
+            slug: `${title.toLowerCase().replace(/ /g, "-")}-${(0, uuid_1.v4)()}`,
+            company,
+            logo,
+            workplaceType,
+            location,
+            jobType,
+            status: "draft", // Default status
+        });
+        res.status(200).json({
+            message: "Job added successfully.",
+            data: newJob, // Optional: format with a resource transformer if needed
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.message || "An error occurred while adding the job.",
+        });
+    }
+});
+exports.addJob = addJob;
+const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { jobId, description, skills, applyLink, applicantCollectionEmailAddress, rejectionEmails, } = req.body;
+        const job = yield job_1.default.findByPk(jobId);
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found in our database.",
+            });
+            return;
+        }
+        yield job.update({
+            description,
+            skills,
+            applyLink,
+            applicantCollectionEmailAddress,
+            rejectionEmails,
+            status: "Active",
+        });
+        res.status(200).json({
+            message: "Job posted successfully.",
+            data: job, // Include a JobResource equivalent if needed
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || "An error occurred while posting the job.",
+        });
+    }
+});
+exports.postJob = postJob;
+const getJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _m;
+    try {
+        const { status, title } = req.query; // Expecting 'Draft', 'Active', or 'Closed' for status, and a string for title
+        const userId = (_m = req.user) === null || _m === void 0 ? void 0 : _m.id; // Extract user ID from authenticated request
+        const jobs = yield job_1.default.findAll({
+            where: Object.assign(Object.assign({ creatorId: userId }, (status && { status: { [sequelize_1.Op.eq]: status } })), (title && { title: { [sequelize_1.Op.like]: `%${title}%` } })),
+            order: [["createdAt", "DESC"]],
+        });
+        res.status(200).json({
+            message: "Jobs retrieved successfully.",
+            data: jobs, // Include a JobResource equivalent if needed
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.message || "An error occurred while retrieving jobs.",
+        });
+    }
+});
+exports.getJobs = getJobs;
+// CLOSE Job
+const closeJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const jobId = req.query.jobId;
+        // Find the job
+        const job = yield job_1.default.findByPk(jobId);
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found in our database.",
+            });
+            return;
+        }
+        // Update the job status to 'Closed'
+        job.status = "closed";
+        job.updatedAt = new Date();
+        yield job.save();
+        res.status(200).json({
+            message: "Job closed successfully.",
+            data: job, // Replace with a JobResource equivalent if necessary
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.message || "An error occurred while closing the job.",
+        });
+    }
+});
+exports.closeJob = closeJob;
+// DELETE Job
+const deleteJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const jobId = req.query.jobId;
+        // Find the job
+        const job = yield job_1.default.findByPk(jobId);
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found in our database.",
+            });
+            return;
+        }
+        if (job.status !== "draft") {
+            res.status(400).json({
+                message: "Only draft jobs can be deleted.",
+            });
+            return;
+        }
+        // Delete the job
+        yield job.destroy();
+        res.status(200).json({
+            message: "Job deleted successfully.",
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.message || "An error occurred while deleting the job.",
+        });
+    }
+});
+exports.deleteJob = deleteJob;
+const getJobApplicants = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _o;
+    try {
+        const jobId = req.query.jobId;
+        const userId = (_o = req.user) === null || _o === void 0 ? void 0 : _o.id;
+        const job = yield job_1.default.findOne({ where: { id: jobId, creatorId: userId } });
+        if (!job) {
+            res.status(403).json({
+                message: "Job doesn't belong to you.",
+            });
+            return;
+        }
+        const applicants = yield applicant_1.default.findAll({
+            where: { jobId },
+            include: [
+                {
+                    model: user_1.default,
+                    as: "user",
+                },
+            ],
+        });
+        res.status(200).json({
+            message: "All applicants retrieved successfully.",
+            data: applicants,
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: error.message || "Server error." });
+    }
+});
+exports.getJobApplicants = getJobApplicants;
+const viewApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const applicantId = req.query.applicantId;
+        const applicant = yield applicant_1.default.findByPk(applicantId, {
+            include: [
+                {
+                    model: user_1.default,
+                    as: "user",
+                    attributes: ["id", "name", "email", "photo"], // Select only the fields you need
+                },
+                {
+                    model: job_1.default,
+                    as: "job",
+                },
+            ],
+        });
+        if (!applicant) {
+            res.status(404).json({
+                message: "Not found in our database.",
+            });
+            return;
+        }
+        const job = yield job_1.default.findByPk(applicant.jobId);
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found.",
+            });
+            return;
+        }
+        if (!applicant.view) {
+            applicant.view = true;
+            yield applicant.save();
+            const jobUser = yield user_1.default.findByPk(job.creatorId);
+            const applicantUser = yield user_1.default.findByPk(applicant.userId);
+            if (!jobUser || !applicantUser) {
+                res.status(404).json({
+                    message: "Associated users not found.",
+                });
+                return;
+            }
+            const messageToApplicant = messages_1.emailTemplates.notifyApplicant(job, jobUser, applicantUser);
+            // Send emails
+            yield (0, mail_service_1.sendMail)(jobUser.email, `${process.env.APP_NAME} - Your application for ${job.title} was viewed by ${job.company}`, messageToApplicant);
+        }
+        res.status(200).json({
+            message: "Applicant retrieved successfully.",
+            data: applicant,
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+});
+exports.viewApplicant = viewApplicant;
+const repostJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _p;
+    try {
+        const { jobId } = req.body;
+        const userId = (_p = req.user) === null || _p === void 0 ? void 0 : _p.id; // Extract user ID from authenticated request
+        const job = yield job_1.default.findByPk(jobId);
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found in our database.",
+            });
+            return;
+        }
+        if (!job.title) {
+            throw new Error("Job title cannot be null.");
+        }
+        const repost = yield job_1.default.create({
+            creatorId: userId,
+            categoryId: job.categoryId,
+            title: job.title,
+            slug: `${job.title.toLowerCase().replace(/\s+/g, "-")}-${Math.floor(Math.random() * 10000)}`,
+            company: job.company,
+            logo: job.logo,
+            workplaceType: job.workplaceType,
+            location: job.location,
+            jobType: job.jobType,
+            description: job.description,
+            skills: job.skills,
+            applyLink: job.applyLink,
+            applicantCollectionEmailAddress: job.applicantCollectionEmailAddress,
+            rejectionEmails: job.rejectionEmails,
+            status: "active",
+        });
+        res.status(200).json({
+            message: "Job reposted successfully.",
+            data: repost,
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+});
+exports.repostJob = repostJob;
+const downloadApplicantResume = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { applicantId } = req.body;
+        const applicant = yield applicant_1.default.findByPk(applicantId);
+        if (!applicant || !applicant.resume) {
+            res.status(404).json({
+                message: "File damaged or not found.",
+            });
+            return;
+        }
+        console.log("Resume URL:", applicant.resume);
+        const response = yield fetch(applicant.resume);
+        if (!response.ok) {
+            console.error("Resume Fetch Failed", {
+                applicantId,
+                resumeUrl: applicant.resume,
+                status: response.status,
+                statusText: response.statusText,
+            });
+            if (response.status === 404) {
+                res
+                    .status(404)
+                    .json({
+                    message: "Resume file not found. Please update the record.",
+                });
+            }
+            else {
+                res.status(500).json({ message: "Failed to download the resume." });
+            }
+            return;
+        }
+        const fileName = path_1.default.basename(applicant.resume);
+        const localPath = path_1.default.join(__dirname, "../storage/resumes", fileName);
+        const resumeContent = Buffer.from(yield response.arrayBuffer());
+        fs_1.default.writeFileSync(localPath, resumeContent);
+        res.download(localPath, fileName, (err) => {
+            if (err) {
+                logger_1.default.error(err);
+            }
+            fs_1.default.unlinkSync(localPath); // Delete file after download
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+});
+exports.downloadApplicantResume = downloadApplicantResume;
+const rejectApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { applicantId } = req.body;
+        // Find the applicant
+        const applicant = yield applicant_1.default.findByPk(applicantId);
+        if (!applicant) {
+            res.status(404).json({
+                message: "Applicant not found in our database.",
+            });
+            return;
+        }
+        // Check if the applicant is already rejected
+        if (applicant.status !== "rejected") {
+            // Update the applicant's status
+            yield applicant.update({ status: "rejected" });
+            // Find the associated job
+            const job = yield job_1.default.findByPk(applicant.jobId);
+            if (!job) {
+                res.status(404).json({
+                    message: "Job not found in our database.",
+                });
+                return;
+            }
+            // Check if rejection emails are enabled for the job
+            if (job.rejectionEmails) {
+                const user = yield user_1.default.findByPk(applicant.userId);
+                const jobPoster = yield user_1.default.findByPk(job.creatorId);
+                if (!jobPoster || !user) {
+                    res.status(404).json({
+                        message: "Associated users not found.",
+                    });
+                    return;
+                }
+                const messageToApplicant = messages_1.emailTemplates.applicantRejection(job, jobPoster, user, applicant);
+                // Send emails
+                yield (0, mail_service_1.sendMail)(user.email, `${process.env.APP_NAME} - Your application to ${job.title} [${job.jobType}] at ${job.company}`, messageToApplicant);
+            }
+            res.status(200).json({
+                message: "Rejection successful.",
+                data: applicant, // Return the updated applicant data
+            });
+            return;
+        }
+        // If already rejected
+        res.status(400).json({
+            message: "Applicant is already rejected.",
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.data || "Server error.",
+        });
+    }
+});
+exports.rejectApplicant = rejectApplicant;
 //# sourceMappingURL=creatorController.js.map

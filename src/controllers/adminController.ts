@@ -16,6 +16,9 @@ import SubscriptionPlan from "../models/subscriptionplan";
 import User from "../models/user";
 import CourseCategory from "../models/coursecategory";
 import AssetCategory from "../models/assetcategory";
+import JobCategory from "../models/jobcategory";
+import PhysicalAsset from "../models/physicalasset";
+import DigitalAsset from "../models/digitalasset";
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -1224,3 +1227,645 @@ export const getAllInstitution = async (
         res.status(500).json({ message: error.message || "Failed to fetch institutions." });
     }
 }
+
+// Job Categories
+export const getJobCategories = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const jobs = await JobCategory.findAll();
+        res.status(200).json({ data: jobs });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const createJobCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { name } = req.body;
+
+        // Check if a category with the same name already exists
+        const existingCategory = await JobCategory.findOne({ where: { name } });
+        if (existingCategory) {
+            res.status(400).json({ message: "A job category with the same name already exists." });
+            return;
+        }
+
+        const category = await JobCategory.create({ name });
+        res
+            .status(200)
+            .json({
+                message: "Job category created successfully",
+                data: category,
+            });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const updateJobCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id, name } = req.body;
+
+        const category = await JobCategory.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Job category not found" });
+            return;
+        }
+
+        // Check if another category with the same name exists (exclude the current category)
+        const existingCategory = await JobCategory.findOne({
+            where: { name, id: { [Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
+        });
+        if (existingCategory) {
+            res.status(400).json({ message: "Another job category with the same name already exists." });
+            return;
+        }
+
+        await category.update({ name });
+        res
+            .status(200)
+            .json({
+                message: "Job category updated successfully",
+                data: category,
+            });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const deleteJobCategory = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const id = req.query.id as string;
+
+        const category = await JobCategory.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Job category not found" });
+            return;
+        }
+
+        await category.destroy();
+        res.status(200).json({ message: "Asset category deleted successfully" });
+    } catch (error: any) {
+        if (error instanceof ForeignKeyConstraintError) {
+            res.status(400).json({
+                message:
+                    "Cannot delete job category because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+            });
+        } else {
+            logger.error("Error deleting job category:", error);
+            res
+                .status(500)
+                .json({ message: error.message || "Error deleting job category" });
+        }
+    }
+};
+
+// Digital Asset
+export const getAllDigitalAssets = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { assetName, pricingType, status } = req.query; // Extract search parameters
+
+        // Build search conditions
+        const searchConditions: any = {};
+
+        if (assetName) {
+            searchConditions.assetName = { [Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (pricingType) {
+            searchConditions.pricingType = pricingType;
+        }
+        if (status) {
+            searchConditions.status = status;
+        }
+
+        // Fetch assets with optional search criteria
+        const assets = await DigitalAsset.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+
+        res.status(200).json({ 
+            data: assets 
+        });
+    } catch (error: any) {
+        logger.error("Error fetching digital assets:", error);
+        res.status(500).json({ 
+            message: error.message || "Failed to fetch digital assets" 
+        });
+    }
+};
+
+export const createDigitalAsset = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        const { categoryId } = req.body;
+
+        const adminId = req.admin?.id;
+
+        // Category check
+        const category = await AssetCategory.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+
+        // Ensure the creatorId is included in the request payload
+        const digitalAssetData = {
+            ...req.body,
+            creatorId: adminId,
+            categoryId: category.id,
+            status: "published"
+        };
+
+        // Create the DigitalAsset
+        const asset = await DigitalAsset.create(digitalAssetData);
+
+        res.status(200).json({
+            message: "Digital Asset created successfully",
+            data: asset,
+        });
+    } catch (error: any) {
+        logger.error("Error creating Digital Asset:", error);
+        res.status(500).json({
+            error: error.message || "Failed to create Digital Asset",
+        });
+    }
+};
+
+export const getDigitalAssets = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    const adminId = req.admin?.id;
+
+    try {
+        const { assetName, pricingType, status } = req.query; // Extract search parameters
+
+        // Build search conditions
+        const searchConditions: any = {
+            creatorId: adminId,
+        };
+
+        if (assetName) {
+            searchConditions.assetName = { [Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (pricingType) {
+            searchConditions.pricingType = pricingType;
+        }
+        if (status) {
+            searchConditions.status = status;
+        }
+
+        // Fetch assets with optional search criteria
+        const assets = await DigitalAsset.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+
+        res.status(200).json({ data: assets });
+    } catch (error: any) {
+        logger.error("Error fetching digital assets:", error);
+        res
+            .status(500)
+            .json({ error: error.message || "Failed to fetch Digital Assets" });
+    }
+};
+
+export const viewDigitalAsset = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+
+    try {
+        const { id } = req.query; // Extract search parameters
+
+        // Fetch asset with optional search criteria
+        const asset = await DigitalAsset.findOne({
+            where: { id },
+            include: [
+                {
+                    model: AssetCategory, // Including the related AssetCategory model
+                    as: "assetCategory", // Alias for the relationship (adjust if necessary)
+                    attributes: ["id", "name"], // You can specify the fields you want to include
+                },
+                {
+                    model: User,
+                    as: "user",
+                    attributes: ["id", "accountType", "name", "email"],
+                },
+                {
+                    model: Admin,
+                    as: "admin",
+                    attributes: ["id", "name", "email"],
+                    include: [
+                        {
+                          model: Role, // Assuming you've imported the Role model
+                          as: "role", // Make sure this alias matches the one you used in the association
+                        },
+                    ],
+                }
+            ],
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+
+        res.status(200).json({ data: asset });
+    } catch (error: any) {
+        logger.error("Error fetching digital asset:", error);
+        res
+            .status(500)
+            .json({ error: error.message || "Failed to fetch Digital Asset" });
+    }
+};
+
+export const updateDigitalAsset = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { id, categoryId } = req.body; // ID is passed in the request body
+
+    try {
+        // Category check
+        const category = await AssetCategory.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+
+        // Find the Digital Asset by ID
+        const asset = await DigitalAsset.findByPk(id);
+
+        if (!asset) {
+            res.status(404).json({ message: "Digital Asset not found" });
+            return;
+        }
+
+        // Update the Digital Asset with new data
+        await asset.update({ ...req.body, categoryId: category.id });
+
+        res.status(200).json({
+            message: "Digital Asset updated successfully",
+        });
+    } catch (error) {
+        logger.error("Error updating Digital Asset:", error);
+        res.status(500).json({ error: "Failed to update Digital Asset" });
+    }
+};
+
+export const deleteDigitalAsset = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const id = req.query.id as string;
+
+    try {
+        // Find the Digital Asset by ID
+        const asset = await DigitalAsset.findByPk(id);
+
+        // If the asset is not found, return a 404 response
+        if (!asset) {
+            res.status(404).json({ message: "Digital Asset not found" });
+            return;
+        }
+
+        // Delete the asset
+        await asset.destroy();
+
+        // Return success response
+        res.status(200).json({ message: "Digital Asset deleted successfully" });
+    } catch (error) {
+        logger.error("Error deleting Digital Asset:", error);
+        res.status(500).json({ error: "Failed to delete Digital Asset" });
+    }
+};
+
+export const updateDigitalAssetStatus = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { assetId, status, adminNote } = req.body; // Extract status and adminNote from request body
+
+        // Validate status
+        if (!["published", "unpublished"].includes(status)) {
+            res.status(400).json({
+                message: "Invalid status. Allowed values are 'published' or 'unpublished'.",
+            });
+            return;
+        }
+
+        // Ensure adminNote is provided if status is 'unpublished'
+        if (status === "unpublished" && (!adminNote || adminNote.trim() === "")) {
+            res.status(400).json({
+                message: "Admin note is required when status is 'unpublished'.",
+            });
+            return;
+        }
+
+        // Find the asset by ID
+        const asset = await DigitalAsset.findByPk(assetId);
+        if (!asset) {
+            res.status(404).json({
+                message: "Asset not found.",
+            });
+            return;
+        }
+
+        // Update the asset's status and adminNote
+        await asset.update({ status, adminNote: status === "unpublished" ? adminNote : null });
+
+        res.status(200).json({
+            message: "Asset status updated successfully.",
+            data: asset,
+        });
+    } catch (error: any) {
+        logger.error("Error updating asset status:", error);
+        res.status(500).json({
+            message: error.message || "Failed to update asset status.",
+        });
+    }
+};
+
+// Physical Asset
+export const getAllPhysicalAssets = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { assetName, status } = req.query; // Extract search parameters
+
+        // Build search conditions
+        const searchConditions: any = {};
+        if (assetName) {
+            searchConditions.assetName = { [Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (status) {
+            searchConditions.status = status;
+        }
+
+        // Fetch assets with optional search criteria
+        const assets = await PhysicalAsset.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+
+        res.status(200).json({
+            data: assets,
+        });
+    } catch (error: any) {
+        logger.error("Error fetching physical assets:", error);
+        res.status(500).json({
+            message: error.message || "Failed to fetch physical assets",
+        });
+    }
+};
+
+export const createPhysicalAsset = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        const { categoryId } = req.body;
+
+        const adminId = req.admin?.id; // Extract user ID from authenticated request
+
+        // Category check
+        const category = await AssetCategory.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+
+        // Ensure the creatorId is included in the request payload
+        const physicalAssetData = {
+            ...req.body,
+            creatorId: adminId,
+            categoryId: category.id,
+            status: "published"
+        };
+
+        // Create the PhysicalAsset
+        const asset = await PhysicalAsset.create(physicalAssetData);
+
+        res.status(200).json({
+            message: "Physical Asset created successfully",
+            data: asset,
+        });
+    } catch (error: any) {
+        logger.error("Error creating Physical Asset:", error);
+        res.status(500).json({
+            error: error.message || "Failed to create Physical Asset",
+        });
+    }
+};
+
+export const getPhysicalAssets = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    const adminId = req.admin?.id; // Extract authenticated user's ID
+
+    try {
+        const { assetName, status } = req.query; // Extract search parameters
+
+        // Build search conditions
+        const searchConditions: any = {
+            creatorId: adminId,
+        };
+        if (assetName) {
+            searchConditions.assetName = { [Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (status) {
+            searchConditions.status = status;
+        }
+
+        // Fetch assets with optional search criteria
+        const assets = await PhysicalAsset.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+
+        res.status(200).json({ data: assets });
+    } catch (error: any) {
+        logger.error("Error fetching physical assets:", error);
+        res
+            .status(500)
+            .json({ error: error.message || "Failed to fetch physical Assets" });
+    }
+};
+
+export const viewPhysicalAsset = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id } = req.query; // Extract search parameters
+
+        // Fetch asset with optional search criteria
+        const asset = await PhysicalAsset.findOne({
+            where: { id },
+            include: [
+                {
+                    model: AssetCategory, // Including the related AssetCategory model
+                    as: "assetCategory", // Alias for the relationship (adjust if necessary)
+                    attributes: ["id", "name"], // You can specify the fields you want to include
+                },
+                {
+                    model: User,
+                    as: "user",
+                    attributes: ["id", "accountType", "name", "email"],
+                },
+                {
+                    model: Admin,
+                    as: "admin",
+                    attributes: ["id", "name", "email"],
+                    include: [
+                        {
+                          model: Role, // Assuming you've imported the Role model
+                          as: "role", // Make sure this alias matches the one you used in the association
+                        },
+                    ],
+                }
+            ],
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+
+        res.status(200).json({ data: asset });
+    } catch (error: any) {
+        logger.error("Error fetching physical asset:", error);
+        res
+            .status(500)
+            .json({ error: error.message || "Failed to fetch physical asset" });
+    }
+};
+
+export const updatePhysicalAsset = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { id, categoryId } = req.body; // ID is passed in the request body
+
+    try {
+        // Category check
+        const category = await AssetCategory.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+
+        // Find the Physical Asset by ID
+        const asset = await PhysicalAsset.findByPk(id);
+
+        if (!asset) {
+            res.status(404).json({ message: "Physical Asset not found" });
+            return;
+        }
+
+        // Update the Physical Asset with new data
+        await asset.update({ ...req.body, categoryId: category.id });
+
+        res.status(200).json({
+            message: "Physical Asset updated successfully",
+        });
+    } catch (error) {
+        logger.error("Error updating physical Asset:", error);
+        res.status(500).json({ error: "Failed to update physical Asset" });
+    }
+};
+
+export const deletePhysicalAsset = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const id = req.query.id as string;
+
+    try {
+        // Find the Physical Asset by ID
+        const asset = await PhysicalAsset.findByPk(id);
+
+        // If the asset is not found, return a 404 response
+        if (!asset) {
+            res.status(404).json({ message: "Physical Asset not found" });
+            return;
+        }
+
+        // Delete the asset
+        await asset.destroy();
+
+        // Return success response
+        res.status(200).json({ message: "Physical Asset deleted successfully" });
+    } catch (error) {
+        logger.error("Error deleting physical asset:", error);
+        res.status(500).json({ error: "Failed to delete physical asset" });
+    }
+};
+
+export const updatePhysicalAssetStatus = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { assetId, status, adminNote } = req.body; // Extract status and adminNote from request body
+
+        // Validate status
+        if (!["published", "unpublished"].includes(status)) {
+            res.status(400).json({
+                message: "Invalid status. Allowed values are 'published' or 'unpublished'.",
+            });
+            return;
+        }
+
+        // Ensure adminNote is provided if status is 'unpublished'
+        if (status === "unpublished" && (!adminNote || adminNote.trim() === "")) {
+            res.status(400).json({
+                message: "Admin note is required when status is 'unpublished'.",
+            });
+            return;
+        }
+
+        // Find the asset by ID
+        const asset = await PhysicalAsset.findByPk(assetId);
+        if (!asset) {
+            res.status(404).json({
+                message: "Asset not found.",
+            });
+            return;
+        }
+
+        // Update the asset's status and adminNote
+        await asset.update({ status, adminNote: status === "unpublished" ? adminNote : null });
+
+        res.status(200).json({
+            message: "Asset status updated successfully.",
+            data: asset,
+        });
+    } catch (error: any) {
+        logger.error("Error updating asset status:", error);
+        res.status(500).json({
+            message: error.message || "Failed to update asset status.",
+        });
+    }
+};

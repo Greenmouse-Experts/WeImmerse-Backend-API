@@ -15,18 +15,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
 const sequelize_1 = require("sequelize");
-const modulequiz_1 = __importDefault(require("./modulequiz"));
+const lessonquiz_1 = __importDefault(require("./lessonquiz"));
 const lesson_1 = __importDefault(require("./lesson"));
 class Module extends sequelize_1.Model {
     static associate(models) {
         this.belongsTo(models.Course, { as: "course", foreignKey: "courseId" });
         this.hasMany(models.Lesson, { as: "lessons", foreignKey: "moduleId" });
-        this.hasMany(models.ModuleQuiz, { as: "quizzes", foreignKey: "moduleId" });
+        this.hasMany(models.LessonQuiz, { as: "quizzes", foreignKey: "moduleId" });
     }
     // Check if the module has associated quizzes
     hasQuiz() {
         return __awaiter(this, void 0, void 0, function* () {
-            const quizCount = yield modulequiz_1.default.count({ where: { moduleId: this.id } });
+            const quizCount = yield lessonquiz_1.default.count({ where: { moduleId: this.id } });
             return quizCount > 0;
         });
     }
@@ -45,7 +45,7 @@ class Module extends sequelize_1.Model {
     // Update sort order for draggable modules
     static updateDraggable(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const updates = data.map(item => Module.update({ sortOrder: item.sortOrder }, { where: { id: item.module_id } }));
+            const updates = data.map(item => this.update({ sortOrder: item.sortOrder }, { where: { id: item.moduleId } }));
             yield Promise.all(updates);
         });
     }
@@ -65,7 +65,8 @@ const initModel = (sequelize) => {
                 model: 'courses',
                 key: 'id',
             },
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
         title: {
             type: sequelize_1.DataTypes.STRING,

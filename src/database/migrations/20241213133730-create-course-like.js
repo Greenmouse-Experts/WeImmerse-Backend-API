@@ -16,7 +16,8 @@ module.exports = {
           model: 'courses', // Table name for `courses`
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       userId: {
         type: Sequelize.UUID,
@@ -25,7 +26,8 @@ module.exports = {
           model: 'users', // Table name for `users`
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       liked: {
         type: Sequelize.BOOLEAN,

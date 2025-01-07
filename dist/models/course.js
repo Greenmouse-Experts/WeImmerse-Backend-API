@@ -22,8 +22,8 @@ class Course extends sequelize_1.Model {
         });
         this.hasMany(models.Module, { as: "modules", foreignKey: "courseId" });
         this.hasMany(models.Lesson, { as: "lessons", foreignKey: "courseId" });
-        this.hasMany(models.ModuleQuiz, { as: "quizzes", foreignKey: "courseId" });
-        this.hasMany(models.ModuleQuizQuestion, {
+        this.hasMany(models.LessonQuiz, { as: "quizzes", foreignKey: "courseId" });
+        this.hasMany(models.LessonQuizQuestion, {
             as: "questions",
             foreignKey: "courseId",
         });
@@ -92,12 +92,7 @@ const initModel = (sequelize) => {
         },
         creatorId: {
             type: sequelize_1.DataTypes.UUID,
-            allowNull: false,
-            references: {
-                model: "users",
-                key: "id",
-            },
-            onDelete: "SET NULL",
+            allowNull: false
         },
         categoryId: {
             type: sequelize_1.DataTypes.UUID,
@@ -106,7 +101,8 @@ const initModel = (sequelize) => {
                 model: "course_categories",
                 key: "id",
             },
-            onDelete: "SET NULL",
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
         title: {
             type: sequelize_1.DataTypes.STRING,

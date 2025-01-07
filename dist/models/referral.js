@@ -31,8 +31,8 @@ const initModel = (sequelize) => {
                 model: 'users',
                 key: 'id',
             },
-            onUpdate: 'RESTRICT',
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
         referredUserId: {
             type: sequelize_1.DataTypes.UUID,
@@ -41,8 +41,8 @@ const initModel = (sequelize) => {
                 model: 'users',
                 key: 'id',
             },
-            onUpdate: 'RESTRICT',
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE',
+            onUpdate: 'CASCADE',
         },
         evToken: {
             type: sequelize_1.DataTypes.DECIMAL(20, 2),

@@ -16,7 +16,8 @@ module.exports = {
           model: 'users', // Replace with the actual users table name
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       courseId: {
         type: Sequelize.UUID,
@@ -25,7 +26,8 @@ module.exports = {
           model: 'courses', // Replace with the actual courses table name
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       rating: {
         type: Sequelize.DECIMAL(4, 1),

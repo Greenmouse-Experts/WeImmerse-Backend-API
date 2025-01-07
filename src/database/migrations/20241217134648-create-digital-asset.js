@@ -11,12 +11,7 @@ module.exports = {
       },
       creatorId: {
         type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'users', // Ensure the related table is correct
-          key: 'id',
-        },
-        onDelete: 'RESTRICT',
+        allowNull: false
       },
       categoryId: {
         type: Sequelize.UUID,
@@ -25,7 +20,8 @@ module.exports = {
           model: 'asset_categories', // Ensure the related table is correct
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       assetName: {
         type: Sequelize.STRING,

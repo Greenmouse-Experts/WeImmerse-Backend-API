@@ -16,8 +16,8 @@ module.exports = {
           model: 'users',
           key: 'id',
         },
-        onUpdate: 'RESTRICT',
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       referredUserId: {
         type: Sequelize.UUID,
@@ -27,7 +27,8 @@ module.exports = {
           key: 'id',
         },
         onUpdate: 'RESTRICT',
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       evToken: {
         type: Sequelize.DECIMAL(20, 2),

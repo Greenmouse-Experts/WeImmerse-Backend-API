@@ -1,13 +1,14 @@
-// models/moduleQuizQuestion.ts
+// models/LessonQuizQuestion.ts
 
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
-class ModuleQuizQuestion extends Model {
+class LessonQuizQuestion extends Model {
   public id!: string;
   public creatorId!: string;
   public courseId!: string;
   public moduleId!: string;
-  public moduleQuizId!: string;
+  public lessonId!: string;
+  public lessonQuizId!: string;
   public question!: string;
   public options!: Record<string, string>;
   public correctOption!: string;
@@ -17,16 +18,15 @@ class ModuleQuizQuestion extends Model {
 
   static associate(models: any) {
     // Define associations here
-    // Example:
-    // ModuleQuizQuestion.belongsTo(models.User, { foreignKey: 'creatorId', as: 'creator' });
-    // ModuleQuizQuestion.belongsTo(models.Course, { foreignKey: 'courseId', as: 'course' });
-    // ModuleQuizQuestion.belongsTo(models.Module, { foreignKey: 'moduleId', as: 'module' });
-    // ModuleQuizQuestion.belongsTo(models.ModuleQuiz, { foreignKey: 'moduleQuizId', as: 'quiz' });
+    this.belongsTo(models.User, { foreignKey: 'creatorId', as: 'creator' });
+    this.belongsTo(models.Course, { foreignKey: 'courseId', as: 'course' });
+    this.belongsTo(models.Module, { foreignKey: 'moduleId', as: 'module' });
+    this.belongsTo(models.LessonQuiz, { foreignKey: 'lessonQuizId', as: 'quiz' });
   }
 }
 
 const initModel = (sequelize: Sequelize) => {
-  ModuleQuizQuestion.init({
+  LessonQuizQuestion.init({
     id: {
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
@@ -35,12 +35,7 @@ const initModel = (sequelize: Sequelize) => {
     },
     creatorId: {
       type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: 'users', // Ensure this matches the users table name
-        key: 'id',
-      },
-      onDelete: 'RESTRICT',
+      allowNull: false
     },
     courseId: {
       type: DataTypes.UUID,
@@ -49,7 +44,8 @@ const initModel = (sequelize: Sequelize) => {
         model: 'courses', // Ensure this matches the courses table name
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
     moduleId: {
       type: DataTypes.UUID,
@@ -58,16 +54,28 @@ const initModel = (sequelize: Sequelize) => {
         model: 'modules', // Ensure this matches the modules table name
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
-    moduleQuizId: {
+    lessonId: {
       type: DataTypes.UUID,
       allowNull: false,
       references: {
-        model: 'module_quizzes', // Ensure this matches the module_quizzes table name
+        model: "lessons", // Ensure this matches the lessons table name
+        key: "id",
+      },
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
+    },
+    lessonQuizId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      references: {
+        model: 'lesson_quizzes', // Ensure this matches the module_quizzes table name
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
     question: {
       type: DataTypes.TEXT,
@@ -87,12 +95,12 @@ const initModel = (sequelize: Sequelize) => {
     },
   }, {
     sequelize,
-    modelName: "ModuleQuizQuestion",
+    modelName: "LessonQuizQuestion",
     timestamps: true,
     paranoid: false,
-    tableName: "module_quiz_questions",
+    tableName: "lesson_quiz_questions",
   });
 };
 
-export default ModuleQuizQuestion;
+export default LessonQuizQuestion;
 export { initModel };

@@ -32,7 +32,8 @@ const initModel = (sequelize: Sequelize) => {
         model: 'users', // Ensure this matches the users table name
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
     lessonId: {
       type: DataTypes.UUID,
@@ -41,7 +42,8 @@ const initModel = (sequelize: Sequelize) => {
         model: 'lessons', // Ensure this matches the courses table name
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
   }, {
     sequelize,

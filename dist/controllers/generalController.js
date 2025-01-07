@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateUserNotificationSettings = exports.getUserNotificationSettings = exports.updatePassword = exports.updateProfilePhoto = exports.updateProfile = exports.profile = exports.logout = void 0;
+exports.getSavedJobs = exports.getAppliedJobs = exports.applyJob = exports.saveJob = exports.updateUserNotificationSettings = exports.getUserNotificationSettings = exports.updatePassword = exports.updateProfilePhoto = exports.updateProfile = exports.profile = exports.logout = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -20,6 +20,10 @@ const jwt_service_1 = __importDefault(require("../services/jwt.service"));
 const logger_1 = __importDefault(require("../middlewares/logger")); // Adjust the path to your logger.js
 const usernotificationsetting_1 = __importDefault(require("../models/usernotificationsetting"));
 const institutioninformation_1 = __importDefault(require("../models/institutioninformation"));
+const job_1 = __importDefault(require("../models/job"));
+const savedjob_1 = __importDefault(require("../models/savedjob"));
+const applicant_1 = __importDefault(require("../models/applicant"));
+const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -269,4 +273,134 @@ const updateUserNotificationSettings = (req, res) => __awaiter(void 0, void 0, v
     }
 });
 exports.updateUserNotificationSettings = updateUserNotificationSettings;
+const saveJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _g;
+    try {
+        const jobId = req.query.jobId; // Retrieve jobId from query
+        const userId = (_g = req.user) === null || _g === void 0 ? void 0 : _g.id; // Get the authenticated user's ID
+        if (!userId) {
+            res.status(401).json({ success: false, message: 'User not authenticated.' });
+            return;
+        }
+        const job = yield job_1.default.findByPk(jobId); // Assuming Sequelize or your ORM method
+        if (!job) {
+            res.status(404).json({ success: false, message: 'Job not found in our database.' });
+            return;
+        }
+        // Check if the job is already saved
+        const savedJob = yield savedjob_1.default.findOne({ where: { jobId, userId } }); // Adjust for your ORM/Database
+        if (savedJob) {
+            // Remove the saved job
+            yield savedjob_1.default.destroy({ where: { id: savedJob.id } });
+            res.status(200).json({ message: 'This job is no longer saved.' });
+            return;
+        }
+        // Save the job for the user
+        const save = yield savedjob_1.default.create({ userId, jobId });
+        res.status(200).json({
+            message: 'You have saved this job.',
+            data: save,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.saveJob = saveJob;
+const applyJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _h;
+    // Start transaction
+    const transaction = yield sequelize_service_1.default.connection.transaction();
+    try {
+        const userId = (_h = req.user) === null || _h === void 0 ? void 0 : _h.id; // Get the authenticated user's ID
+        const { jobId, email, phone, resume } = req.body;
+        const job = yield job_1.default.findByPk(jobId);
+        if (!job) {
+            res.status(404).json({ message: 'Job not found in our database.' });
+            return;
+        }
+        const existingApplication = yield applicant_1.default.findOne({ where: { userId, jobId } });
+        if (existingApplication) {
+            res.status(400).json({ message: 'You have already applied for this job.' });
+            return;
+        }
+        const status = job.status === 'active' ? 'applied' : 'in-progress';
+        const application = yield applicant_1.default.create({
+            jobId,
+            userId,
+            emailAddress: email,
+            phoneNumber: phone,
+            resume,
+            status,
+        }, { transaction });
+        const user = yield user_1.default.findByPk(userId);
+        const jobOwner = yield user_1.default.findByPk(job.creatorId);
+        if (!user || !jobOwner) {
+            throw new Error('User or job owner not found.');
+        }
+        // Prepare emails
+        const applicantMessage = messages_1.emailTemplates.applicantNotify(job, user, application);
+        const jobOwnerMessage = messages_1.emailTemplates.jobOwnerMailData(job, jobOwner, user, application);
+        // Send emails
+        yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Application Confirmation`, applicantMessage);
+        yield (0, mail_service_1.sendMail)(jobOwner.email, `${process.env.APP_NAME} - New Job Application Received`, jobOwnerMessage);
+        yield transaction.commit();
+        res.status(200).json({
+            message: `Your application has been successfully sent to ${job.company}.`,
+            data: application,
+        });
+    }
+    catch (error) {
+        yield transaction.rollback();
+        logger_1.default.error('Error in applyJob:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.applyJob = applyJob;
+const getAppliedJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _j;
+    try {
+        const userId = (_j = req.user) === null || _j === void 0 ? void 0 : _j.id; // Get the authenticated user's ID
+        const appliedJobs = yield applicant_1.default.findAll({
+            where: { userId },
+            include: [
+                {
+                    model: job_1.default,
+                    as: "job",
+                },
+            ]
+        });
+        res.status(200).json({
+            data: appliedJobs,
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching applied jobs:", error);
+        res.status(500).json({ message: "An error occurred while fetching applied jobs." });
+    }
+});
+exports.getAppliedJobs = getAppliedJobs;
+const getSavedJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _k;
+    try {
+        const userId = (_k = req.user) === null || _k === void 0 ? void 0 : _k.id; // Get the authenticated user's ID
+        const savedJobs = yield savedjob_1.default.findAll({
+            where: { userId },
+            include: [
+                {
+                    model: job_1.default,
+                    as: "job"
+                },
+            ]
+        });
+        res.status(200).json({
+            data: savedJobs,
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching saved jobs:", error);
+        res.status(500).json({ message: "An error occurred while fetching saved jobs." });
+    }
+});
+exports.getSavedJobs = getSavedJobs;
 //# sourceMappingURL=generalController.js.map

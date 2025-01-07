@@ -16,7 +16,8 @@ module.exports = {
           model: 'modules', // Replace with your modules table name
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE', 
       },
       courseId: {
         type: Sequelize.UUID,
@@ -25,7 +26,8 @@ module.exports = {
           model: 'courses', // Replace with your courses table name
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE', 
       },
       title: {
         type: Sequelize.STRING,

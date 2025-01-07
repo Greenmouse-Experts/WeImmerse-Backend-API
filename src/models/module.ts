@@ -1,7 +1,7 @@
 // models/module.ts
 
 import { Model, DataTypes, Sequelize } from 'sequelize';
-import ModuleQuiz from './modulequiz';
+import LessonQuiz from './lessonquiz';
 import Lesson from './lesson';
 
 class Module extends Model {
@@ -15,12 +15,12 @@ class Module extends Model {
   static associate(models: any) {
     this.belongsTo(models.Course, { as: "course", foreignKey: "courseId" });
     this.hasMany(models.Lesson, { as: "lessons", foreignKey: "moduleId" });
-    this.hasMany(models.ModuleQuiz, { as: "quizzes", foreignKey: "moduleId" });
+    this.hasMany(models.LessonQuiz, { as: "quizzes", foreignKey: "moduleId" });
   }
 
   // Check if the module has associated quizzes
   async hasQuiz(): Promise<boolean> {
-    const quizCount = await ModuleQuiz.count({ where: { moduleId: this.id } });
+    const quizCount = await LessonQuiz.count({ where: { moduleId: this.id } });
     return quizCount > 0;
   }
 
@@ -36,9 +36,9 @@ class Module extends Model {
   }
 
   // Update sort order for draggable modules
-  static async updateDraggable(data: Array<{ module_id: string; sortOrder: number }>): Promise<void> {
+  static async updateDraggable(data: Array<{ moduleId: string; sortOrder: number }>): Promise<void> {
     const updates = data.map(item => 
-      Module.update({ sortOrder: item.sortOrder }, { where: { id: item.module_id } })
+      this.update({ sortOrder: item.sortOrder }, { where: { id: item.moduleId } })
     );
     await Promise.all(updates);
   }
@@ -59,7 +59,8 @@ const initModel = (sequelize: Sequelize) => {
         model: 'courses', // Ensure this matches your courses table
         key: 'id',
       },
-      onDelete: 'RESTRICT',
+      onDelete: 'CASCADE', 
+      onUpdate: 'CASCADE',
     },
     title: {
       type: DataTypes.STRING,

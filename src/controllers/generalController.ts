@@ -13,6 +13,10 @@ import { AuthenticatedRequest } from "../types/index";
 import UserNotificationSetting from "../models/usernotificationsetting";
 import { io } from "../index";
 import InstitutionInformation from "../models/institutioninformation";
+import Job from "../models/job";
+import SavedJob from "../models/savedjob";
+import Applicant from "../models/applicant";
+import sequelizeService from "../services/sequelize.service";
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -313,5 +317,146 @@ export const updateUserNotificationSettings = async (
     res.status(500).json({
       message: error.message || "Error updating notification settings.",
     });
+  }
+};
+
+export const saveJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+      const jobId = req.query.jobId as string; // Retrieve jobId from query
+      const userId = (req as AuthenticatedRequest).user?.id; // Get the authenticated user's ID
+
+      if (!userId) {
+          res.status(401).json({ success: false, message: 'User not authenticated.' });
+          return;
+      }
+
+      const job = await Job.findByPk(jobId); // Assuming Sequelize or your ORM method
+
+      if (!job) {
+          res.status(404).json({ success: false, message: 'Job not found in our database.' });
+          return;
+      }
+
+      // Check if the job is already saved
+      const savedJob = await SavedJob.findOne({ where: { jobId, userId } }); // Adjust for your ORM/Database
+
+      if (savedJob) {
+          // Remove the saved job
+          await SavedJob.destroy({ where: { id: savedJob.id } });
+          res.status(200).json({ message: 'This job is no longer saved.' });
+          return;
+      }
+
+      // Save the job for the user
+      const save = await SavedJob.create({ userId, jobId });
+
+      res.status(200).json({
+          message: 'You have saved this job.',
+          data: save,
+      });
+  } catch (error: any) {
+      res.status(500).json({ message: error.message });
+  }
+};
+
+export const applyJob = async (req: Request, res: Response): Promise<void> => {
+   // Start transaction
+   const transaction = await sequelizeService.connection!.transaction();
+   
+   try {
+    const userId = (req as AuthenticatedRequest).user?.id; // Get the authenticated user's ID
+    const { jobId, email, phone, resume } = req.body;
+
+    const job = await Job.findByPk(jobId);
+    if (!job) {
+      res.status(404).json({ message: 'Job not found in our database.' });
+      return;
+    }
+
+    const existingApplication = await Applicant.findOne({ where: { userId, jobId } });
+    if (existingApplication) {
+      res.status(400).json({ message: 'You have already applied for this job.' });
+      return;
+    }
+
+    const status = job.status === 'active' ? 'applied' : 'in-progress';
+    const application = await Applicant.create({
+      jobId,
+      userId,
+      emailAddress: email,
+      phoneNumber: phone,
+      resume,
+      status,
+    }, { transaction });
+
+    const user = await User.findByPk(userId);
+    const jobOwner = await User.findByPk(job.creatorId);
+    if (!user || !jobOwner) {
+      throw new Error('User or job owner not found.');
+    }
+
+    // Prepare emails
+    const applicantMessage = emailTemplates.applicantNotify(job, user, application);
+    const jobOwnerMessage = emailTemplates.jobOwnerMailData(job, jobOwner, user, application);
+
+    // Send emails
+    await sendMail(email, `${process.env.APP_NAME} - Application Confirmation`, applicantMessage);
+    await sendMail(jobOwner.email, `${process.env.APP_NAME} - New Job Application Received`, jobOwnerMessage);
+
+    await transaction.commit();
+    res.status(200).json({
+      message: `Your application has been successfully sent to ${job.company}.`,
+      data: application,
+    });
+  } catch (error: any) {
+    await transaction.rollback();
+    logger.error('Error in applyJob:', error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const getAppliedJobs = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as AuthenticatedRequest).user?.id; // Get the authenticated user's ID
+
+    const appliedJobs = await Applicant.findAll({
+      where: { userId },
+      include: [
+        {
+          model: Job,
+          as: "job",
+        },
+      ]
+    });
+
+    res.status(200).json({
+      data: appliedJobs,
+    });
+  } catch (error: any) {
+    logger.error("Error fetching applied jobs:", error);
+    res.status(500).json({ message: "An error occurred while fetching applied jobs." });
+  }
+};
+
+export const getSavedJobs = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const userId = (req as AuthenticatedRequest).user?.id; // Get the authenticated user's ID
+
+    const savedJobs = await SavedJob.findAll({
+      where: { userId },
+      include: [
+        {
+          model: Job,
+          as: "job"
+        },
+      ]
+    });
+
+    res.status(200).json({
+      data: savedJobs,
+    });
+  } catch (error: any) {
+    logger.error("Error fetching saved jobs:", error);
+    res.status(500).json({ message: "An error occurred while fetching saved jobs." });
   }
 };

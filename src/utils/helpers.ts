@@ -7,6 +7,8 @@ import Role from '../models/role';
 import Permission from '../models/permission';
 import SubscriptionPlan from '../models/subscriptionplan';
 import logger from '../middlewares/logger';
+import { Op } from 'sequelize';
+import Job from '../models/job';
 
 interface PaystackResponse {
   status: boolean;
@@ -143,5 +145,27 @@ const shuffleArray = <T>(array: T[]): T[] => {
   return array;
 };
 
+const getJobsBySearch = async (searchTerm: string, number: number) => {
+  const where: any = { status: 'active' };
+
+  if (searchTerm) {
+      const searchRegex = { [Op.iLike]: `%${searchTerm}%` }; // Use Sequelize's Op.iLike for case-insensitive search.
+      where[Op.or] = [
+          { title: searchRegex },
+          { company: searchRegex },
+          { workplace_type: searchRegex },
+          { job_type: searchRegex },
+          { location: searchRegex },
+          { category: searchRegex },
+      ];
+  }
+
+  return await Job.findAll({
+      where,
+      order: [['createdAt', 'DESC']], // Sort by createdAt in descending order.
+      limit: number, // Limit the number of results.
+  });
+};
+
 // Export functions
-export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, verifyPayment, shuffleArray, generateReferralCode };
+export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, verifyPayment, shuffleArray, generateReferralCode, getJobsBySearch };

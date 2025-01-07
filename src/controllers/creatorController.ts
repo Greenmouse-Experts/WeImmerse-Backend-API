@@ -11,11 +11,19 @@ import { AuthenticatedRequest } from "../types/index";
 import Lesson from "../models/lesson";
 import Module from "../models/module";
 import CourseCategory from "../models/coursecategory";
-import ModuleQuiz from "../models/modulequiz";
-import ModuleQuizQuestion from "../models/modulequizquestion";
+import LessonQuiz from "../models/lessonquiz";
+import LessonQuizQuestion from "../models/lessonquizquestion";
 import DigitalAsset from "../models/digitalasset";
 import AssetCategory from "../models/assetcategory";
 import PhysicalAsset from "../models/physicalasset";
+import JobCategory from "../models/jobcategory";
+import Job from "../models/job";
+import { v4 as uuidv4 } from "uuid";
+import Applicant from "../models/applicant";
+import User from "../models/user";
+import path from "path";
+import fs from "fs";
+import LessonAssignment from "../models/lessonassignment";
 
 export const courseCategories = async (
     req: Request,
@@ -363,10 +371,10 @@ export const deleteCourseModule = async (
             await Lesson.destroy({ where: { moduleId: module.id } });
 
             // Delete all quizzes associated with the module
-            await ModuleQuiz.destroy({ where: { moduleId: module.id } });
+            await LessonQuiz.destroy({ where: { moduleId: module.id } });
 
             // Delete all quizzes associated with the module
-            await ModuleQuizQuestion.destroy({ where: { moduleId: module.id } });
+            await LessonQuizQuestion.destroy({ where: { moduleId: module.id } });
 
             // Delete the module
             await module.destroy();
@@ -417,7 +425,7 @@ export const updateDraggableCourseModule = async (
 };
 
 // Lesson
-export const getCourseLessons = async (
+export const getModuleLessons = async (
     req: Request,
     res: Response
 ): Promise<void> => {
@@ -451,20 +459,12 @@ export const createModuleLesson = async (
     res: Response
 ): Promise<void> => {
     try {
-        const {
-            moduleId,
-            courseId,
-            title,
-            content,
-            contentType,
-            contentUrl,
-            duration,
-        } = req.body;
+        const { moduleId, title, content, contentType, contentUrl, duration } =
+            req.body;
 
         // Create a new lesson object
         const newLesson = {
             moduleId,
-            courseId,
             title,
             content,
             contentType,
@@ -502,7 +502,7 @@ export const createModuleLesson = async (
 
             await Lesson.create({
                 moduleId,
-                courseId,
+                courseId: module.courseId,
                 title,
                 content,
                 contentType,
@@ -520,7 +520,6 @@ export const createModuleLesson = async (
     } catch (error: any) {
         res.status(500).json({
             message: error.message || "Error creating lesson",
-            error: error.message,
         });
     }
 };
@@ -550,6 +549,7 @@ export const updateModuleLesson = async (
             lesson.contentType = contentType || lesson.contentType;
             lesson.contentUrl = contentUrl || lesson.contentUrl;
             lesson.duration = duration || lesson.duration;
+            lesson.save();
 
             res.status(200).json({ message: "Lesson updated successfully" });
         } else {
@@ -582,6 +582,626 @@ export const deleteModuleLesson = async (
         res.status(200).json({ message: "Lesson deleted successfully" });
     } catch (error: any) {
         res.status(500).json({ message: "Error deleting lesson" });
+    }
+};
+
+export const updateDraggableLesson = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    const { data } = req.body;
+
+    if (!Array.isArray(data)) {
+        res.status(400).json({
+            message:
+                'Invalid data format. Expected an array of objects with "moduleId" and "sortOrder".',
+        });
+        return;
+    }
+
+    try {
+        // Call the static updateDraggable function on the Lesson model
+        await Lesson.updateDraggable(data);
+
+        res.status(200).json({
+            message: "Lessons updated successfully.",
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            message:
+                error.message || "An error occurred while processing your request.",
+        });
+    }
+};
+
+export const createLessonQuiz = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = (req as AuthenticatedRequest).user?.id; // Assuming the user ID is passed in the URL params
+
+        const { moduleId, lessonTitle, title, description, timePerQuestion } =
+            req.body;
+
+        const module = await Module.findByPk(moduleId);
+        if (!module) {
+            res.status(404).json({
+                message: "Module not found in our database.",
+            });
+            return;
+        }
+
+        const course = await Course.findByPk(module.courseId);
+
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+
+        if (course.canEdit()) {
+            // Fetch the lesson with the highest sortOrder
+            const maxSortLesson = await Lesson.findOne({
+                where: { moduleId: module.id },
+                order: [["sortOrder", "DESC"]], // Sort by sortOrder in descending order
+            });
+
+            // Calculate the new sortOrder
+            const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
+
+            const lesson = await Lesson.create({
+                moduleId,
+                courseId: module.courseId,
+                title: lessonTitle,
+                contentType: "quiz",
+                sortOrder,
+            });
+
+            const newQuiz = await LessonQuiz.create({
+                creatorId: userId,
+                courseId: module.courseId,
+                moduleId,
+                lessonId: lesson.id,
+                title,
+                description,
+                timePerQuestion,
+            });
+
+            res
+                .status(200)
+                .json({ message: "Module Quiz created successfully.", data: newQuiz });
+        } else {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+        }
+    } catch (error: any) {
+        logger.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to create Module Quiz." });
+    }
+};
+
+export const updateLessonQuiz = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { quizId, title, description, timePerQuestion } = req.body;
+
+        const quiz = await LessonQuiz.findByPk(quizId);
+
+        if (!quiz) {
+            res.status(404).json({ message: "Module Quiz not found." });
+            return;
+        }
+
+        const course = await Course.findByPk(quiz.courseId);
+
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+
+        // Ensure course can be edited
+        if (!course.canEdit()) {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+            return;
+        }
+
+        // Update fields
+        quiz.title = title || quiz.title;
+        quiz.description = description || quiz.description;
+        quiz.timePerQuestion = timePerQuestion || quiz.timePerQuestion;
+
+        await quiz.save();
+
+        res
+            .status(200)
+            .json({ message: "Module Quiz updated successfully.", data: quiz });
+    } catch (error: any) {
+        logger.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to update Module Quiz." });
+    }
+};
+
+export const deleteLessonQuiz = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const quizId = req.query.quizId as string; // Quiz ID from URL
+
+        const quiz = await LessonQuiz.findByPk(quizId);
+
+        if (!quiz) {
+            res.status(404).json({ message: "Module Quiz not found." });
+            return;
+        }
+
+        const course = await Course.findByPk(quiz.courseId);
+
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+
+        // Ensure course can be edited
+        if (!course.canEdit()) {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+            return;
+        }
+
+        // Find the lesson by ID (replace with actual DB logic)
+        const lesson = await Lesson.findByPk(quiz.lessonId);
+
+        if (!lesson) {
+            res.status(404).json({ message: "Lesson not found" });
+            return;
+        }
+
+        await quiz.destroy();
+        await lesson.destroy();
+        res.status(200).json({ message: "Module Quiz deleted successfully." });
+    } catch (error: any) {
+        if (error instanceof ForeignKeyConstraintError) {
+            res.status(400).json({
+                message:
+                    "Cannot delete job category because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+            });
+        } else {
+            logger.error(error);
+            res
+                .status(500)
+                .json({ message: error.message || "Failed to delete Module Quiz." });
+        }
+    }
+};
+
+export const getLessonQuizzes = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { moduleId, page = 1, limit = 10 } = req.query;
+
+        // Pagination setup
+        const offset = (Number(page) - 1) * Number(limit);
+        const searchConditions: any = {};
+
+        if (moduleId) {
+            searchConditions.moduleId = moduleId;
+        }
+
+        // Fetch quizzes with filters and pagination
+        const { rows: quizzes, count: total } = await LessonQuiz.findAndCountAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]],
+            offset,
+            limit: Number(limit),
+        });
+
+        res.status(200).json({
+            data: quizzes,
+            pagination: {
+                total,
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / Number(limit)),
+                limit: Number(limit),
+            },
+        });
+    } catch (error: any) {
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to fetch Module Quizzes." });
+    }
+};
+
+/**
+ * Create a new LessonQuizQuestion
+ */
+export const createLessonQuizQuestion = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = (req as AuthenticatedRequest).user?.id; // Assuming the user ID is passed in the URL params
+        const { lessonQuizId, question, options, correctOption, score } = req.body;
+
+        // Validate associated LessonQuiz
+        const quiz = await LessonQuiz.findByPk(lessonQuizId);
+        if (!quiz) {
+            res.status(404).json({ message: "Module quiz not found." });
+            return;
+        }
+
+        // Create new question
+        const newQuestion = await LessonQuizQuestion.create({
+            creatorId: userId,
+            courseId: quiz.courseId,
+            moduleId: quiz.moduleId,
+            lessonQuizId,
+            lessonId: quiz.lessonId,
+            question,
+            options,
+            correctOption,
+            score,
+        });
+
+        res
+            .status(200)
+            .json({ message: "Question created successfully.", data: newQuestion });
+    } catch (error: any) {
+        logger.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to create question." });
+    }
+};
+
+/**
+ * Update a LessonQuizQuestion
+ */
+export const updateLessonQuizQuestion = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { questionId, question, options, correctOption, score } = req.body;
+
+        // Find existing question
+        const existingQuestion = await LessonQuizQuestion.findByPk(questionId);
+        if (!existingQuestion) {
+            res.status(404).json({ message: "Question not found." });
+            return;
+        }
+
+        // Update question
+        await existingQuestion.update({
+            question,
+            options,
+            correctOption,
+            score,
+        });
+
+        res
+            .status(200)
+            .json({
+                message: "Question updated successfully.",
+                data: existingQuestion,
+            });
+    } catch (error: any) {
+        logger.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to update question." });
+    }
+};
+
+/**
+ * Delete a LessonQuizQuestion
+ */
+export const deleteLessonQuizQuestion = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const questionId = req.query.questionId as string;
+
+        // Find and delete the question
+        const question = await LessonQuizQuestion.findByPk(questionId);
+        if (!question) {
+            res.status(404).json({ message: "Question not found." });
+            return;
+        }
+
+        await question.destroy();
+
+        res.status(200).json({ message: "Question deleted successfully." });
+    } catch (error: any) {
+        logger.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to delete question." });
+    }
+};
+
+/**
+ * Get all questions for a LessonQuiz
+ */
+export const getLessonQuizQuestion = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { lessonQuizId, limit = 10, page = 1 } = req.query; // Defaults: limit = 10, page = 1
+
+        const offset = (Number(page) - 1) * Number(limit);
+
+        // Find questions with pagination
+        const { count, rows: questions } = await LessonQuizQuestion.findAndCountAll(
+            {
+                where: { lessonQuizId },
+                limit: Number(limit),
+                offset,
+                order: [["createdAt", "DESC"]], // Optional: Sort by creation date
+            }
+        );
+
+        if (!questions || questions.length === 0) {
+            res
+                .status(404)
+                .json({ message: "No questions found for the given LessonQuizId." });
+            return;
+        }
+
+        res.status(200).json({
+            data: questions,
+            pagination: {
+                total: count,
+                currentPage: Number(page),
+                totalPages: Math.ceil(count / Number(limit)),
+                limit: Number(limit),
+            },
+        });
+    } catch (error: any) {
+        logger.error(error);
+        res
+            .status(500)
+            .json({ message: error.message || "Failed to fetch questions." });
+    }
+};
+
+export const createLessonAssignment = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const userId = (req as AuthenticatedRequest).user?.id; // Assuming the user ID is passed in the URL params
+        
+        const {moduleId, lessonTitle, title, description, dueDate } =
+            req.body;
+        
+        const module = await Module.findByPk(moduleId);
+        if (!module) {
+            res.status(404).json({
+                message: "Module not found in our database.",
+            });
+            return;
+        }
+
+        const course = await Course.findByPk(module.courseId);
+
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+
+        if (course.canEdit()) {
+            // Fetch the lesson with the highest sortOrder
+            const maxSortLesson = await Lesson.findOne({
+                where: { moduleId: module.id },
+                order: [["sortOrder", "DESC"]], // Sort by sortOrder in descending order
+            });
+
+            // Calculate the new sortOrder
+            const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
+
+            const lesson = await Lesson.create({
+                moduleId,
+                courseId: module.courseId,
+                title: lessonTitle,
+                contentType: "quiz",
+                sortOrder,
+            });
+
+            const lessonAssignment = await LessonAssignment.create({
+                creatorId: userId,
+                courseId: module.courseId,
+                moduleId,
+                lessonId: lesson.id,
+                title,
+                description,
+                dueDate,
+            });
+
+            res.status(201).json({
+                message: "Lesson Assignment created successfully.",
+                data: lessonAssignment,
+            });
+        } else {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+        }
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message || "Failed to create Lesson Assignment.",
+            error: error.message,
+        });
+    }
+};
+
+export const getLessonAssignment = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { id } = req.params;
+
+        const lessonAssignment = await LessonAssignment.findByPk(id);
+
+        if (!lessonAssignment) {
+            res.status(404).json({ message: "Lesson Assignment not found." });
+            return;
+        }
+
+        res.status(200).json({ data: lessonAssignment });
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message || "Failed to fetch Lesson Assignment.",
+            error: error.message,
+        });
+    }
+};
+
+export const getLessonAssignments = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { moduleId, page = 1, limit = 10 } = req.query;
+
+        // Pagination setup
+        const offset = (Number(page) - 1) * Number(limit);
+        const searchConditions: any = {};
+
+        if (moduleId) {
+            searchConditions.moduleId = moduleId;
+        }
+
+        // Fetch assignments with filters and pagination
+        const { rows: assignments, count: total } = await LessonAssignment.findAndCountAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]],
+            offset,
+            limit: Number(limit),
+        });
+
+        res.status(200).json({
+            data: assignments,
+            pagination: {
+                total,
+                currentPage: Number(page),
+                totalPages: Math.ceil(total / Number(limit)),
+                limit: Number(limit),
+            },
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message || "Failed to fetch Lesson Assignments.",
+        });
+    }
+};
+
+export const updateLessonAssignment = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { assignmentId, title, description, dueDate } = req.body;
+
+        const lessonAssignment = await LessonAssignment.findByPk(assignmentId);
+
+        if (!lessonAssignment) {
+            res.status(404).json({ message: "Lesson Assignment not found." });
+            return;
+        }
+
+        const updatedAssignment = await lessonAssignment.update({
+            title,
+            description,
+            dueDate,
+        });
+
+        res.status(200).json({
+            message: "Lesson Assignment updated successfully.",
+            data: updatedAssignment,
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message || "Failed to update Lesson Assignment.",
+            error: error.message,
+        });
+    }
+};
+
+export const deleteLessonAssignment = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const assignmentId = req.query.assignmentId as string;
+
+        const lessonAssignment = await LessonAssignment.findByPk(assignmentId);
+
+        if (!lessonAssignment) {
+            res.status(404).json({ message: "Lesson Assignment not found." });
+            return;
+        }
+
+        const course = await Course.findByPk(lessonAssignment.courseId);
+
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+
+        // Ensure course can be edited
+        if (!course.canEdit()) {
+            res.status(403).json({
+                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+            });
+            return;
+        }
+
+        // Find the lesson by ID (replace with actual DB logic)
+        const lesson = await Lesson.findByPk(lessonAssignment.lessonId);
+
+        if (!lesson) {
+            res.status(404).json({ message: "Lesson not found" });
+            return;
+        }
+
+        await lessonAssignment.destroy();
+
+        await lesson.destroy();
+
+        res
+            .status(200)
+            .json({ message: "Lesson Assignment deleted successfully." });
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message || "Failed to delete Lesson Assignment.",
+            error: error.message,
+        });
     }
 };
 
@@ -867,7 +1487,7 @@ export const viewPhysicalAsset = async (
 
         // Fetch asset with optional search criteria
         const asset = await PhysicalAsset.findOne({
-            where: { id },
+            where: { id, creatorId: userId },
             include: [
                 {
                     model: AssetCategory, // Including the related AssetCategory model
@@ -947,5 +1567,482 @@ export const deletePhysicalAsset = async (
     } catch (error) {
         logger.error("Error deleting physical asset:", error);
         res.status(500).json({ error: "Failed to delete physical asset" });
+    }
+};
+
+export const addJob = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const {
+            categoryId,
+            title,
+            company,
+            logo,
+            workplaceType,
+            location,
+            jobType,
+        } = req.body;
+
+        // Extract user ID from authenticated request
+        const userId = (req as AuthenticatedRequest).user?.id;
+
+        // Validate category
+        const category = await JobCategory.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+
+        // Create the job
+        const newJob = await Job.create({
+            creatorId: userId,
+            categoryId,
+            title,
+            slug: `${title.toLowerCase().replace(/ /g, "-")}-${uuidv4()}`,
+            company,
+            logo, // Assuming a URL for the logo is provided
+            workplaceType,
+            location,
+            jobType,
+            status: "draft", // Default status
+        });
+
+        res.status(200).json({
+            message: "Job added successfully.",
+            data: newJob, // Optional: format with a resource transformer if needed
+        });
+    } catch (error: any) {
+        logger.error(error);
+        res.status(500).json({
+            message: error.message || "An error occurred while adding the job.",
+        });
+    }
+};
+
+export const postJob = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const {
+            jobId,
+            description,
+            skills,
+            applyLink,
+            applicantCollectionEmailAddress,
+            rejectionEmails,
+        } = req.body;
+
+        const job = await Job.findByPk(jobId);
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found in our database.",
+            });
+            return;
+        }
+
+        await job.update({
+            description,
+            skills,
+            applyLink,
+            applicantCollectionEmailAddress,
+            rejectionEmails,
+            status: "Active",
+        });
+
+        res.status(200).json({
+            message: "Job posted successfully.",
+            data: job, // Include a JobResource equivalent if needed
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message || "An error occurred while posting the job.",
+        });
+    }
+};
+
+export const getJobs = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { status, title } = req.query; // Expecting 'Draft', 'Active', or 'Closed' for status, and a string for title
+        const userId = (req as AuthenticatedRequest).user?.id; // Extract user ID from authenticated request
+
+        const jobs = await Job.findAll({
+            where: {
+                creatorId: userId,
+                ...(status && { status: { [Op.eq]: status } }), // Optional filtering by status
+                ...(title && { title: { [Op.like]: `%${title}%` } }), // Optional filtering by title (partial match)
+            },
+            order: [["createdAt", "DESC"]],
+        });
+
+        res.status(200).json({
+            message: "Jobs retrieved successfully.",
+            data: jobs, // Include a JobResource equivalent if needed
+        });
+    } catch (error: any) {
+        logger.error(error);
+        res.status(500).json({
+            message: error.message || "An error occurred while retrieving jobs.",
+        });
+    }
+};
+
+// CLOSE Job
+export const closeJob = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const jobId = req.query.jobId as string;
+
+        // Find the job
+        const job = await Job.findByPk(jobId);
+
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found in our database.",
+            });
+            return;
+        }
+
+        // Update the job status to 'Closed'
+        job.status = "closed";
+        job.updatedAt = new Date();
+
+        await job.save();
+
+        res.status(200).json({
+            message: "Job closed successfully.",
+            data: job, // Replace with a JobResource equivalent if necessary
+        });
+    } catch (error: any) {
+        logger.error(error);
+        res.status(500).json({
+            message: error.message || "An error occurred while closing the job.",
+        });
+    }
+};
+
+// DELETE Job
+export const deleteJob = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const jobId = req.query.jobId as string;
+
+        // Find the job
+        const job = await Job.findByPk(jobId);
+
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found in our database.",
+            });
+            return;
+        }
+
+        if (job.status !== "draft") {
+            res.status(400).json({
+                message: "Only draft jobs can be deleted.",
+            });
+            return;
+        }
+
+        // Delete the job
+        await job.destroy();
+
+        res.status(200).json({
+            message: "Job deleted successfully.",
+        });
+    } catch (error: any) {
+        logger.error(error);
+        res.status(500).json({
+            message: error.message || "An error occurred while deleting the job.",
+        });
+    }
+};
+
+export const getJobApplicants = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const jobId = req.query.jobId as string;
+        const userId = (req as AuthenticatedRequest).user?.id;
+
+        const job = await Job.findOne({ where: { id: jobId, creatorId: userId } });
+
+        if (!job) {
+            res.status(403).json({
+                message: "Job doesn't belong to you.",
+            });
+            return;
+        }
+
+        const applicants = await Applicant.findAll({
+            where: { jobId },
+            include: [
+                {
+                    model: User,
+                    as: "user",
+                },
+            ],
+        });
+
+        res.status(200).json({
+            message: "All applicants retrieved successfully.",
+            data: applicants,
+        });
+    } catch (error: any) {
+        logger.error(error);
+        res.status(500).json({ message: error.message || "Server error." });
+    }
+};
+
+export const viewApplicant = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const applicantId = req.query.applicantId as string;
+
+        const applicant = await Applicant.findByPk(applicantId, {
+            include: [
+                {
+                    model: User, // Assuming 'User' is the associated model
+                    as: "user", // Alias for the relationship if defined in the model association
+                    attributes: ["id", "name", "email", "photo"], // Select only the fields you need
+                },
+                {
+                    model: Job,
+                    as: "job",
+                },
+            ],
+        });
+        if (!applicant) {
+            res.status(404).json({
+                message: "Not found in our database.",
+            });
+            return;
+        }
+
+        const job = await Job.findByPk(applicant.jobId);
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found.",
+            });
+            return;
+        }
+
+        if (!applicant.view) {
+            applicant.view = true;
+            await applicant.save();
+
+            const jobUser = await User.findByPk(job.creatorId);
+            const applicantUser = await User.findByPk(applicant.userId);
+
+            if (!jobUser || !applicantUser) {
+                res.status(404).json({
+                    message: "Associated users not found.",
+                });
+                return;
+            }
+
+            const messageToApplicant = emailTemplates.notifyApplicant(
+                job,
+                jobUser,
+                applicantUser
+            );
+
+            // Send emails
+            await sendMail(
+                jobUser.email,
+                `${process.env.APP_NAME} - Your application for ${job.title} was viewed by ${job.company}`,
+                messageToApplicant
+            );
+        }
+
+        res.status(200).json({
+            message: "Applicant retrieved successfully.",
+            data: applicant,
+        });
+    } catch (error) {
+        logger.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+export const repostJob = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { jobId } = req.body;
+        const userId = (req as AuthenticatedRequest).user?.id; // Extract user ID from authenticated request
+
+        const job = await Job.findByPk(jobId);
+
+        if (!job) {
+            res.status(404).json({
+                message: "Job not found in our database.",
+            });
+            return;
+        }
+
+        if (!job.title) {
+            throw new Error("Job title cannot be null.");
+        }
+
+        const repost = await Job.create({
+            creatorId: userId,
+            categoryId: job.categoryId,
+            title: job.title,
+            slug: `${job.title.toLowerCase().replace(/\s+/g, "-")}-${Math.floor(
+                Math.random() * 10000
+            )}`,
+            company: job.company,
+            logo: job.logo,
+            workplaceType: job.workplaceType,
+            location: job.location,
+            jobType: job.jobType,
+            description: job.description,
+            skills: job.skills,
+            applyLink: job.applyLink,
+            applicantCollectionEmailAddress: job.applicantCollectionEmailAddress,
+            rejectionEmails: job.rejectionEmails,
+            status: "active",
+        });
+
+        res.status(200).json({
+            message: "Job reposted successfully.",
+            data: repost,
+        });
+    } catch (error) {
+        logger.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+export const downloadApplicantResume = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { applicantId } = req.body;
+
+        const applicant = await Applicant.findByPk(applicantId);
+
+        if (!applicant || !applicant.resume) {
+            res.status(404).json({
+                message: "File damaged or not found.",
+            });
+            return;
+        }
+
+        console.log("Resume URL:", applicant.resume);
+
+        const response = await fetch(applicant.resume);
+
+        if (!response.ok) {
+            console.error("Resume Fetch Failed", {
+                applicantId,
+                resumeUrl: applicant.resume,
+                status: response.status,
+                statusText: response.statusText,
+            });
+
+            if (response.status === 404) {
+                res
+                    .status(404)
+                    .json({
+                        message: "Resume file not found. Please update the record.",
+                    });
+            } else {
+                res.status(500).json({ message: "Failed to download the resume." });
+            }
+            return;
+        }
+
+        const fileName = path.basename(applicant.resume);
+        const localPath = path.join(__dirname, "../storage/resumes", fileName);
+
+        const resumeContent = Buffer.from(await response.arrayBuffer());
+        fs.writeFileSync(localPath, resumeContent);
+
+        res.download(localPath, fileName, (err) => {
+            if (err) {
+                logger.error(err);
+            }
+            fs.unlinkSync(localPath); // Delete file after download
+        });
+    } catch (error) {
+        logger.error(error);
+        res.status(500).json({ message: "Server error." });
+    }
+};
+
+export const rejectApplicant = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const { applicantId } = req.body;
+
+        // Find the applicant
+        const applicant = await Applicant.findByPk(applicantId);
+
+        if (!applicant) {
+            res.status(404).json({
+                message: "Applicant not found in our database.",
+            });
+            return;
+        }
+
+        // Check if the applicant is already rejected
+        if (applicant.status !== "rejected") {
+            // Update the applicant's status
+            await applicant.update({ status: "rejected" });
+
+            // Find the associated job
+            const job = await Job.findByPk(applicant.jobId);
+            if (!job) {
+                res.status(404).json({
+                    message: "Job not found in our database.",
+                });
+                return;
+            }
+
+            // Check if rejection emails are enabled for the job
+            if (job.rejectionEmails) {
+                const user = await User.findByPk(applicant.userId);
+                const jobPoster = await User.findByPk(job.creatorId);
+
+                if (!jobPoster || !user) {
+                    res.status(404).json({
+                        message: "Associated users not found.",
+                    });
+                    return;
+                }
+
+                const messageToApplicant = emailTemplates.applicantRejection(
+                    job,
+                    jobPoster,
+                    user,
+                    applicant
+                );
+
+                // Send emails
+                await sendMail(
+                    user.email,
+                    `${process.env.APP_NAME} - Your application to ${job.title} [${job.jobType}] at ${job.company}`,
+                    messageToApplicant
+                );
+            }
+
+            res.status(200).json({
+                message: "Rejection successful.",
+                data: applicant, // Return the updated applicant data
+            });
+            return;
+        }
+
+        // If already rejected
+        res.status(400).json({
+            message: "Applicant is already rejected.",
+        });
+    } catch (error: any) {
+        logger.error(error);
+        res.status(500).json({
+            message: error.data || "Server error.",
+        });
     }
 };

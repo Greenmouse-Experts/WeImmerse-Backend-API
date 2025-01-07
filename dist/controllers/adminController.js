@@ -12,7 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -27,6 +28,9 @@ const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan")
 const user_1 = __importDefault(require("../models/user"));
 const coursecategory_1 = __importDefault(require("../models/coursecategory"));
 const assetcategory_1 = __importDefault(require("../models/assetcategory"));
+const jobcategory_1 = __importDefault(require("../models/jobcategory"));
+const physicalasset_1 = __importDefault(require("../models/physicalasset"));
+const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -1008,4 +1012,538 @@ const getAllInstitution = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getAllInstitution = getAllInstitution;
+// Job Categories
+const getJobCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const jobs = yield jobcategory_1.default.findAll();
+        res.status(200).json({ data: jobs });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getJobCategories = getJobCategories;
+const createJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name } = req.body;
+        // Check if a category with the same name already exists
+        const existingCategory = yield jobcategory_1.default.findOne({ where: { name } });
+        if (existingCategory) {
+            res.status(400).json({ message: "A job category with the same name already exists." });
+            return;
+        }
+        const category = yield jobcategory_1.default.create({ name });
+        res
+            .status(200)
+            .json({
+            message: "Job category created successfully",
+            data: category,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.createJobCategory = createJobCategory;
+const updateJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id, name } = req.body;
+        const category = yield jobcategory_1.default.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Job category not found" });
+            return;
+        }
+        // Check if another category with the same name exists (exclude the current category)
+        const existingCategory = yield jobcategory_1.default.findOne({
+            where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
+        });
+        if (existingCategory) {
+            res.status(400).json({ message: "Another job category with the same name already exists." });
+            return;
+        }
+        yield category.update({ name });
+        res
+            .status(200)
+            .json({
+            message: "Job category updated successfully",
+            data: category,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.updateJobCategory = updateJobCategory;
+const deleteJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = req.query.id;
+        const category = yield jobcategory_1.default.findByPk(id);
+        if (!category) {
+            res.status(404).json({ message: "Job category not found" });
+            return;
+        }
+        yield category.destroy();
+        res.status(200).json({ message: "Asset category deleted successfully" });
+    }
+    catch (error) {
+        if (error instanceof sequelize_1.ForeignKeyConstraintError) {
+            res.status(400).json({
+                message: "Cannot delete job category because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+            });
+        }
+        else {
+            logger_1.default.error("Error deleting job category:", error);
+            res
+                .status(500)
+                .json({ message: error.message || "Error deleting job category" });
+        }
+    }
+});
+exports.deleteJobCategory = deleteJobCategory;
+// Digital Asset
+const getAllDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { assetName, pricingType, status } = req.query; // Extract search parameters
+        // Build search conditions
+        const searchConditions = {};
+        if (assetName) {
+            searchConditions.assetName = { [sequelize_1.Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (pricingType) {
+            searchConditions.pricingType = pricingType;
+        }
+        if (status) {
+            searchConditions.status = status;
+        }
+        // Fetch assets with optional search criteria
+        const assets = yield digitalasset_1.default.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+        res.status(200).json({
+            data: assets
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching digital assets:", error);
+        res.status(500).json({
+            message: error.message || "Failed to fetch digital assets"
+        });
+    }
+});
+exports.getAllDigitalAssets = getAllDigitalAssets;
+const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _c;
+    try {
+        const { categoryId } = req.body;
+        const adminId = (_c = req.admin) === null || _c === void 0 ? void 0 : _c.id;
+        // Category check
+        const category = yield assetcategory_1.default.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+        // Ensure the creatorId is included in the request payload
+        const digitalAssetData = Object.assign(Object.assign({}, req.body), { creatorId: adminId, categoryId: category.id, status: "published" });
+        // Create the DigitalAsset
+        const asset = yield digitalasset_1.default.create(digitalAssetData);
+        res.status(200).json({
+            message: "Digital Asset created successfully",
+            data: asset,
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error creating Digital Asset:", error);
+        res.status(500).json({
+            error: error.message || "Failed to create Digital Asset",
+        });
+    }
+});
+exports.createDigitalAsset = createDigitalAsset;
+const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _d;
+    const adminId = (_d = req.admin) === null || _d === void 0 ? void 0 : _d.id;
+    try {
+        const { assetName, pricingType, status } = req.query; // Extract search parameters
+        // Build search conditions
+        const searchConditions = {
+            creatorId: adminId,
+        };
+        if (assetName) {
+            searchConditions.assetName = { [sequelize_1.Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (pricingType) {
+            searchConditions.pricingType = pricingType;
+        }
+        if (status) {
+            searchConditions.status = status;
+        }
+        // Fetch assets with optional search criteria
+        const assets = yield digitalasset_1.default.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+        res.status(200).json({ data: assets });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching digital assets:", error);
+        res
+            .status(500)
+            .json({ error: error.message || "Failed to fetch Digital Assets" });
+    }
+});
+exports.getDigitalAssets = getDigitalAssets;
+const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.query; // Extract search parameters
+        // Fetch asset with optional search criteria
+        const asset = yield digitalasset_1.default.findOne({
+            where: { id },
+            include: [
+                {
+                    model: assetcategory_1.default,
+                    as: "assetCategory",
+                    attributes: ["id", "name"], // You can specify the fields you want to include
+                },
+                {
+                    model: user_1.default,
+                    as: "user",
+                    attributes: ["id", "accountType", "name", "email"],
+                },
+                {
+                    model: admin_1.default,
+                    as: "admin",
+                    attributes: ["id", "name", "email"],
+                    include: [
+                        {
+                            model: role_1.default,
+                            as: "role", // Make sure this alias matches the one you used in the association
+                        },
+                    ],
+                }
+            ],
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+        res.status(200).json({ data: asset });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching digital asset:", error);
+        res
+            .status(500)
+            .json({ error: error.message || "Failed to fetch Digital Asset" });
+    }
+});
+exports.viewDigitalAsset = viewDigitalAsset;
+const updateDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, categoryId } = req.body; // ID is passed in the request body
+    try {
+        // Category check
+        const category = yield assetcategory_1.default.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+        // Find the Digital Asset by ID
+        const asset = yield digitalasset_1.default.findByPk(id);
+        if (!asset) {
+            res.status(404).json({ message: "Digital Asset not found" });
+            return;
+        }
+        // Update the Digital Asset with new data
+        yield asset.update(Object.assign(Object.assign({}, req.body), { categoryId: category.id }));
+        res.status(200).json({
+            message: "Digital Asset updated successfully",
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error updating Digital Asset:", error);
+        res.status(500).json({ error: "Failed to update Digital Asset" });
+    }
+});
+exports.updateDigitalAsset = updateDigitalAsset;
+const deleteDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.query.id;
+    try {
+        // Find the Digital Asset by ID
+        const asset = yield digitalasset_1.default.findByPk(id);
+        // If the asset is not found, return a 404 response
+        if (!asset) {
+            res.status(404).json({ message: "Digital Asset not found" });
+            return;
+        }
+        // Delete the asset
+        yield asset.destroy();
+        // Return success response
+        res.status(200).json({ message: "Digital Asset deleted successfully" });
+    }
+    catch (error) {
+        logger_1.default.error("Error deleting Digital Asset:", error);
+        res.status(500).json({ error: "Failed to delete Digital Asset" });
+    }
+});
+exports.deleteDigitalAsset = deleteDigitalAsset;
+const updateDigitalAssetStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { assetId, status, adminNote } = req.body; // Extract status and adminNote from request body
+        // Validate status
+        if (!["published", "unpublished"].includes(status)) {
+            res.status(400).json({
+                message: "Invalid status. Allowed values are 'published' or 'unpublished'.",
+            });
+            return;
+        }
+        // Ensure adminNote is provided if status is 'unpublished'
+        if (status === "unpublished" && (!adminNote || adminNote.trim() === "")) {
+            res.status(400).json({
+                message: "Admin note is required when status is 'unpublished'.",
+            });
+            return;
+        }
+        // Find the asset by ID
+        const asset = yield digitalasset_1.default.findByPk(assetId);
+        if (!asset) {
+            res.status(404).json({
+                message: "Asset not found.",
+            });
+            return;
+        }
+        // Update the asset's status and adminNote
+        yield asset.update({ status, adminNote: status === "unpublished" ? adminNote : null });
+        res.status(200).json({
+            message: "Asset status updated successfully.",
+            data: asset,
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error updating asset status:", error);
+        res.status(500).json({
+            message: error.message || "Failed to update asset status.",
+        });
+    }
+});
+exports.updateDigitalAssetStatus = updateDigitalAssetStatus;
+// Physical Asset
+const getAllPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { assetName, status } = req.query; // Extract search parameters
+        // Build search conditions
+        const searchConditions = {};
+        if (assetName) {
+            searchConditions.assetName = { [sequelize_1.Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (status) {
+            searchConditions.status = status;
+        }
+        // Fetch assets with optional search criteria
+        const assets = yield physicalasset_1.default.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+        res.status(200).json({
+            data: assets,
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching physical assets:", error);
+        res.status(500).json({
+            message: error.message || "Failed to fetch physical assets",
+        });
+    }
+});
+exports.getAllPhysicalAssets = getAllPhysicalAssets;
+const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _e;
+    try {
+        const { categoryId } = req.body;
+        const adminId = (_e = req.admin) === null || _e === void 0 ? void 0 : _e.id; // Extract user ID from authenticated request
+        // Category check
+        const category = yield assetcategory_1.default.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+        // Ensure the creatorId is included in the request payload
+        const physicalAssetData = Object.assign(Object.assign({}, req.body), { creatorId: adminId, categoryId: category.id, status: "published" });
+        // Create the PhysicalAsset
+        const asset = yield physicalasset_1.default.create(physicalAssetData);
+        res.status(200).json({
+            message: "Physical Asset created successfully",
+            data: asset,
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error creating Physical Asset:", error);
+        res.status(500).json({
+            error: error.message || "Failed to create Physical Asset",
+        });
+    }
+});
+exports.createPhysicalAsset = createPhysicalAsset;
+const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _f;
+    const adminId = (_f = req.admin) === null || _f === void 0 ? void 0 : _f.id; // Extract authenticated user's ID
+    try {
+        const { assetName, status } = req.query; // Extract search parameters
+        // Build search conditions
+        const searchConditions = {
+            creatorId: adminId,
+        };
+        if (assetName) {
+            searchConditions.assetName = { [sequelize_1.Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (status) {
+            searchConditions.status = status;
+        }
+        // Fetch assets with optional search criteria
+        const assets = yield physicalasset_1.default.findAll({
+            where: searchConditions,
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+        res.status(200).json({ data: assets });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching physical assets:", error);
+        res
+            .status(500)
+            .json({ error: error.message || "Failed to fetch physical Assets" });
+    }
+});
+exports.getPhysicalAssets = getPhysicalAssets;
+const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.query; // Extract search parameters
+        // Fetch asset with optional search criteria
+        const asset = yield physicalasset_1.default.findOne({
+            where: { id },
+            include: [
+                {
+                    model: assetcategory_1.default,
+                    as: "assetCategory",
+                    attributes: ["id", "name"], // You can specify the fields you want to include
+                },
+                {
+                    model: user_1.default,
+                    as: "user",
+                    attributes: ["id", "accountType", "name", "email"],
+                },
+                {
+                    model: admin_1.default,
+                    as: "admin",
+                    attributes: ["id", "name", "email"],
+                    include: [
+                        {
+                            model: role_1.default,
+                            as: "role", // Make sure this alias matches the one you used in the association
+                        },
+                    ],
+                }
+            ],
+            order: [["createdAt", "DESC"]], // Sort by creation date descending
+        });
+        res.status(200).json({ data: asset });
+    }
+    catch (error) {
+        logger_1.default.error("Error fetching physical asset:", error);
+        res
+            .status(500)
+            .json({ error: error.message || "Failed to fetch physical asset" });
+    }
+});
+exports.viewPhysicalAsset = viewPhysicalAsset;
+const updatePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id, categoryId } = req.body; // ID is passed in the request body
+    try {
+        // Category check
+        const category = yield assetcategory_1.default.findByPk(categoryId);
+        if (!category) {
+            res.status(404).json({
+                message: "Category not found in our database.",
+            });
+            return;
+        }
+        // Find the Physical Asset by ID
+        const asset = yield physicalasset_1.default.findByPk(id);
+        if (!asset) {
+            res.status(404).json({ message: "Physical Asset not found" });
+            return;
+        }
+        // Update the Physical Asset with new data
+        yield asset.update(Object.assign(Object.assign({}, req.body), { categoryId: category.id }));
+        res.status(200).json({
+            message: "Physical Asset updated successfully",
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error updating physical Asset:", error);
+        res.status(500).json({ error: "Failed to update physical Asset" });
+    }
+});
+exports.updatePhysicalAsset = updatePhysicalAsset;
+const deletePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = req.query.id;
+    try {
+        // Find the Physical Asset by ID
+        const asset = yield physicalasset_1.default.findByPk(id);
+        // If the asset is not found, return a 404 response
+        if (!asset) {
+            res.status(404).json({ message: "Physical Asset not found" });
+            return;
+        }
+        // Delete the asset
+        yield asset.destroy();
+        // Return success response
+        res.status(200).json({ message: "Physical Asset deleted successfully" });
+    }
+    catch (error) {
+        logger_1.default.error("Error deleting physical asset:", error);
+        res.status(500).json({ error: "Failed to delete physical asset" });
+    }
+});
+exports.deletePhysicalAsset = deletePhysicalAsset;
+const updatePhysicalAssetStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { assetId, status, adminNote } = req.body; // Extract status and adminNote from request body
+        // Validate status
+        if (!["published", "unpublished"].includes(status)) {
+            res.status(400).json({
+                message: "Invalid status. Allowed values are 'published' or 'unpublished'.",
+            });
+            return;
+        }
+        // Ensure adminNote is provided if status is 'unpublished'
+        if (status === "unpublished" && (!adminNote || adminNote.trim() === "")) {
+            res.status(400).json({
+                message: "Admin note is required when status is 'unpublished'.",
+            });
+            return;
+        }
+        // Find the asset by ID
+        const asset = yield physicalasset_1.default.findByPk(assetId);
+        if (!asset) {
+            res.status(404).json({
+                message: "Asset not found.",
+            });
+            return;
+        }
+        // Update the asset's status and adminNote
+        yield asset.update({ status, adminNote: status === "unpublished" ? adminNote : null });
+        res.status(200).json({
+            message: "Asset status updated successfully.",
+            data: asset,
+        });
+    }
+    catch (error) {
+        logger_1.default.error("Error updating asset status:", error);
+        res.status(500).json({
+            message: error.message || "Failed to update asset status.",
+        });
+    }
+});
+exports.updatePhysicalAssetStatus = updatePhysicalAssetStatus;
 //# sourceMappingURL=adminController.js.map

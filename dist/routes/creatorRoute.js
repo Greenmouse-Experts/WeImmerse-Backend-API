@@ -44,11 +44,26 @@ creatorRoutes.put("/course/module/update", authMiddleware_1.default, authorizeCr
 creatorRoutes.delete("/course/module/delete", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleDeletionValidationRules)(), creatorValidations_1.validate, creatorController.deleteCourseModule);
 creatorRoutes.patch("/course/module/draggable", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleDraggableValidationRules)(), creatorValidations_1.validate, creatorController.updateDraggableCourseModule);
 // Lesson
-creatorRoutes.get("/course/module/lessons", authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourseLessons);
+creatorRoutes.get("/course/module/lessons", authMiddleware_1.default, authorizeCreator_1.default, creatorController.getModuleLessons);
 creatorRoutes.post("/course/module/lesson/create", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.lessonCreationValidationRules)(), creatorValidations_1.validate, creatorController.createModuleLesson);
 creatorRoutes.put("/course/module/lesson/update", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.lessonUpdatingValidationRules)(), creatorValidations_1.validate, creatorController.updateModuleLesson);
-creatorRoutes.delete("/course/module/lesson/delete", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleDeletionValidationRules)(), creatorValidations_1.validate, creatorController.deleteModuleLesson);
-// creatorRoutes.patch("/course/module/lesson/draggable", authMiddleware, authorizeCreator, moduleDraggableValidationRules(), validate, creatorController.updateDraggableModule);
+creatorRoutes.delete("/course/module/lesson/delete", authMiddleware_1.default, authorizeCreator_1.default, creatorController.deleteModuleLesson);
+creatorRoutes.patch("/course/module/lesson/draggable", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.lessonDraggableValidationRules)(), creatorValidations_1.validate, creatorController.updateDraggableLesson);
+// Lesson Quiz
+creatorRoutes.post('/course/lesson/quiz/create', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.quizCreationValidationRules)(), creatorValidations_1.validate, creatorController.createLessonQuiz);
+creatorRoutes.put('/course/lesson/quiz/update', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.quizUpdateValidationRules)(), creatorValidations_1.validate, creatorController.updateLessonQuiz);
+creatorRoutes.get('/course/lesson/quizzes', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getLessonQuizzes);
+creatorRoutes.delete('/course/lesson/quiz/delete', authMiddleware_1.default, authorizeCreator_1.default, creatorController.deleteLessonQuiz);
+// Lesson Quiz Questions
+creatorRoutes.post('/course/lesson/quiz/question/create', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.createQuizQuestionValidationRules)(), creatorValidations_1.validate, creatorController.createLessonQuizQuestion);
+creatorRoutes.put('/course/lesson/quiz/question/update', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.updateQuizQuestionValidationRules)(), creatorValidations_1.validate, creatorController.updateLessonQuizQuestion);
+creatorRoutes.get('/course/lesson/quiz/questions', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getLessonQuizQuestion);
+creatorRoutes.delete('/course/lesson/quiz/question/delete', authMiddleware_1.default, authorizeCreator_1.default, creatorController.deleteLessonQuizQuestion);
+// Lesson Assignment
+creatorRoutes.post('/course/lesson/assignment/create', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.createLessonAssignmentValidationRules)(), creatorValidations_1.validate, creatorController.createLessonAssignment);
+creatorRoutes.put('/course/lesson/assignment/update', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.updateLessonAssignmentValidationRules)(), creatorValidations_1.validate, creatorController.updateLessonAssignment);
+creatorRoutes.get('/course/lesson/assignments', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getLessonAssignments);
+creatorRoutes.delete('/course/lesson/assignment/delete', authMiddleware_1.default, authorizeCreator_1.default, creatorController.deleteLessonAssignment);
 creatorRoutes.get("/asset/categories", authMiddleware_1.default, authorizeCreator_1.default, creatorController.assetCategories);
 // Digital Asset
 creatorRoutes.get("/digital/assets", authMiddleware_1.default, authorizeCreator_1.default, creatorController.getDigitalAssets);
@@ -62,5 +77,16 @@ creatorRoutes.get("/physical/asset/view", authMiddleware_1.default, authorizeCre
 creatorRoutes.post("/physical/asset/create", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.physicalAssetValidationRules)(), creatorValidations_1.validate, creatorController.createPhysicalAsset);
 creatorRoutes.put("/physical/asset/update", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.physicalAssetValidationRules)(), creatorValidations_1.validate, creatorController.updatePhysicalAsset);
 creatorRoutes.delete("/physical/asset/delete", authMiddleware_1.default, authorizeCreator_1.default, creatorController.deletePhysicalAsset);
+// Job
+creatorRoutes.post('/job/add', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.addJobValidationRules)(), creatorValidations_1.validate, creatorController.addJob);
+creatorRoutes.put('/job/post', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.postJobValidationRules)(), creatorValidations_1.validate, creatorController.postJob);
+creatorRoutes.get('/jobs', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getJobs);
+creatorRoutes.patch('/job/close', authMiddleware_1.default, authorizeCreator_1.default, creatorController.closeJob);
+creatorRoutes.delete('/job/delete', authMiddleware_1.default, authorizeCreator_1.default, creatorController.deleteJob);
+creatorRoutes.post('/job/repost', authMiddleware_1.default, authorizeCreator_1.default, creatorController.repostJob);
+creatorRoutes.get('/job/applicants', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getJobApplicants);
+creatorRoutes.get('/job/view/applicant', authMiddleware_1.default, authorizeCreator_1.default, creatorController.viewApplicant);
+creatorRoutes.patch('/job/reject/applicant', authMiddleware_1.default, authorizeCreator_1.default, creatorController.rejectApplicant);
+creatorRoutes.post('/job/download/applicant/resume', authMiddleware_1.default, authorizeCreator_1.default, creatorController.downloadApplicantResume);
 exports.default = creatorRoutes;
 //# sourceMappingURL=creatorRoute.js.map

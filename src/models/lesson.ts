@@ -51,16 +51,13 @@ class Lesson extends Model {
         return lessons;
     }
 
-    public static async updateDraggable(data: { lessonId: string; sortOrder: number; moduleId: string }[]) {
-        for (const item of data) {
-            const lesson = await Lesson.findByPk(item.lessonId);
-            if (lesson) {
-                lesson.sortOrder = item.sortOrder;
-                lesson.moduleId = item.moduleId;
-                await lesson.save();
-            }
-        }
+    static async updateDraggable(data: Array<{ lessonId: string; sortOrder: number }>): Promise<void> {
+        const updates = data.map(item => 
+          this.update({ sortOrder: item.sortOrder }, { where: { id: item.lessonId } })
+        );
+        await Promise.all(updates);
     }
+      
 }
 
 const initModel = (sequelize: Sequelize) => {
@@ -78,7 +75,8 @@ const initModel = (sequelize: Sequelize) => {
                 model: 'modules', // Ensure this matches the modules table name
                 key: 'id',
             },
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE', 
+            onUpdate: 'CASCADE',
         },
         courseId: {
             type: DataTypes.UUID,
@@ -87,7 +85,8 @@ const initModel = (sequelize: Sequelize) => {
                 model: 'courses', // Ensure this matches the courses table name
                 key: 'id',
             },
-            onDelete: 'RESTRICT',
+            onDelete: 'CASCADE', 
+            onUpdate: 'CASCADE',
         },
         title: {
             type: DataTypes.STRING,

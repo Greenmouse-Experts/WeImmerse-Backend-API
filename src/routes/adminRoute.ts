@@ -11,6 +11,9 @@ import {
     updateSubscriptionPlanValidationRules,
     validatePaymentGateway,
     validate } from '../utils/validations'; // Import the service
+import {
+    digitalAssetValidationRules,
+    physicalAssetValidationRules } from '../utils/validations/adminValidations';
 import checkPermission from '../middlewares/checkPermissionMiddleware';
 
 const adminRoutes = Router();
@@ -54,6 +57,12 @@ adminRoutes.post('/asset/category/create', adminAuthMiddleware, adminController.
 adminRoutes.put('/asset/category/update', adminAuthMiddleware, adminController.updateAssetCategory);
 adminRoutes.delete('/asset/category/delete', adminAuthMiddleware, adminController.deleteAssetCategory);
 
+// Job Category
+adminRoutes.get('/job/categories', adminAuthMiddleware, adminController.getJobCategories);
+adminRoutes.post('/job/category/create', adminAuthMiddleware, adminController.createJobCategory);
+adminRoutes.put('/job/category/update', adminAuthMiddleware, adminController.updateJobCategory);
+adminRoutes.delete('/job/category/delete', adminAuthMiddleware, adminController.deleteJobCategory);
+
 // Subscription Plan
 adminRoutes.get('/subscription/plans', adminAuthMiddleware, adminController.getAllSubscriptionPlans);
 adminRoutes.post('/subscription/plan/create', adminAuthMiddleware, createSubscriptionPlanValidationRules(), validate, adminController.createSubscriptionPlan);
@@ -65,4 +74,23 @@ adminRoutes.get('/creators', adminAuthMiddleware, adminController.getAllCreator)
 adminRoutes.get('/users', adminAuthMiddleware, adminController.getAllUser);
 adminRoutes.get('/students', adminAuthMiddleware, adminController.getAllStudent);
 adminRoutes.get('/institutions', adminAuthMiddleware, adminController.getAllInstitution);
+
+// Digital Asset
+adminRoutes.get("/all/digital/assets", adminAuthMiddleware, adminController.getAllDigitalAssets);
+adminRoutes.get("/digital/assets", adminAuthMiddleware, adminController.getDigitalAssets);
+adminRoutes.get("/digital/asset/view", adminAuthMiddleware, adminController.viewDigitalAsset);
+adminRoutes.post("/digital/asset/create", adminAuthMiddleware, digitalAssetValidationRules(), validate, adminController.createDigitalAsset);
+adminRoutes.put("/digital/asset/update", adminAuthMiddleware, digitalAssetValidationRules(), validate, adminController.updateDigitalAsset);
+adminRoutes.delete("/digital/asset/delete", adminAuthMiddleware, adminController.deleteDigitalAsset);
+adminRoutes.patch("/digital/asset/update/status", adminAuthMiddleware, adminController.updateDigitalAssetStatus);
+
+// Physical Asset
+adminRoutes.get("/all/physical/assets", adminAuthMiddleware, adminController.getAllPhysicalAssets);
+adminRoutes.get("/physical/assets", adminAuthMiddleware, adminController.getPhysicalAssets);
+adminRoutes.get("/physical/asset/view", adminAuthMiddleware, adminController.viewPhysicalAsset);
+adminRoutes.post("/physical/asset/create", adminAuthMiddleware, physicalAssetValidationRules(), validate, adminController.createPhysicalAsset);
+adminRoutes.put("/physical/asset/update", adminAuthMiddleware, physicalAssetValidationRules(), validate, adminController.updatePhysicalAsset);
+adminRoutes.delete("/physical/asset/delete", adminAuthMiddleware, adminController.deletePhysicalAsset);
+adminRoutes.patch("/physical/asset/update/status", adminAuthMiddleware, adminController.updatePhysicalAssetStatus);
+
 export default adminRoutes; // Export the router

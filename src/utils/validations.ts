@@ -405,6 +405,30 @@ export const validatePaymentGateway = () => {
   ];
 };
 
+export const validateJobApplication = () => {
+  return [
+    check("email")
+      .isEmail()
+      .withMessage("A valid email address is required"),
+
+    check("phone")
+      .isMobilePhone("any")
+      .withMessage("Invalid phone number")
+      .custom((value) => {
+        if (value && !value.startsWith("+")) {
+          throw new Error("Phone number must start with '+'");
+        }
+        return true;
+      }),
+
+    check("resume")
+      .isString()
+      .withMessage("Resume is required and must be a string")
+      .isURL()
+      .withMessage("Resume must be a valid URL"),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,

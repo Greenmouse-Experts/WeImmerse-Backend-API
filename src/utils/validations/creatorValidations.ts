@@ -93,7 +93,7 @@ export const moduleDraggableValidationRules = () => {
       .isArray()
       .withMessage("Data must be an array"),
 
-    check("data.*.module_id")
+    check("data.*.moduleId")
       .not()
       .isEmpty()
       .withMessage("Module ID is required")
@@ -122,13 +122,6 @@ export const moduleDeletionValidationRules = () => {
 
 export const lessonCreationValidationRules = () => {
   return [
-    check("courseId")
-      .not()
-      .isEmpty()
-      .withMessage("Course ID is required")
-      .isUUID()
-      .withMessage("Course ID must be a valid UUID"),
-
     check("moduleId")
       .not()
       .isEmpty()
@@ -194,26 +187,21 @@ export const lessonUpdatingValidationRules = () => {
       .isIn(["text", "quiz", "assignment", "youtube", "video", "audio", "article"])
       .withMessage("Content Type must be one of: text, quiz, assignment, youtube, video, audio, or article"),
 
-    // Optional contentUrl: must be a valid URL
-    check("contentUrl")
-      .optional()
-      .isURL()
-      .withMessage("Content URL must be a valid URL"),
+      check("contentType")
+      .not()
+      .isEmpty()
+      .withMessage("Content type is required")
+      .isIn(['text', 'quiz', 'assignment', 'youtube', 'video', 'audio', 'article'])
+      .withMessage("Content type must be one of: text, quiz, assignment, youtube, video, audio, article"),
 
-    // Optional duration: required if contentType is 'video' or 'audio'
-    check("duration")
-      .optional()
-      .custom((value, { req }) => {
-        if (req.body.contentType === "video" || req.body.contentType === "audio") {
-          if (!value) {
-            throw new Error("Duration is required when content type is video or audio");
-          }
-          if (typeof value !== "number" || value <= 0) {
-            throw new Error("Duration must be a positive number");
-          }
-        }
-        return true;
-      }),
+    // Check if 'duration' is provided only when contentType is 'video' or 'audio'
+    check('duration')
+      .if(check('contentType').isIn(['video', 'audio']))
+      .not()
+      .isEmpty()
+      .withMessage('Duration is required for video and audio content types')
+      .isInt({ gt: 0 })
+      .withMessage('Duration must be a positive integer'),
 
     // Additional validation to ensure duration is numeric when provided
     check("duration")
@@ -223,6 +211,243 @@ export const lessonUpdatingValidationRules = () => {
   ];
 };
 
+export const lessonDraggableValidationRules = () => {
+  return [
+    check("data")
+      .isArray()
+      .withMessage("Data must be an array"),
+
+    check("data.*.lessonId")
+      .not()
+      .isEmpty()
+      .withMessage("Lesson ID is required")
+      .isUUID()
+      .withMessage("Lesson ID must be a valid UUID"),
+
+    check("data.*.sortOrder")
+      .not()
+      .isEmpty()
+      .withMessage("Sort Order is required")
+      .isNumeric()
+      .withMessage("Sort Order must be a number"),
+  ];
+};
+
+export const quizCreationValidationRules = () => {
+  return [
+    check("moduleId")
+      .not()
+      .isEmpty()
+      .withMessage("Module ID is required")
+      .isUUID()
+      .withMessage("Module ID must be a valid UUID"),
+
+    check("lessonTitle")
+      .not()
+      .isEmpty()
+      .withMessage("Lesson title is required")
+      .isString()
+      .withMessage("Lesson title must be a valid string"),
+
+    check("title")
+      .not()
+      .isEmpty()
+      .withMessage("Title is required")
+      .isString()
+      .withMessage("Title must be a valid string"),
+
+    check("description")
+      .optional()
+      .isString()
+      .withMessage("Description must be a valid string"),
+
+    check("timePerQuestion")
+      .optional()
+      .isInt({ gt: 0 })
+      .withMessage("Time per question must be a positive integer"),
+  ];
+};
+
+export const quizUpdateValidationRules = () => {
+  return [
+    check("quizId")
+      .optional()
+      .isUUID()
+      .withMessage("Quiz ID must be a valid UUID"),
+
+    check("title")
+      .optional()
+      .isString()
+      .withMessage("Title must be a valid string"),
+
+    check("description")
+      .optional()
+      .isString()
+      .withMessage("Description must be a valid string"),
+
+    check("timePerQuestion")
+      .optional()
+      .isInt({ gt: 0 })
+      .withMessage("Time per question must be a positive integer"),
+  ];
+};
+
+export const createQuizQuestionValidationRules = () => {
+  return [
+    check("lessonQuizId")
+      .not()
+      .isEmpty()
+      .withMessage("Lesson Quiz ID is required")
+      .isUUID()
+      .withMessage("Lesson Quiz ID must be a valid UUID"),
+
+    check("question")
+      .not()
+      .isEmpty()
+      .withMessage("Question is required")
+      .isString()
+      .withMessage("Question must be a valid string"),
+
+    check("options")
+      .not()
+      .isEmpty()
+      .withMessage("Options are required")
+      .isObject()
+      .withMessage("Options must be a valid JSON object")
+      .custom((options) => {
+        const optionKeys = Object.keys(options || {});
+        if (optionKeys.length < 2) {
+          throw new Error("Options must contain at least two choices");
+        }
+        return true;
+      }),
+
+    check("correctOption")
+      .not()
+      .isEmpty()
+      .withMessage("Correct option is required")
+      .isString()
+      .withMessage("Correct option must be a valid string")
+      .custom((correctOption, { req }) => {
+        const options = req.body.options;
+        if (!options || !options[correctOption]) {
+          throw new Error("Correct option must match one of the provided options");
+        }
+        return true;
+      }),
+
+    check("score")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("Score must be a non-negative integer"),
+  ];
+};
+
+export const updateQuizQuestionValidationRules = () => {
+  return [
+    check("questionId")
+      .not()
+      .isEmpty()
+      .withMessage("Question ID is required")
+      .isUUID()
+      .withMessage("Question ID must be a valid UUID"),
+
+    check("question")
+      .optional()
+      .isString()
+      .withMessage("Question must be a valid string"),
+
+    check("options")
+      .optional()
+      .isObject()
+      .withMessage("Options must be a valid JSON object")
+      .custom((options) => {
+        const optionKeys = Object.keys(options || {});
+        if (optionKeys.length < 2) {
+          throw new Error("Options must contain at least two choices");
+        }
+        return true;
+      }),
+
+    check("correctOption")
+      .optional()
+      .isString()
+      .withMessage("Correct option must be a valid string")
+      .custom((correctOption, { req }) => {
+        const options = req.body.options;
+        if (options && !options[correctOption]) {
+          throw new Error("Correct option must match one of the provided options");
+        }
+        return true;
+      }),
+
+    check("score")
+      .optional()
+      .isInt({ min: 0 })
+      .withMessage("Score must be a non-negative integer"),
+  ];
+};
+
+export const createLessonAssignmentValidationRules = () => {
+  return [
+    check("moduleId")
+      .not()
+      .isEmpty()
+      .withMessage("Module ID is required.")
+      .isUUID()
+      .withMessage("Module ID must be a valid UUID."),
+      
+    check("lessonTitle")
+      .not()
+      .isEmpty()
+      .withMessage("Lesson title is required")
+      .isString()
+      .withMessage("Lesson title must be a valid string"),
+
+    check("title")
+      .not()
+      .isEmpty()
+      .withMessage("Title is required.")
+      .isString()
+      .withMessage("Title must be a valid string.")
+      .isLength({ max: 255 })
+      .withMessage("Title must not exceed 255 characters."),
+      
+    check("description")
+      .optional()
+      .isString()
+      .withMessage("Description must be a valid string."),
+      
+    check("dueDate")
+      .optional()
+      .isISO8601()
+      .withMessage("Due date must be a valid ISO8601 date."),
+  ];
+};
+
+export const updateLessonAssignmentValidationRules = () => {
+  return [
+    check("title")
+      .optional()
+      .not()
+      .isEmpty()
+      .withMessage("Title cannot be empty.")
+      .isString()
+      .withMessage("Title must be a valid string.")
+      .isLength({ max: 255 })
+      .withMessage("Title must not exceed 255 characters."),
+      
+    check("description")
+      .optional()
+      .isString()
+      .withMessage("Description must be a valid string."),
+      
+    check("dueDate")
+      .optional()
+      .isISO8601()
+      .withMessage("Due date must be a valid ISO8601 date."),
+  ];
+};
 
 // Digital Assets
 export const digitalAssetValidationRules = () => {
@@ -387,6 +612,103 @@ export const physicalAssetValidationRules = () => {
       .withMessage("Amount is required")
       .isFloat({ gt: 0 })
       .withMessage("Amount must be a positive number"),
+  ];
+};
+
+export const addJobValidationRules = () => {
+  return [
+    check("categoryId")
+      .not()
+      .isEmpty()
+      .withMessage("Category ID is required")
+      .isUUID()
+      .withMessage("Category ID must be a valid UUID"),
+
+    check("title")
+      .not()
+      .isEmpty()
+      .withMessage("Title is required")
+      .isString()
+      .withMessage("Title must be a valid string"),
+
+    check("company")
+      .not()
+      .isEmpty()
+      .withMessage("Company name is required")
+      .isString()
+      .withMessage("Company name must be a valid string"),
+
+    check("logo")
+      .not()
+      .isEmpty()
+      .withMessage("Logo is required")
+      .isURL()
+      .withMessage("Logo must be a valid URL"),
+
+    check("workplaceType")
+      .not()
+      .isEmpty()
+      .withMessage("Workplace type is required")
+      .isIn(["Remote", "On-site", "Hybrid"])
+      .withMessage("Workplace type must be one of: Remote, On-site, Hybrid"),
+
+    check("location")
+      .not()
+      .isEmpty()
+      .withMessage("Location is required")
+      .isString()
+      .withMessage("Location must be a valid string"),
+
+    check("jobType")
+      .not()
+      .isEmpty()
+      .withMessage("Job type is required")
+      .isString()
+      .withMessage("Job type must be a valid string"),
+  ];
+};
+
+export const postJobValidationRules = () => {
+  return [
+    check("jobId")
+      .not()
+      .isEmpty()
+      .withMessage("Job ID is required")
+      .isUUID()
+      .withMessage("Job ID must be a valid UUID"),
+
+    check("description")
+      .not()
+      .isEmpty()
+      .withMessage("Description is required")
+      .isString()
+      .withMessage("Description must be a valid string")
+      .isLength({ min: 10 })
+      .withMessage("Description must contain at least 10 characters"),
+
+    check("skills")
+      .optional()
+      .isString()
+      .withMessage("Skills must be a valid string"),
+
+    check("applyLink")
+      .optional()
+      .isURL()
+      .withMessage("Apply link must be a valid URL"),
+
+    check("applicantCollectionEmailAddress")
+      .not()
+      .isEmpty()
+      .withMessage("Applicant collection email address is required")
+      .isEmail()
+      .withMessage("Applicant collection email address must be a valid email"),
+
+    check("rejectionEmails")
+      .not()
+      .isEmpty()
+      .withMessage("Rejection emails field is required")
+      .isBoolean()
+      .withMessage("Rejection emails must be a boolean value"),
   ];
 };
 

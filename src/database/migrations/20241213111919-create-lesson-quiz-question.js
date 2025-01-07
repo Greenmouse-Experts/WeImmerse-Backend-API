@@ -2,7 +2,7 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('module_quiz_questions', {
+    await queryInterface.createTable('lesson_quiz_questions', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -11,12 +11,7 @@ module.exports = {
       },
       creatorId: {
         type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'users', // Replace with the actual users table name
-          key: 'id',
-        },
-        onDelete: 'RESTRICT',
+        allowNull: false
       },
       courseId: {
         type: Sequelize.UUID,
@@ -25,7 +20,8 @@ module.exports = {
           model: 'courses', // Replace with the actual courses table name
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       moduleId: {
         type: Sequelize.UUID,
@@ -34,16 +30,28 @@ module.exports = {
           model: 'modules', // Replace with the actual modules table name
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
-      moduleQuizId: {
+      lessonId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'module_quizzes', // Replace with the actual module questions table name
+          model: 'lessons', // Ensure this matches the lessons table name
           key: 'id',
         },
-        onDelete: 'RESTRICT',
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
+      },
+      lessonQuizId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: 'lesson_quizzes', // Replace with the actual module questions table name
+          key: 'id',
+        },
+        onDelete: 'CASCADE', 
+        onUpdate: 'CASCADE',
       },
       question: {
         type: Sequelize.TEXT,
@@ -72,6 +80,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('module_quiz_questions');
+    await queryInterface.dropTable('lesson_quiz_questions');
   }
 };
