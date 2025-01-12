@@ -24,6 +24,7 @@ import User from "../models/user";
 import path from "path";
 import fs from "fs";
 import LessonAssignment from "../models/lessonassignment";
+import { formatCourse } from "../utils/helpers";
 
 export const courseCategories = async (
     req: Request,
@@ -226,6 +227,57 @@ export const courseThumbnailImage = async (
                 error.message ||
                 "An error occurred while updating the course thumbnail.",
         });
+    }
+};
+
+export const getCourses = async (req: Request, res: Response): Promise<void> => {
+    try {
+        // Retrieve the authenticated user's ID
+        const userId = (req as AuthenticatedRequest).user?.id;
+
+        // Ensure userId is defined
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized: User ID is missing." });
+            return;
+        }
+
+        // Extract pagination query parameters
+        const page = parseInt(req.query.page as string, 10) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit as string, 10) || 10; // Default to 10 items per page
+        const offset = (page - 1) * limit;
+
+        // Fetch paginated courses created by the authenticated user
+        const { rows: courses, count: totalItems } = await Course.findAndCountAll({
+            where: { creatorId: userId },
+            order: [["createdAt", "DESC"]],
+            limit,
+            offset,
+        });
+
+        if (courses.length === 0) {
+            res.status(404).json({ message: "No courses found for the authenticated user." });
+            return;
+        }
+
+        // Format the courses
+        const formattedCourses = courses.map((course) => formatCourse(course, userId));
+
+        // Calculate pagination metadata
+        const totalPages = Math.ceil(totalItems / limit);
+
+        // Respond with the paginated courses and metadata
+        res.status(200).json({
+            message: "Courses retrieved successfully.",
+            data: formattedCourses,
+            meta: {
+                totalItems,
+                totalPages,
+                currentPage: page,
+                itemsPerPage: limit,
+            },
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message || "Failed to fetch courses.", error: error.message });
     }
 };
 
@@ -991,10 +1043,10 @@ export const createLessonAssignment = async (
 ): Promise<void> => {
     try {
         const userId = (req as AuthenticatedRequest).user?.id; // Assuming the user ID is passed in the URL params
-        
-        const {moduleId, lessonTitle, title, description, dueDate } =
+
+        const { moduleId, lessonTitle, title, description, dueDate } =
             req.body;
-        
+
         const module = await Module.findByPk(moduleId);
         if (!module) {
             res.status(404).json({

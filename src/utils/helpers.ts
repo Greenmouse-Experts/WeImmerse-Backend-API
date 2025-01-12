@@ -9,6 +9,9 @@ import SubscriptionPlan from '../models/subscriptionplan';
 import logger from '../middlewares/logger';
 import { Op } from 'sequelize';
 import Job from '../models/job';
+import User from '../models/user';
+import Module from '../models/module';
+import Course from '../models/course';
 
 interface PaystackResponse {
   status: boolean;
@@ -167,5 +170,66 @@ const getJobsBySearch = async (searchTerm: string, number: number) => {
   });
 };
 
+const formatCourse = async (course: Course , authUserId: string) => {
+  const isTutor = course.creatorId === authUserId;
+
+  logger.info(course);
+
+  return {
+    id: course.id,
+    category: course.categoryId,
+    title: course.title,
+    subtitle: course.subtitle,
+    description: course.description,
+    // durationHMS: await course.getDurationHMS() ? course.getDurationHMS() : null,
+    tutor: course.creator ? formatUser(course.creator) : null, // Assume formatUser is a utility to format user data
+    modules: course.modules ? course.modules.map(formatModule) : [], // Assume formatModule formats a module
+    images: course.image,
+    language: course.language,
+    level: course.level,
+    price: course.price,
+    requirement: course.requirement,
+    whatToLearn: course.whatToLearn,
+    published: course.published,
+    // isEnrolled: course.is_enrolled,
+    status: course.status,
+
+    // Tutor-specific data
+    // total_sales: isTutor ? course.getTotalSales() : null,
+    // sales_this_month: isTutor ? course.getSalesThisMonth() : null,
+    // enrolledThisMonth: isTutor ? course.getEnrollmentsThisMonth() : null,
+
+    // percentCompleted: course.getPercentComplete ? course.getPercentComplete() : null,
+    // totalArticles: await course.getTotalArticles() ? course.getTotalArticles() : 0,
+    // totalVideos: course.getTotalVideos ? course.getTotalVideos() : 0,
+    // totalYoutubes: course.getTotalYoutubes ? course.getTotalYoutubes() : 0,
+    // totalHours: course.getTotalHours ? course.getTotalHours() : 0,
+    // totalModules: course.getTotalModules ? course.getTotalModules() : 0,
+    // totalLessons: course.getTotalLessons ? course.getTotalLessons() : 0,
+    // totalQuizzes: course.getTotalQuizzes ? course.getTotalQuizzes() : 0,
+    // totalReviews: course.getTotalReviews ? course.getTotalReviews() : 0,
+    // averageReviews: course.getAverageReviews ? course.getAverageReviews() : 0,
+    // totalStudents: course.getTotalStudents ? course.getTotalStudents() : 0,
+    // totalVideoHours: course.getTotalVideoHours ? course.getTotalVideoHours() : 0,
+    // totalLikes: course.getTotalLikes ? course.getTotalLikes() : 0,
+    created_at: course.createdAt,
+    updated_at: course.updatedAt,
+  };
+};
+
+// Utility functions for related resources
+const formatUser = (user: User) => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  // Add other fields as needed
+});
+
+const formatModule = (module: Module) => ({
+  id: module.id,
+  title: module.title
+  // Add other fields as needed
+});
+
 // Export functions
-export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, verifyPayment, shuffleArray, generateReferralCode, getJobsBySearch };
+export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, verifyPayment, shuffleArray, generateReferralCode, getJobsBySearch, formatCourse };

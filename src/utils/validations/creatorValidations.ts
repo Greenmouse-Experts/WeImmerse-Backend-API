@@ -145,10 +145,10 @@ export const lessonCreationValidationRules = () => {
 
     // Check if 'duration' is provided only when contentType is 'video' or 'audio'
     check('duration')
-      .if(check('contentType').isIn(['video', 'audio']))
+      .if(check('contentType').isIn(['video', 'audio', 'youtube', 'article']))
       .not()
       .isEmpty()
-      .withMessage('Duration is required for video and audio content types')
+      .withMessage('Duration is required for video, audio, youtube, and article content types')
       .isInt({ gt: 0 })
       .withMessage('Duration must be a positive integer'),
 
@@ -196,10 +196,10 @@ export const lessonUpdatingValidationRules = () => {
 
     // Check if 'duration' is provided only when contentType is 'video' or 'audio'
     check('duration')
-      .if(check('contentType').isIn(['video', 'audio']))
+      .if(check('contentType').isIn(['video', 'audio', 'youtube', 'article']))
       .not()
       .isEmpty()
-      .withMessage('Duration is required for video and audio content types')
+      .withMessage('Duration is required for video, audio, youtube, and article content types')
       .isInt({ gt: 0 })
       .withMessage('Duration must be a positive integer'),
 

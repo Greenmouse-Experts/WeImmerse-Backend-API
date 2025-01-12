@@ -9,6 +9,7 @@ import LessonQuizQuestion from "./lessonquizquestion";
 import CourseReview from "./coursereview";
 import CourseLike from "./courselike";
 import CourseEnrollment from "./courseenrollment";
+import User from "./user";
 
 class Course extends Model {
   public id!: string;
@@ -28,6 +29,8 @@ class Course extends Model {
   public status!: "live" | "unpublished" | "under_review" | "draft";
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+  public modules?: Module[];
+  public creator?: User;
 
   // Association methods
   public getCourseModules!: () => Promise<Module[]>;
@@ -38,6 +41,24 @@ class Course extends Model {
   public getCourseLikes!: () => Promise<CourseLike[]>;
   public getCourseEnrollments!: (options?: { where: object }) => Promise<CourseEnrollment[]>;
   public getCourseStudent!: () => Promise<any[]>;
+  public convertHoursToDuration!: (hours: number) => string;
+
+  public getAverageReviews!: () => Promise<number>;
+  public getTotalReviews!: () => Promise<number>;
+  public getTotalStudents!: () => Promise<number>;
+  public getEnrollmentsThisMonth!: () => Promise<number>;
+  public getTotalLessons!: () => Promise<number>;
+  public getTotalModules!: () => Promise<number>;
+  public getTotalQuizzes!: () => Promise<number>;
+  public getTotalQuizQuestions!: () => Promise<number>;
+  public getTotalLikes!: () => Promise<number>;
+  public getTotalPublishedLessons!: () => Promise<number>;
+  public getTotalHours!: () => Promise<number>;
+  public getTotalVideoHours!: () => Promise<number>;
+  public getTotalArticles!: () => Promise<number>;
+  public getTotalVideos!: () => Promise<number>;
+  public getTotalYoutubes!: () => Promise<number>;
+  public getDurationHMS!: () => Promise<string>;
 
   static associate(models: any) {
     this.belongsTo(models.User, { as: "creator", foreignKey: "creatorId" });
