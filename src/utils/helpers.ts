@@ -173,15 +173,13 @@ const getJobsBySearch = async (searchTerm: string, number: number) => {
 const formatCourse = async (course: Course , authUserId: string) => {
   const isTutor = course.creatorId === authUserId;
 
-  logger.info(course);
-
   return {
     id: course.id,
     category: course.categoryId,
     title: course.title,
     subtitle: course.subtitle,
     description: course.description,
-    // durationHMS: await course.getDurationHMS() ? course.getDurationHMS() : null,
+    durationHMS: await course.getDurationHMS() || null,
     tutor: course.creator ? formatUser(course.creator) : null, // Assume formatUser is a utility to format user data
     modules: course.modules ? course.modules.map(formatModule) : [], // Assume formatModule formats a module
     images: course.image,
@@ -200,13 +198,14 @@ const formatCourse = async (course: Course , authUserId: string) => {
     // enrolledThisMonth: isTutor ? course.getEnrollmentsThisMonth() : null,
 
     // percentCompleted: course.getPercentComplete ? course.getPercentComplete() : null,
-    // totalArticles: await course.getTotalArticles() ? course.getTotalArticles() : 0,
-    // totalVideos: course.getTotalVideos ? course.getTotalVideos() : 0,
-    // totalYoutubes: course.getTotalYoutubes ? course.getTotalYoutubes() : 0,
-    // totalHours: course.getTotalHours ? course.getTotalHours() : 0,
-    // totalModules: course.getTotalModules ? course.getTotalModules() : 0,
-    // totalLessons: course.getTotalLessons ? course.getTotalLessons() : 0,
-    // totalQuizzes: course.getTotalQuizzes ? course.getTotalQuizzes() : 0,
+    totalArticles: await course.getTotalArticles() || 0,
+    totalVideos: await course.getTotalVideos() || 0,
+    totalYoutubes: await course.getTotalYoutubes() || 0,
+    totalAudio: await course.getTotalAudios() || 0,
+    totalHours: await course.getTotalHours() || 0,
+    totalModules: await course.getTotalModules() ||  0,
+    totalLessons: await course.getTotalLessons() || 0,
+    totalQuizzes: await course.getTotalQuizzes() || 0,
     // totalReviews: course.getTotalReviews ? course.getTotalReviews() : 0,
     // averageReviews: course.getAverageReviews ? course.getAverageReviews() : 0,
     // totalStudents: course.getTotalStudents ? course.getTotalStudents() : 0,

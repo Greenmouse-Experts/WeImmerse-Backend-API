@@ -58,6 +58,7 @@ class Course extends Model {
   public getTotalArticles!: () => Promise<number>;
   public getTotalVideos!: () => Promise<number>;
   public getTotalYoutubes!: () => Promise<number>;
+  public getTotalAudios!: () => Promise<number>;
   public getDurationHMS!: () => Promise<string>;
 
   static associate(models: any) {

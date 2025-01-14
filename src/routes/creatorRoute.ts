@@ -82,6 +82,8 @@ creatorRoutes.put("/physical/asset/update", authMiddleware, authorizeCreator, ph
 creatorRoutes.delete("/physical/asset/delete", authMiddleware, authorizeCreator, creatorController.deletePhysicalAsset);
 
 // Job
+creatorRoutes.get("/job/categories", authMiddleware, authorizeCreator, creatorController.jobCategories);
+
 creatorRoutes.post('/job/add', authMiddleware, authorizeCreator, addJobValidationRules(), validate, creatorController.addJob);
 creatorRoutes.put('/job/post', authMiddleware, authorizeCreator, postJobValidationRules(), validate,creatorController.postJob);
 creatorRoutes.get('/jobs', authMiddleware, authorizeCreator, creatorController.getJobs);
