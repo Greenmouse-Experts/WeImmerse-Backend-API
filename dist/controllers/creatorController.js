@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJobs = exports.postJob = exports.addJob = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
 const logger_1 = __importDefault(require("../middlewares/logger"));
@@ -35,6 +35,7 @@ const user_1 = __importDefault(require("../models/user"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const lessonassignment_1 = __importDefault(require("../models/lessonassignment"));
+const helpers_1 = require("../utils/helpers");
 const courseCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Create courseCategory
@@ -188,6 +189,56 @@ const courseThumbnailImage = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
 });
 exports.courseThumbnailImage = courseThumbnailImage;
+const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _b;
+    try {
+        // Retrieve the authenticated user's ID
+        const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id;
+        // Ensure userId is defined
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized: User ID is missing." });
+            return;
+        }
+        // Extract pagination query parameters
+        const page = parseInt(req.query.page, 10) || 1; // Default to page 1
+        const limit = parseInt(req.query.limit, 10) || 10; // Default to 10 items per page
+        const offset = (page - 1) * limit;
+        // Fetch paginated courses created by the authenticated user
+        const { rows: courses, count: totalItems } = yield course_1.default.findAndCountAll({
+            where: { creatorId: userId },
+            include: [
+                { model: user_1.default, as: 'creator' },
+                { model: module_1.default, as: 'modules' } // Adjust alias to match your associations
+            ],
+            order: [["createdAt", "DESC"]],
+            limit,
+            offset,
+        });
+        if (courses.length === 0) {
+            res.status(404).json({ message: "No courses found for the authenticated user." });
+            return;
+        }
+        // Format the courses
+        const formattedCourses = yield Promise.all(courses.map((course) => (0, helpers_1.formatCourse)(course, userId)));
+        // Calculate pagination metadata
+        const totalPages = Math.ceil(totalItems / limit);
+        // Respond with the paginated courses and metadata
+        res.status(200).json({
+            message: "Courses retrieved successfully.",
+            data: formattedCourses,
+            meta: {
+                totalItems,
+                totalPages,
+                currentPage: page,
+                itemsPerPage: limit,
+            },
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message || "Failed to fetch courses.", error: error.message });
+    }
+});
+exports.getCourses = getCourses;
 // Module
 const getCourseModules = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const courseId = req.query.courseId;
@@ -499,9 +550,9 @@ const updateDraggableLesson = (req, res) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.updateDraggableLesson = updateDraggableLesson;
 const createLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
+    var _c;
     try {
-        const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id; // Assuming the user ID is passed in the URL params
+        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c.id; // Assuming the user ID is passed in the URL params
         const { moduleId, lessonTitle, title, description, timePerQuestion } = req.body;
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
@@ -682,9 +733,9 @@ exports.getLessonQuizzes = getLessonQuizzes;
  * Create a new LessonQuizQuestion
  */
 const createLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
+    var _d;
     try {
-        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c.id; // Assuming the user ID is passed in the URL params
+        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id; // Assuming the user ID is passed in the URL params
         const { lessonQuizId, question, options, correctOption, score } = req.body;
         // Validate associated LessonQuiz
         const quiz = yield lessonquiz_1.default.findByPk(lessonQuizId);
@@ -812,9 +863,9 @@ const getLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.getLessonQuizQuestion = getLessonQuizQuestion;
 const createLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d;
+    var _e;
     try {
-        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id; // Assuming the user ID is passed in the URL params
+        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e.id; // Assuming the user ID is passed in the URL params
         const { moduleId, lessonTitle, title, description, dueDate } = req.body;
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
@@ -1010,10 +1061,10 @@ const assetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.assetCategories = assetCategories;
 // Digital Asset
 const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _e;
+    var _f;
     try {
         const { categoryId } = req.body;
-        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e.id; // Extract user ID from authenticated request
+        const userId = (_f = req.user) === null || _f === void 0 ? void 0 : _f.id; // Extract user ID from authenticated request
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -1040,8 +1091,8 @@ const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.createDigitalAsset = createDigitalAsset;
 const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f;
-    const userId = (_f = req.user) === null || _f === void 0 ? void 0 : _f.id; // Extract authenticated user's ID
+    var _g;
+    const userId = (_g = req.user) === null || _g === void 0 ? void 0 : _g.id; // Extract authenticated user's ID
     try {
         const { assetName, pricingType, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -1073,8 +1124,8 @@ const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.getDigitalAssets = getDigitalAssets;
 const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _g;
-    const userId = (_g = req.user) === null || _g === void 0 ? void 0 : _g.id; // Extract authenticated user's ID
+    var _h;
+    const userId = (_h = req.user) === null || _h === void 0 ? void 0 : _h.id; // Extract authenticated user's ID
     try {
         const { id } = req.query; // Extract search parameters
         // Fetch asset with optional search criteria
@@ -1151,10 +1202,10 @@ const deleteDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
 exports.deleteDigitalAsset = deleteDigitalAsset;
 // Physical Asset
 const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _h;
+    var _j;
     try {
         const { categoryId } = req.body;
-        const userId = (_h = req.user) === null || _h === void 0 ? void 0 : _h.id; // Extract user ID from authenticated request
+        const userId = (_j = req.user) === null || _j === void 0 ? void 0 : _j.id; // Extract user ID from authenticated request
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -1181,8 +1232,8 @@ const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.createPhysicalAsset = createPhysicalAsset;
 const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _j;
-    const userId = (_j = req.user) === null || _j === void 0 ? void 0 : _j.id; // Extract authenticated user's ID
+    var _k;
+    const userId = (_k = req.user) === null || _k === void 0 ? void 0 : _k.id; // Extract authenticated user's ID
     try {
         const { assetName, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -1211,8 +1262,8 @@ const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.getPhysicalAssets = getPhysicalAssets;
 const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _k;
-    const userId = (_k = req.user) === null || _k === void 0 ? void 0 : _k.id; // Extract authenticated user's ID
+    var _l;
+    const userId = (_l = req.user) === null || _l === void 0 ? void 0 : _l.id; // Extract authenticated user's ID
     try {
         const { id } = req.query; // Extract search parameters
         // Fetch asset with optional search criteria
@@ -1287,12 +1338,29 @@ const deletePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.deletePhysicalAsset = deletePhysicalAsset;
+// JOB
+const jobCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const jobCategory = yield jobcategory_1.default.findAll();
+        res.status(200).json({
+            data: jobCategory, // You can populate related data as needed
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.message ||
+                "fetching asset category failed. Please try again later.",
+        });
+    }
+});
+exports.jobCategories = jobCategories;
 const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _l;
+    var _m;
     try {
         const { categoryId, title, company, logo, workplaceType, location, jobType, } = req.body;
         // Extract user ID from authenticated request
-        const userId = (_l = req.user) === null || _l === void 0 ? void 0 : _l.id;
+        const userId = (_m = req.user) === null || _m === void 0 ? void 0 : _m.id;
         // Validate category
         const category = yield jobcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -1358,10 +1426,10 @@ const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.postJob = postJob;
 const getJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _m;
+    var _o;
     try {
         const { status, title } = req.query; // Expecting 'Draft', 'Active', or 'Closed' for status, and a string for title
-        const userId = (_m = req.user) === null || _m === void 0 ? void 0 : _m.id; // Extract user ID from authenticated request
+        const userId = (_o = req.user) === null || _o === void 0 ? void 0 : _o.id; // Extract user ID from authenticated request
         const jobs = yield job_1.default.findAll({
             where: Object.assign(Object.assign({ creatorId: userId }, (status && { status: { [sequelize_1.Op.eq]: status } })), (title && { title: { [sequelize_1.Op.like]: `%${title}%` } })),
             order: [["createdAt", "DESC"]],
@@ -1441,10 +1509,10 @@ const deleteJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.deleteJob = deleteJob;
 const getJobApplicants = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _o;
+    var _p;
     try {
         const jobId = req.query.jobId;
-        const userId = (_o = req.user) === null || _o === void 0 ? void 0 : _o.id;
+        const userId = (_p = req.user) === null || _p === void 0 ? void 0 : _p.id;
         const job = yield job_1.default.findOne({ where: { id: jobId, creatorId: userId } });
         if (!job) {
             res.status(403).json({
@@ -1528,10 +1596,10 @@ const viewApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.viewApplicant = viewApplicant;
 const repostJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _p;
+    var _q;
     try {
         const { jobId } = req.body;
-        const userId = (_p = req.user) === null || _p === void 0 ? void 0 : _p.id; // Extract user ID from authenticated request
+        const userId = (_q = req.user) === null || _q === void 0 ? void 0 : _q.id; // Extract user ID from authenticated request
         const job = yield job_1.default.findByPk(jobId);
         if (!job) {
             res.status(404).json({

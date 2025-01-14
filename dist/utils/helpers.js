@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getJobsBySearch = exports.generateReferralCode = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.capitalizeFirstLetter = exports.generateOTP = void 0;
+exports.formatCourse = exports.getJobsBySearch = exports.generateReferralCode = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.capitalizeFirstLetter = exports.generateOTP = void 0;
 // utils/helpers.ts
 const http_1 = __importDefault(require("http"));
 const https_1 = __importDefault(require("https"));
@@ -164,4 +164,59 @@ const getJobsBySearch = (searchTerm, number) => __awaiter(void 0, void 0, void 0
     });
 });
 exports.getJobsBySearch = getJobsBySearch;
+const formatCourse = (course, authUserId) => __awaiter(void 0, void 0, void 0, function* () {
+    const isTutor = course.creatorId === authUserId;
+    return {
+        id: course.id,
+        category: course.categoryId,
+        title: course.title,
+        subtitle: course.subtitle,
+        description: course.description,
+        durationHMS: (yield course.getDurationHMS()) || null,
+        tutor: course.creator ? formatUser(course.creator) : null,
+        modules: course.modules ? course.modules.map(formatModule) : [],
+        images: course.image,
+        language: course.language,
+        level: course.level,
+        price: course.price,
+        requirement: course.requirement,
+        whatToLearn: course.whatToLearn,
+        published: course.published,
+        // isEnrolled: course.is_enrolled,
+        status: course.status,
+        // Tutor-specific data
+        // total_sales: isTutor ? course.getTotalSales() : null,
+        // sales_this_month: isTutor ? course.getSalesThisMonth() : null,
+        // enrolledThisMonth: isTutor ? course.getEnrollmentsThisMonth() : null,
+        // percentCompleted: course.getPercentComplete ? course.getPercentComplete() : null,
+        totalArticles: (yield course.getTotalArticles()) || 0,
+        totalVideos: (yield course.getTotalVideos()) || 0,
+        totalYoutubes: (yield course.getTotalYoutubes()) || 0,
+        totalAudio: (yield course.getTotalAudios()) || 0,
+        totalHours: (yield course.getTotalHours()) || 0,
+        totalModules: (yield course.getTotalModules()) || 0,
+        totalLessons: (yield course.getTotalLessons()) || 0,
+        totalQuizzes: (yield course.getTotalQuizzes()) || 0,
+        // totalReviews: course.getTotalReviews ? course.getTotalReviews() : 0,
+        // averageReviews: course.getAverageReviews ? course.getAverageReviews() : 0,
+        // totalStudents: course.getTotalStudents ? course.getTotalStudents() : 0,
+        // totalVideoHours: course.getTotalVideoHours ? course.getTotalVideoHours() : 0,
+        // totalLikes: course.getTotalLikes ? course.getTotalLikes() : 0,
+        created_at: course.createdAt,
+        updated_at: course.updatedAt,
+    };
+});
+exports.formatCourse = formatCourse;
+// Utility functions for related resources
+const formatUser = (user) => ({
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    // Add other fields as needed
+});
+const formatModule = (module) => ({
+    id: module.id,
+    title: module.title
+    // Add other fields as needed
+});
 //# sourceMappingURL=helpers.js.map
