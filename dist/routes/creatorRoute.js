@@ -38,6 +38,7 @@ creatorRoutes.post("/course/create", authMiddleware_1.default, authorizeCreator_
 creatorRoutes.post("/course/basic", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.courseBasicValidationRules)(), creatorValidations_1.validate, creatorController.courseBasic);
 creatorRoutes.post("/course/thumbnail", authMiddleware_1.default, authorizeCreator_1.default, creatorController.courseThumbnailImage);
 creatorRoutes.get("/courses", authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourses);
+creatorRoutes.get("/course", authMiddleware_1.default, authorizeCreator_1.default, creatorController.viewCourse);
 // Module
 creatorRoutes.get("/course/modules", authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourseModules);
 creatorRoutes.post("/course/module/create", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleCreationValidationRules)(), creatorValidations_1.validate, creatorController.createCourseModule);
