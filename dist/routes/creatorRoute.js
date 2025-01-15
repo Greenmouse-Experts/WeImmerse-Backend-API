@@ -37,6 +37,7 @@ creatorRoutes.get("/course/categories", authMiddleware_1.default, authorizeCreat
 creatorRoutes.post("/course/create", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.courseCreateValidationRules)(), creatorValidations_1.validate, creatorController.courseCreate);
 creatorRoutes.post("/course/basic", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.courseBasicValidationRules)(), creatorValidations_1.validate, creatorController.courseBasic);
 creatorRoutes.post("/course/thumbnail", authMiddleware_1.default, authorizeCreator_1.default, creatorController.courseThumbnailImage);
+creatorRoutes.get("/courses", authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourses);
 // Module
 creatorRoutes.get("/course/modules", authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourseModules);
 creatorRoutes.post("/course/module/create", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleCreationValidationRules)(), creatorValidations_1.validate, creatorController.createCourseModule);
@@ -78,6 +79,7 @@ creatorRoutes.post("/physical/asset/create", authMiddleware_1.default, authorize
 creatorRoutes.put("/physical/asset/update", authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.physicalAssetValidationRules)(), creatorValidations_1.validate, creatorController.updatePhysicalAsset);
 creatorRoutes.delete("/physical/asset/delete", authMiddleware_1.default, authorizeCreator_1.default, creatorController.deletePhysicalAsset);
 // Job
+creatorRoutes.get("/job/categories", authMiddleware_1.default, authorizeCreator_1.default, creatorController.jobCategories);
 creatorRoutes.post('/job/add', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.addJobValidationRules)(), creatorValidations_1.validate, creatorController.addJob);
 creatorRoutes.put('/job/post', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.postJobValidationRules)(), creatorValidations_1.validate, creatorController.postJob);
 creatorRoutes.get('/jobs', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getJobs);

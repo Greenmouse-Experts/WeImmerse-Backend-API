@@ -129,10 +129,10 @@ const lessonCreationValidationRules = () => {
             .withMessage("Content type must be one of: text, quiz, assignment, youtube, video, audio, article"),
         // Check if 'duration' is provided only when contentType is 'video' or 'audio'
         (0, express_validator_1.check)('duration')
-            .if((0, express_validator_1.check)('contentType').isIn(['video', 'audio']))
+            .if((0, express_validator_1.check)('contentType').isIn(['video', 'audio', 'youtube', 'article']))
             .not()
             .isEmpty()
-            .withMessage('Duration is required for video and audio content types')
+            .withMessage('Duration is required for video, audio, youtube, and article content types')
             .isInt({ gt: 0 })
             .withMessage('Duration must be a positive integer'),
         (0, express_validator_1.check)("contentUrl")
@@ -174,10 +174,10 @@ const lessonUpdatingValidationRules = () => {
             .withMessage("Content type must be one of: text, quiz, assignment, youtube, video, audio, article"),
         // Check if 'duration' is provided only when contentType is 'video' or 'audio'
         (0, express_validator_1.check)('duration')
-            .if((0, express_validator_1.check)('contentType').isIn(['video', 'audio']))
+            .if((0, express_validator_1.check)('contentType').isIn(['video', 'audio', 'youtube', 'article']))
             .not()
             .isEmpty()
-            .withMessage('Duration is required for video and audio content types')
+            .withMessage('Duration is required for video, audio, youtube, and article content types')
             .isInt({ gt: 0 })
             .withMessage('Duration must be a positive integer'),
         // Additional validation to ensure duration is numeric when provided

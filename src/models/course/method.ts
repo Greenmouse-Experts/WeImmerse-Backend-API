@@ -3,6 +3,8 @@ import { FindOptions, Op, Sequelize } from "sequelize";
 import Course from "../course";
 import Lesson from "../lesson";
 import logger from "../../middlewares/logger";
+import Module from "../module";
+import LessonQuiz from "../lessonquiz";
 
 export const courseMethods = {
   async getAverageReviews(this: Course): Promise<number> {
@@ -37,16 +39,25 @@ export const courseMethods = {
   //     .then((enrollments) => enrollments.length);
   // },
 
-  async getTotalLessons(course: Course) {
-    return await course.getCourseLessons().then((lessons) => lessons.length);
+  async getTotalModules(this: Course) {
+    const modules = await Module.findAll({
+      where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+    });
+    return modules.length;
   },
 
-  async getTotalModules(course: Course) {
-    return await course.getCourseModules().then((modules) => modules.length);
+  async getTotalLessons(this: Course) {
+    const lessons = await Lesson.findAll({
+      where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+    });
+    return lessons.length;
   },
 
-  async getTotalQuizzes(course: Course) {
-    return await course.getCourseQuizzes().then((quizzes) => quizzes.length);
+  async getTotalQuizzes(this: Course) {
+    const quizzes = await LessonQuiz.findAll({
+      where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+    });
+    return quizzes.length;
   },
 
   async getTotalQuizQuestions(course: Course) {
@@ -88,18 +99,28 @@ export const courseMethods = {
   },
 
   async getTotalHours(this: Course) {
-    const totalMinutes = await this
-      .getCourseLessons({
-        where: { contentType: ["video", "audio", "article", "youtube"] },
-      })
-      .then((lessons) =>
-        lessons.reduce((sum, lesson) => sum + lesson.duration, 0)
-      );
+    const lessons = await Lesson.findAll({
+      where: { 
+        courseId: this.id, // Assuming 'this.id' refers to the course's identifier
+        contentType: ["video", "audio", "article", "youtube"]
+      }
+    });
+  
+    if (!lessons || lessons.length === 0) {
+      return '0.00'; // Return 0 hours if no lessons are found
+    }
+  
+    // Ensure the duration is a number and sum it up
+    const totalMinutes = lessons.reduce((sum, lesson) => {
+      const duration = Number(lesson.duration); // Ensure it's a number
+      return !isNaN(duration) ? sum + duration : sum; // Only add valid durations
+    }, 0);
+  
+    // Return the total in hours, ensuring it is properly calculated
     return (totalMinutes / 60).toFixed(2);
   },
-
+  
   async getTotalVideoHours(this: Course): Promise<number> {
-    logger.info(this);
     const lessons = await Lesson.findAll({
         where: {
             courseId: this.id, // Ensure the foreign key matches your schema
@@ -116,34 +137,44 @@ export const courseMethods = {
     return durationInHours;
   },
 
-  async getTotalArticles(course: Course) {
-    const totalArticles = await course
-      .getCourseLessons({
-        where: { contentType: "article" },
-      })
-      .then((lessons) => lessons.length );
-
-    return totalArticles;
+  async getTotalArticles(this: Course) {
+    const totalArticles = await Lesson.findAll({
+      where: { 
+        courseId: this.id,
+        contentType: "article" 
+      } // Assuming 'this.id' is the course's identifier
+    });
+    return totalArticles.length;
   },
 
-  async getTotalVideos(course: Course) {
-    const totalVideos = await course
-      .getCourseLessons({
-        where: { contentType: "video" },
-      })
-      .then((lessons) => lessons.length );
-
-    return totalVideos;
+  async getTotalVideos(this: Course) {
+    const totalVideos = await Lesson.findAll({
+      where: { 
+        courseId: this.id,
+        contentType: "video" 
+      } // Assuming 'this.id' is the course's identifier
+    });
+    return totalVideos.length;
   },
 
-  async getTotalYoutubes(course: Course) {
-    const totalYoutube = await course
-      .getCourseLessons({
-        where: { contentType: "youtube" },
-      })
-      .then((lessons) => lessons.length );
+  async getTotalYoutubes(this: Course) {
+    const totalYoutube = await Lesson.findAll({
+      where: { 
+        courseId: this.id,
+        contentType: "youtube" 
+      } // Assuming 'this.id' is the course's identifier
+    });
+    return totalYoutube.length;
+  },
 
-    return totalYoutube;
+  async getTotalAudios(this: Course) {
+    const totalAudio = await Lesson.findAll({
+      where: { 
+        courseId: this.id,
+        contentType: "audio" 
+      } // Assuming 'this.id' is the course's identifier
+    });
+    return totalAudio.length;
   },
 
   async getDurationHMS(this: Course) {

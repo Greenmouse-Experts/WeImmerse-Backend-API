@@ -249,6 +249,10 @@ export const getCourses = async (req: Request, res: Response): Promise<void> => 
         // Fetch paginated courses created by the authenticated user
         const { rows: courses, count: totalItems } = await Course.findAndCountAll({
             where: { creatorId: userId },
+            include: [
+                { model: User, as: 'creator' }, // Adjust alias to match your associations
+                { model: Module, as: 'modules' } // Adjust alias to match your associations
+            ],
             order: [["createdAt", "DESC"]],
             limit,
             offset,
@@ -260,8 +264,10 @@ export const getCourses = async (req: Request, res: Response): Promise<void> => 
         }
 
         // Format the courses
-        const formattedCourses = courses.map((course) => formatCourse(course, userId));
-
+        const formattedCourses = await Promise.all(
+            courses.map((course) => formatCourse(course, userId))
+        );
+  
         // Calculate pagination metadata
         const totalPages = Math.ceil(totalItems / limit);
 
@@ -1648,6 +1654,28 @@ export const deletePhysicalAsset = async (
     } catch (error) {
         logger.error("Error deleting physical asset:", error);
         res.status(500).json({ error: "Failed to delete physical asset" });
+    }
+};
+
+// JOB
+export const jobCategories = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
+    try {
+        const jobCategory = await JobCategory.findAll();
+
+        res.status(200).json({
+            data: jobCategory, // You can populate related data as needed
+        });
+    } catch (error: any) {
+        logger.error(error);
+
+        res.status(500).json({
+            message:
+                error.message ||
+                "fetching asset category failed. Please try again later.",
+        });
     }
 };
 
