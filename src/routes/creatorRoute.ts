@@ -33,6 +33,7 @@ creatorRoutes.post("/course/create", authMiddleware, authorizeCreator, courseCre
 creatorRoutes.post("/course/basic", authMiddleware, authorizeCreator, courseBasicValidationRules(), validate, creatorController.courseBasic);
 creatorRoutes.post("/course/thumbnail", authMiddleware, authorizeCreator, creatorController.courseThumbnailImage);
 creatorRoutes.get("/courses", authMiddleware, authorizeCreator, creatorController.getCourses);
+creatorRoutes.get("/course", authMiddleware, authorizeCreator, creatorController.viewCourse);
 
 // Module
 creatorRoutes.get("/course/modules", authMiddleware, authorizeCreator, creatorController.getCourseModules);

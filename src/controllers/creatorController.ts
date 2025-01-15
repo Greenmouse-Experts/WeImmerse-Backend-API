@@ -277,7 +277,36 @@ export const getCourses = async (req: Request, res: Response): Promise<void> => 
             },
         });
     } catch (error: any) {
-        res.status(500).json({ message: error.message || "Failed to fetch courses.", error: error.message });
+        logger.error(error.message);
+        res.status(500).json({ message: error.message || "Failed to fetch courses." });
+    }
+};
+
+export const viewCourse = async (req: Request, res: Response): Promise<void> => {
+    try {
+        // Retrieve the authenticated user's ID
+        const userId = (req as AuthenticatedRequest).user?.id;
+        const { courseId } = req.query;
+
+        // Ensure userId is defined
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized: User ID is missing." });
+            return;
+        }
+
+        // Fetch paginated courses created by the authenticated user
+        const course = await Course.findOne({
+            where: { id: courseId, creatorId: userId }
+        });
+
+        // Respond with the paginated courses and metadata
+        res.status(200).json({
+            message: "Course retrieved successfully.",
+            data: course
+        });
+    } catch (error: any) {
+        logger.error(error.message);
+        res.status(500).json({ message: error.message || "Failed to fetch courses." });
     }
 };
 
