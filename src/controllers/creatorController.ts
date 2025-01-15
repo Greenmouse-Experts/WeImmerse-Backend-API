@@ -292,7 +292,7 @@ export const viewCourse = async (req: Request, res: Response): Promise<void> => 
     try {
         // Retrieve the authenticated user's ID
         const userId = (req as AuthenticatedRequest).user?.id;
-        const { courseId } = req.query;
+        const courseId  = req.query.courseId as string;
 
         // Ensure userId is defined
         if (!userId) {
@@ -304,6 +304,13 @@ export const viewCourse = async (req: Request, res: Response): Promise<void> => 
         const course = await Course.findOne({
             where: { id: courseId, creatorId: userId }
         });
+
+        if (!course) {
+            res.status(403).json({
+                message: "Course doesn't belong to you.",
+            });
+            return;
+        }
 
         // Respond with the paginated courses and metadata
         res.status(200).json({
