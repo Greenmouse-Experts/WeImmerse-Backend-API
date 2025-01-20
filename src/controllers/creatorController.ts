@@ -164,6 +164,7 @@ export const courseBasic = async (
     try {
         // Update course details
         await course.update({
+            categoryId,
             title,
             subtitle,
             description,
@@ -246,12 +247,25 @@ export const getCourses = async (req: Request, res: Response): Promise<void> => 
         const limit = parseInt(req.query.limit as string, 10) || 10; // Default to 10 items per page
         const offset = (page - 1) * limit;
 
-        // Fetch paginated courses created by the authenticated user
+        // Extract search query
+        const searchQuery = req.query.q as string;
+
+        // Build the `where` condition
+        const whereCondition: any = { creatorId: userId };
+        if (searchQuery) {
+            whereCondition[Op.or] = [
+                { title: { [Op.like]: `%${searchQuery}%` } }, // Case-insensitive search
+                { subtitle: { [Op.like]: `%${searchQuery}%` } },
+                { status: { [Op.like]: `%${searchQuery}%` } },
+            ];
+        }
+
+        // Fetch paginated and filtered courses created by the authenticated user
         const { rows: courses, count: totalItems } = await Course.findAndCountAll({
-            where: { creatorId: userId },
+            where: whereCondition,
             include: [
                 { model: User, as: 'creator' }, // Adjust alias to match your associations
-                { model: Module, as: 'modules' } // Adjust alias to match your associations
+                { model: Module, as: 'modules' }, // Adjust alias to match your associations
             ],
             order: [["createdAt", "DESC"]],
             limit,
@@ -263,18 +277,13 @@ export const getCourses = async (req: Request, res: Response): Promise<void> => 
             return;
         }
 
-        // Format the courses
-        const formattedCourses = await Promise.all(
-            courses.map((course) => formatCourse(course, userId))
-        );
-  
         // Calculate pagination metadata
         const totalPages = Math.ceil(totalItems / limit);
 
         // Respond with the paginated courses and metadata
         res.status(200).json({
             message: "Courses retrieved successfully.",
-            data: formattedCourses,
+            data: courses,
             meta: {
                 totalItems,
                 totalPages,
@@ -320,6 +329,113 @@ export const viewCourse = async (req: Request, res: Response): Promise<void> => 
     } catch (error: any) {
         logger.error(error.message);
         res.status(500).json({ message: error.message || "Failed to fetch courses." });
+    }
+};
+
+export const courseStatistics = async (req: Request, res: Response): Promise<void> => {
+    try {
+        // Retrieve the authenticated user's ID
+        const userId = (req as AuthenticatedRequest).user?.id;
+
+        // Ensure userId is defined
+        if (!userId) {
+            res.status(401).json({ message: "Unauthorized: User ID is missing." });
+            return;
+        }
+
+        // Extract courseId query
+        const courseId = req.query.courseId as string;
+
+        // Build the `where` condition
+        const whereCondition: any = { id: courseId };
+
+        // Fetch paginated and filtered courses created by the authenticated user
+        const course = await Course.findOne({
+            where: whereCondition,
+            include: [
+                { model: User, as: 'creator' }, // Adjust alias to match your associations
+                { model: Module, as: 'modules' }, // Adjust alias to match your associations
+            ],
+            order: [["createdAt", "DESC"]],
+        });
+
+        if (!course) {
+            res.status(404).json({ message: "No course found" });
+            return;
+        }
+
+        // Format the courses
+        const formattedCourses = await formatCourse(course, userId);
+
+        // Respond with the paginated courses and metadata
+        res.status(200).json({
+            message: "Course retrieved successfully.",
+            data: formattedCourses,
+        });
+    } catch (error: any) {
+        logger.error(error.message);
+        res.status(500).json({ message: error.message || "Failed to fetch courses." });
+    }
+};
+
+export const coursePublish = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const courseId  = req.query.courseId as string;
+
+        // Find the course by its ID
+        const course = await Course.findByPk(courseId);
+        if (!course) {
+            res.status(404).json({
+                message: "Course not found in our database.",
+            });
+            return;
+        }
+
+        // Check if all required fields are present and not null
+        const requiredFields = [
+            "creatorId",
+            "categoryId",
+            "title",
+            "subtitle",
+            "description",
+            "language",
+            "image",
+            "level",
+            "currency",
+            "price",
+            "requirement",
+            "whatToLearn",
+        ];
+
+        const missingFields: string[] = [];
+        for (const field of requiredFields) {
+            if (course[field as keyof typeof course] === null || course[field as keyof typeof course] === undefined) {
+                missingFields.push(field);
+            }
+        }
+
+        // If there are missing fields, return an error
+        if (missingFields.length > 0) {
+            res.status(400).json({
+                message: "Course cannot be published. Missing required fields.",
+                data: missingFields,
+            });
+            return;
+        }
+
+        // Update the course status to published (true)
+        course.published = true; // Assuming `status` is a boolean column
+        course.status = "under_review";
+        await course.save();
+
+        res.status(200).json({
+            message: "Course published successfully.",
+            data: course,
+        });
+    } catch (error: any) {
+        res.status(500).json({
+            message: error.message || "An error occurred while publishing the course.",
+        });
     }
 };
 
@@ -1740,6 +1856,13 @@ export const postJob = async (req: Request, res: Response): Promise<void> => {
     try {
         const {
             jobId,
+            categoryId,
+            title,
+            company,
+            logo,
+            workplaceType,
+            location,
+            jobType,
             description,
             skills,
             applyLink,
@@ -1755,13 +1878,31 @@ export const postJob = async (req: Request, res: Response): Promise<void> => {
             return;
         }
 
+        if (categoryId) {
+            const category = await JobCategory.findByPk(categoryId);
+            if (!category) {
+                res.status(404).json({
+                    message: "Category not found in our database.",
+                });
+                return;
+            }    
+        }
+
+        // Use existing job values if new values are not provided
         await job.update({
+            categoryId: categoryId || job.categoryId,
+            title: title || job.title,
+            company: company || job.company,
+            logo: logo || job.logo,
+            workplaceType: workplaceType || job.workplaceType,
+            location: location || job.location,
+            jobType: jobType || job.jobType,
             description,
             skills,
             applyLink,
             applicantCollectionEmailAddress,
             rejectionEmails,
-            status: "Active",
+            status: "active",
         });
 
         res.status(200).json({

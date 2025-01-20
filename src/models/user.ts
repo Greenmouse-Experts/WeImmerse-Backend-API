@@ -1,6 +1,7 @@
 // models/user.ts
 import bcrypt from "bcrypt";
-import { Model, DataTypes, Sequelize } from "sequelize";
+import { Model, DataTypes, Op, Sequelize } from "sequelize";
+import Lesson from "./lesson";
 class User extends Model {
   public id!: string; // Use '!' to indicate these fields are definitely assigned
   public name!: string;
@@ -41,6 +42,43 @@ class User extends Model {
     });
   }
 
+  // async percentCompleted(courseId: string): Promise<number> {
+  //   try {
+  //       // Get all lessons for the course that have content
+  //       const lessonsWithContent = await Lesson.findAll({
+  //           where: {
+  //               courseId,
+  //               contentType: { [Op.in]: ['article', 'video', 'youtube'] }, // Equivalent of hasContent
+  //           },
+  //           attributes: ['id'], // Only fetch the lesson IDs
+  //       });
+
+  //       const lessonIds = lessonsWithContent.map(lesson => lesson.id);
+
+  //       // Count total lessons with content
+  //       const totalLessons = lessonIds.length;
+
+  //       if (totalLessons === 0) {
+  //           return 0; // No lessons to complete
+  //       }
+
+  //       // Get the count of lessons completed by the user for this course
+  //       const userCompletedCount = await Completion.count({
+  //           where: {
+  //               lessonId: { [Op.in]: lessonIds },
+  //               userId: this.id, // Assuming `this.id` refers to the current user
+  //           },
+  //       });
+
+  //       // Calculate the percentage completed
+  //       const percentCompleted = (userCompletedCount / totalLessons) * 100;
+
+  //       return Math.floor(percentCompleted); // Return as an integer
+  //   } catch (error) {
+  //       console.error('Error calculating percent completed:', error);
+  //       throw new Error('Could not calculate percent completed');
+  //   }
+  // }
 }
 
 const initModel = (sequelize: Sequelize) => {

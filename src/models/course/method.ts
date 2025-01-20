@@ -5,11 +5,17 @@ import Lesson from "../lesson";
 import logger from "../../middlewares/logger";
 import Module from "../module";
 import LessonQuiz from "../lessonquiz";
+import CourseLike from "../courselike";
+import LessonQuizQuestion from "../lessonquizquestion";
+import CourseEnrollment from "../courseenrollment";
+import CourseReview from "../coursereview";
 
 export const courseMethods = {
-  async getAverageReviews(this: Course): Promise<number> {
-    const reviews = await this.getCourseReviews(); // Fetch associated reviews
-
+  async getAverageReviews(this: Course) {
+    const reviews = await CourseReview.findAll({
+      where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+    });
+    
     if (!reviews.length) {
         return 0; // No reviews, return 0
     }
@@ -20,12 +26,18 @@ export const courseMethods = {
     return Number(averageRating.toFixed(1)); // Round to 1 decimal place
   },
 
-  async getTotalReviews(this: Course): Promise<number> {
-    return await this.getCourseReviews().then((reviews) => reviews.length);
+  async getTotalReviews(this: Course) {
+    const reviews = await CourseReview.findAll({
+      where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+    });
+    return reviews.length;
   },
 
-  async getTotalStudents(course: Course) {
-    return await course.getCourseStudent().then((students) => students.length);
+  async getTotalStudents(this: Course) {
+    const students = await CourseEnrollment.findAll({
+      where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+    });
+    return students.length;
   },
 
   // async getEnrollmentsThisMonth(this: Course) {
@@ -60,14 +72,21 @@ export const courseMethods = {
     return quizzes.length;
   },
 
-  async getTotalQuizQuestions(course: Course) {
-    return await course
-      .getCourseQuizQuestions()
-      .then((questions) => questions.length);
+  async getTotalQuizQuestions(this: Course) {
+    const quizQuestions = await LessonQuizQuestion.findAll({
+      where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+    });
+    return quizQuestions.length;
   },
 
-  async getTotalLikes(course: Course) {
-    return await course.getCourseLikes().then((likes) => likes.length);
+  async getTotalLikes(this: Course) {
+    const totalCourseLikes = await CourseLike.findAll({
+      where: { 
+        courseId: this.id, // Assuming 'this.id' refers to the course's identifier
+      }
+    });
+
+    return totalCourseLikes.length;
   },
 
   //   async getSalesThisMonth(course: Course) {
@@ -93,9 +112,14 @@ export const courseMethods = {
   //   },
 
   async getTotalPublishedLessons(this: Course) {
-    return await this
-      .getCourseLessons({ where: { isPublished: true } })
-      .then((lessons) => lessons.length);
+    const publishedLessons = await Lesson.findAll({
+      where: { 
+        courseId: this.id, // Assuming 'this.id' refers to the course's identifier
+        status: 'published'
+      }
+    });
+
+    return publishedLessons.length;
   },
 
   async getTotalHours(this: Course) {
@@ -120,7 +144,7 @@ export const courseMethods = {
     return (totalMinutes / 60).toFixed(2);
   },
   
-  async getTotalVideoHours(this: Course): Promise<number> {
+  async getTotalVideoHours(this: Course) {
     const lessons = await Lesson.findAll({
         where: {
             courseId: this.id, // Ensure the foreign key matches your schema
@@ -128,13 +152,18 @@ export const courseMethods = {
         },
     });
 
-    // Calculate the total duration
-    const totalDuration = lessons.reduce((sum, lesson) => sum + lesson.duration, 0);
+    if (!lessons || lessons.length === 0) {
+      return '0.00'; // Return 0 hours if no lessons are found
+    }
 
-    // Convert total duration to hours and round to 2 decimal places
-    const durationInHours = parseFloat((totalDuration / 60).toFixed(2)) || 0;
-
-    return durationInHours;
+    // Ensure the duration is a number and sum it up
+    const totalMinutes = lessons.reduce((sum, lesson) => {
+      const duration = Number(lesson.duration); // Ensure it's a number
+      return !isNaN(duration) ? sum + duration : sum; // Only add valid durations
+    }, 0);
+  
+    // Return the total in hours, ensuring it is properly calculated
+    return (totalMinutes / 60).toFixed(2);
   },
 
   async getTotalArticles(this: Course) {

@@ -18,10 +18,16 @@ const sequelize_1 = require("sequelize");
 const lesson_1 = __importDefault(require("../lesson"));
 const module_1 = __importDefault(require("../module"));
 const lessonquiz_1 = __importDefault(require("../lessonquiz"));
+const courselike_1 = __importDefault(require("../courselike"));
+const lessonquizquestion_1 = __importDefault(require("../lessonquizquestion"));
+const courseenrollment_1 = __importDefault(require("../courseenrollment"));
+const coursereview_1 = __importDefault(require("../coursereview"));
 exports.courseMethods = {
     getAverageReviews() {
         return __awaiter(this, void 0, void 0, function* () {
-            const reviews = yield this.getCourseReviews(); // Fetch associated reviews
+            const reviews = yield coursereview_1.default.findAll({
+                where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+            });
             if (!reviews.length) {
                 return 0; // No reviews, return 0
             }
@@ -32,12 +38,18 @@ exports.courseMethods = {
     },
     getTotalReviews() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this.getCourseReviews().then((reviews) => reviews.length);
+            const reviews = yield coursereview_1.default.findAll({
+                where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+            });
+            return reviews.length;
         });
     },
-    getTotalStudents(course) {
+    getTotalStudents() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield course.getCourseStudent().then((students) => students.length);
+            const students = yield courseenrollment_1.default.findAll({
+                where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+            });
+            return students.length;
         });
     },
     // async getEnrollmentsThisMonth(this: Course) {
@@ -74,16 +86,22 @@ exports.courseMethods = {
             return quizzes.length;
         });
     },
-    getTotalQuizQuestions(course) {
+    getTotalQuizQuestions() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield course
-                .getCourseQuizQuestions()
-                .then((questions) => questions.length);
+            const quizQuestions = yield lessonquizquestion_1.default.findAll({
+                where: { courseId: this.id } // Assuming 'this.id' is the course's identifier
+            });
+            return quizQuestions.length;
         });
     },
-    getTotalLikes(course) {
+    getTotalLikes() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield course.getCourseLikes().then((likes) => likes.length);
+            const totalCourseLikes = yield courselike_1.default.findAll({
+                where: {
+                    courseId: this.id, // Assuming 'this.id' refers to the course's identifier
+                }
+            });
+            return totalCourseLikes.length;
         });
     },
     //   async getSalesThisMonth(course: Course) {
@@ -108,9 +126,13 @@ exports.courseMethods = {
     //   },
     getTotalPublishedLessons() {
         return __awaiter(this, void 0, void 0, function* () {
-            return yield this
-                .getCourseLessons({ where: { isPublished: true } })
-                .then((lessons) => lessons.length);
+            const publishedLessons = yield lesson_1.default.findAll({
+                where: {
+                    courseId: this.id,
+                    status: 'published'
+                }
+            });
+            return publishedLessons.length;
         });
     },
     getTotalHours() {
@@ -141,11 +163,16 @@ exports.courseMethods = {
                     contentType: { [sequelize_1.Op.in]: ['video', 'youtube'] },
                 },
             });
-            // Calculate the total duration
-            const totalDuration = lessons.reduce((sum, lesson) => sum + lesson.duration, 0);
-            // Convert total duration to hours and round to 2 decimal places
-            const durationInHours = parseFloat((totalDuration / 60).toFixed(2)) || 0;
-            return durationInHours;
+            if (!lessons || lessons.length === 0) {
+                return '0.00'; // Return 0 hours if no lessons are found
+            }
+            // Ensure the duration is a number and sum it up
+            const totalMinutes = lessons.reduce((sum, lesson) => {
+                const duration = Number(lesson.duration); // Ensure it's a number
+                return !isNaN(duration) ? sum + duration : sum; // Only add valid durations
+            }, 0);
+            // Return the total in hours, ensuring it is properly calculated
+            return (totalMinutes / 60).toFixed(2);
         });
     },
     getTotalArticles() {

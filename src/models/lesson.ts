@@ -57,6 +57,18 @@ class Lesson extends Model {
         );
         await Promise.all(updates);
     }
+
+    /**
+     * Static method to filter lessons that have content.
+     * @returns Promise<Lesson[]> - Lessons with specific content types.
+     */
+    public static async hasContent() {
+        return await Lesson.findAll({
+            where: {
+                contentType: ['article', 'video', 'youtube'], // Filter for specific content types
+            },
+        });
+    }
       
 }
 

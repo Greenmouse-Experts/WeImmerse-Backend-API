@@ -56,6 +56,19 @@ class Lesson extends sequelize_1.Model {
             yield Promise.all(updates);
         });
     }
+    /**
+     * Static method to filter lessons that have content.
+     * @returns Promise<Lesson[]> - Lessons with specific content types.
+     */
+    static hasContent() {
+        return __awaiter(this, void 0, void 0, function* () {
+            return yield Lesson.findAll({
+                where: {
+                    contentType: ['article', 'video', 'youtube'], // Filter for specific content types
+                },
+            });
+        });
+    }
 }
 const initModel = (sequelize) => {
     Lesson.init({
