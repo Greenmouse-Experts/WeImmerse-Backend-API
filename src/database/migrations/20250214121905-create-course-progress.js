@@ -2,70 +2,65 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('lesson_assignments', {
+    await queryInterface.createTable('course_progress', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true,
       },
-      creatorId: {
+      studentId: {
         type: Sequelize.UUID,
         allowNull: false,
+        references: {
+          model: 'users', // Ensure this matches the actual users table
+          key: 'id',
+        },
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
       },
       courseId: {
         type: Sequelize.UUID,
         allowNull: false,
         references: {
-          model: 'courses', // Ensure this matches the courses table name
+          model: 'courses', // Ensure this matches the actual courses table
           key: 'id',
         },
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
-      moduleId: {
-        type: Sequelize.UUID,
+      completedLessons: {
+        type: Sequelize.INTEGER,
         allowNull: false,
-        references: {
-          model: 'modules', // Ensure this matches the modules table name
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
+        defaultValue: 0,
       },
-      lessonId: {
-        type: Sequelize.UUID,
-        allowNull: false,
-        references: {
-          model: 'lessons', // Ensure this matches the lessons table name
-          key: 'id',
-        },
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-      },
-      title: {
-        type: Sequelize.STRING,
+      totalLessons: {
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
-      description: {
-        type: Sequelize.TEXT,
-        allowNull: true,
+      progressPercentage: {
+        type: Sequelize.FLOAT,
+        allowNull: false,
+        defaultValue: 0,
       },
-      dueDate: {
+      lastAccessed: {
         type: Sequelize.DATE,
-        allowNull: true,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
       createdAt: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
       updatedAt: {
-        allowNull: false,
         type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('lesson_assignments');
+    await queryInterface.dropTable('course_progress');
   },
 };

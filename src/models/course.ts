@@ -1,15 +1,22 @@
 // models/course.ts
 
-import { Model, DataTypes, Sequelize, Op } from "sequelize";
-import { courseMethods } from "./course/method";
-import Module from "./module";
-import Lesson from "./lesson";
-import LessonQuiz from "./lessonquiz";
-import LessonQuizQuestion from "./lessonquizquestion";
-import CourseReview from "./coursereview";
-import CourseLike from "./courselike";
-import CourseEnrollment from "./courseenrollment";
-import User from "./user";
+import { Model, DataTypes, Sequelize, Op } from 'sequelize';
+import { courseMethods } from './course/method';
+import Module from './module';
+import Lesson from './lesson';
+import LessonQuiz from './lessonquiz';
+import LessonQuizQuestion from './lessonquizquestion';
+import CourseReview from './coursereview';
+import CourseLike from './courselike';
+import CourseEnrollment from './courseenrollment';
+import User from './user';
+
+export enum CourseStatus {
+  LIVE = 'live',
+  UNPUBLISHED = 'unpublished',
+  UNDER_REVIEW = 'under_review',
+  DRAFT = 'draft',
+}
 
 class Course extends Model {
   public id!: string;
@@ -20,13 +27,13 @@ class Course extends Model {
   public description!: string | null;
   public language!: string | null;
   public image!: string | null;
-  public level!: "beginner" | "intermediate" | "advanced" | null;
+  public level!: 'beginner' | 'intermediate' | 'advanced' | null;
   public currency!: string | null;
   public price!: number;
   public requirement!: string | null;
   public whatToLearn!: string | null;
   public published!: boolean;
-  public status!: "live" | "unpublished" | "under_review" | "draft";
+  public status!: 'live' | 'unpublished' | 'under_review' | 'draft';
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public modules?: Module[];
@@ -39,7 +46,9 @@ class Course extends Model {
   public getCourseQuizQuestions!: () => Promise<LessonQuizQuestion[]>;
   public getCourseReviews!: () => Promise<CourseReview[]>;
   public getCourseLikes!: () => Promise<CourseLike[]>;
-  public getCourseEnrollments!: (options?: { where: object }) => Promise<CourseEnrollment[]>;
+  public getCourseEnrollments!: (options?: {
+    where: object;
+  }) => Promise<CourseEnrollment[]>;
   public getCourseStudent!: () => Promise<any[]>;
   public convertHoursToDuration!: (hours: number) => string;
 
@@ -62,42 +71,46 @@ class Course extends Model {
   public getDurationHMS!: () => Promise<string>;
 
   static associate(models: any) {
-    this.belongsTo(models.User, { as: "creator", foreignKey: "creatorId" });
+    this.belongsTo(models.User, { as: 'creator', foreignKey: 'creatorId' });
     this.belongsTo(models.CourseCategory, {
-      as: "courseCategory",
-      foreignKey: "categoryId",
+      as: 'courseCategory',
+      foreignKey: 'categoryId',
     });
-    this.hasMany(models.Module, { as: "modules", foreignKey: "courseId" });
-    this.hasMany(models.Lesson, { as: "lessons", foreignKey: "courseId" });
-    this.hasMany(models.LessonQuiz, { as: "quizzes", foreignKey: "courseId" });
+    this.hasMany(models.Module, { as: 'modules', foreignKey: 'courseId' });
+    this.hasMany(models.Lesson, { as: 'lessons', foreignKey: 'courseId' });
+    this.hasMany(models.LessonQuiz, { as: 'quizzes', foreignKey: 'courseId' });
     this.hasMany(models.LessonQuizQuestion, {
-      as: "questions",
-      foreignKey: "courseId",
+      as: 'questions',
+      foreignKey: 'courseId',
     });
     this.hasMany(models.CourseReview, {
-      as: "reviews",
-      foreignKey: "courseId",
+      as: 'reviews',
+      foreignKey: 'courseId',
     });
     this.belongsToMany(models.User, {
-      as: "students",
+      as: 'students',
       through: models.CourseEnrollment,
-      foreignKey: "courseId",
-      otherKey: "userId",
+      foreignKey: 'courseId',
+      otherKey: 'userId',
     });
     this.hasMany(models.CourseEnrollment, {
-      as: "enrollments",
-      foreignKey: "courseId",
+      as: 'enrollments',
+      foreignKey: 'courseId',
+    });
+    this.hasOne(models.CourseProgress, {
+      as: 'progress',
+      foreignKey: 'courseId',
     });
   }
 
   // Scope to filter live courses
   static live() {
-    return { where: { status: "live" } };
+    return { where: { status: 'live' } };
   }
 
   // Check if the course is live
   isLive() {
-    return this.status === "live";
+    return this.status === 'live';
   }
 
   // Check if the course is published
@@ -142,7 +155,7 @@ class Course extends Model {
       await this.destroy();
     } else {
       throw new Error(
-        "Course cannot be deleted because it is live and published."
+        'Course cannot be deleted because it is live and published.'
       );
     }
   }
@@ -159,16 +172,16 @@ const initModel = (sequelize: Sequelize) => {
       },
       creatorId: {
         type: DataTypes.UUID,
-        allowNull: false
+        allowNull: false,
       },
       categoryId: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: "course_categories", // Ensure this matches the name of the CourseCategory table
-          key: "id",
+          model: 'course_categories', // Ensure this matches the name of the CourseCategory table
+          key: 'id',
         },
-        onDelete: 'CASCADE', 
+        onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
       title: {
@@ -192,7 +205,7 @@ const initModel = (sequelize: Sequelize) => {
         allowNull: true,
       },
       level: {
-        type: DataTypes.ENUM("beginner", "intermediate", "advanced"),
+        type: DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
         allowNull: true,
       },
       currency: {
@@ -216,16 +229,16 @@ const initModel = (sequelize: Sequelize) => {
         defaultValue: false,
       },
       status: {
-        type: DataTypes.ENUM("live", "unpublished", "under_review", "draft"),
-        defaultValue: "draft",
+        type: DataTypes.ENUM('live', 'unpublished', 'under_review', 'draft'),
+        defaultValue: 'draft',
       },
     },
     {
       sequelize,
-      modelName: "Course",
+      modelName: 'Course',
       timestamps: true,
       paranoid: false,
-      tableName: "courses",
+      tableName: 'courses',
     }
   );
 

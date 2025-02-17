@@ -27,19 +27,22 @@ const generateOTP = (): string => {
 
 // Utility function to capitalize the first letter of a string
 function capitalizeFirstLetter(string: string): string {
-    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
+  return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase();
 }
 
 function generateReferralCode(name: string): string {
   return `${name.substring(0, 3)}${Date.now().toString().slice(-5)}`;
-};
+}
 
-const sendSMS = async (mobile: string, messageContent: string): Promise<void> => {
+const sendSMS = async (
+  mobile: string,
+  messageContent: string
+): Promise<void> => {
   const apiUrl = 'portal.nigeriabulksms.com';
   const data = querystring.stringify({
     username: process.env.SMS_USERNAME, // Your SMS API username
     password: process.env.SMS_PASSWORD, // Your SMS API password
-    sender: process.env.APP_NAME,     // Sender ID
+    sender: process.env.APP_NAME, // Sender ID
     message: messageContent,
     mobiles: mobile,
   });
@@ -57,7 +60,7 @@ const sendSMS = async (mobile: string, messageContent: string): Promise<void> =>
   return new Promise((resolve, reject) => {
     const req = http.request(options, (res) => {
       let responseData = '';
-      
+
       res.on('data', (chunk) => {
         responseData += chunk;
       });
@@ -98,25 +101,28 @@ const fetchAdminWithPermissions = async (adminId: string) => {
   });
 };
 
-const verifyPayment = (refId: string, paystackSecretKey: string): Promise<any> => {
+const verifyPayment = (
+  refId: string,
+  paystackSecretKey: string
+): Promise<any> => {
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: "api.paystack.co",
+      hostname: 'api.paystack.co',
       path: `/transaction/verify/${refId}`,
-      method: "GET",
+      method: 'GET',
       headers: {
         Authorization: `Bearer ${paystackSecretKey}`, // Use dynamic key
       },
     };
 
     const req = https.request(options, (res) => {
-      let data = "";
+      let data = '';
 
-      res.on("data", (chunk) => {
+      res.on('data', (chunk) => {
         data += chunk;
       });
 
-      res.on("end", () => {
+      res.on('end', () => {
         try {
           const response: PaystackResponse = JSON.parse(data);
 
@@ -126,12 +132,12 @@ const verifyPayment = (refId: string, paystackSecretKey: string): Promise<any> =
             reject(new Error(`Paystack Error: ${response.message}`));
           }
         } catch (err) {
-          reject(new Error("Invalid response from Paystack"));
+          reject(new Error('Invalid response from Paystack'));
         }
       });
     });
 
-    req.on("error", (e) => {
+    req.on('error', (e) => {
       reject(new Error(`Error validating payment: ${e.message}`));
     });
 
@@ -142,8 +148,8 @@ const verifyPayment = (refId: string, paystackSecretKey: string): Promise<any> =
 // Utility function to shuffle an array
 const shuffleArray = <T>(array: T[]): T[] => {
   for (let i = array.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [array[i], array[j]] = [array[j], array[i]];
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
   }
   return array;
 };
@@ -152,25 +158,25 @@ const getJobsBySearch = async (searchTerm: string, number: number) => {
   const where: any = { status: 'active' };
 
   if (searchTerm) {
-      const searchRegex = { [Op.iLike]: `%${searchTerm}%` }; // Use Sequelize's Op.iLike for case-insensitive search.
-      where[Op.or] = [
-          { title: searchRegex },
-          { company: searchRegex },
-          { workplace_type: searchRegex },
-          { job_type: searchRegex },
-          { location: searchRegex },
-          { category: searchRegex },
-      ];
+    const searchRegex = { [Op.iLike]: `%${searchTerm}%` }; // Use Sequelize's Op.iLike for case-insensitive search.
+    where[Op.or] = [
+      { title: searchRegex },
+      { company: searchRegex },
+      { workplace_type: searchRegex },
+      { job_type: searchRegex },
+      { location: searchRegex },
+      { category: searchRegex },
+    ];
   }
 
   return await Job.findAll({
-      where,
-      order: [['createdAt', 'DESC']], // Sort by createdAt in descending order.
-      limit: number, // Limit the number of results.
+    where,
+    order: [['createdAt', 'DESC']], // Sort by createdAt in descending order.
+    limit: number, // Limit the number of results.
   });
 };
 
-const formatCourse = async (course: Course , authUserId: string) => {
+const formatCourse = async (course: Course, authUserId: string) => {
   const isTutor = course.creatorId === authUserId;
 
   return {
@@ -179,7 +185,7 @@ const formatCourse = async (course: Course , authUserId: string) => {
     title: course.title,
     subtitle: course.subtitle,
     description: course.description,
-    durationHMS: await course.getDurationHMS() || null,
+    durationHMS: (await course.getDurationHMS()) || null,
     tutor: course.creator ? formatUser(course.creator) : null, // Assume formatUser is a utility to format user data
     modules: course.modules ? course.modules.map(formatModule) : [], // Assume formatModule formats a module
     images: course.image,
@@ -198,21 +204,21 @@ const formatCourse = async (course: Course , authUserId: string) => {
     // enrolledThisMonth: isTutor ? course.getEnrollmentsThisMonth() : null,
 
     // percentCompleted: course.getPercentComplete ? course.getPercentComplete() : null,
-    totalArticles: await course.getTotalArticles() || 0,
-    totalVideos: await course.getTotalVideos() || 0,
-    totalYoutubes: await course.getTotalYoutubes() || 0,
-    totalAudio: await course.getTotalAudios() || 0,
-    totalHours: await course.getTotalHours() || 0,
-    totalModules: await course.getTotalModules() ||  0,
-    totalLessons: await course.getTotalLessons() || 0,
-    totalQuizzes: await course.getTotalQuizzes() || 0,
-    totalQuizQuestions: await course.getTotalQuizQuestions() || 0,
-    totalPublishedLessons: await course.getTotalPublishedLessons() || 0,
-    totalReviews: await course.getTotalReviews() || 0,
-    averageReviews: await course.getAverageReviews() || 0,
-    totalStudents: await course.getTotalStudents() || 0,
-    totalVideoHours: await course.getTotalVideoHours() || 0,
-    totalLikes: await course.getTotalLikes() || 0,
+    totalArticles: (await course.getTotalArticles()) || 0,
+    totalVideos: (await course.getTotalVideos()) || 0,
+    totalYoutubes: (await course.getTotalYoutubes()) || 0,
+    totalAudio: (await course.getTotalAudios()) || 0,
+    totalHours: (await course.getTotalHours()) || 0,
+    totalModules: (await course.getTotalModules()) || 0,
+    totalLessons: (await course.getTotalLessons()) || 0,
+    totalQuizzes: (await course.getTotalQuizzes()) || 0,
+    totalQuizQuestions: (await course.getTotalQuizQuestions()) || 0,
+    totalPublishedLessons: (await course.getTotalPublishedLessons()) || 0,
+    totalReviews: (await course.getTotalReviews()) || 0,
+    averageReviews: (await course.getAverageReviews()) || 0,
+    totalStudents: (await course.getTotalStudents()) || 0,
+    totalVideoHours: (await course.getTotalVideoHours()) || 0,
+    totalLikes: (await course.getTotalLikes()) || 0,
     created_at: course.createdAt,
     updated_at: course.updatedAt,
   };
@@ -228,9 +234,40 @@ const formatUser = (user: User) => ({
 
 const formatModule = (module: Module) => ({
   id: module.id,
-  title: module.title
+  title: module.title,
   // Add other fields as needed
 });
 
+const getPaginationFields = (_page: string, _limit: string) => {
+  const page = parseInt(_page as string, 10) || 1; // Default to page 1
+  const limit = parseInt(_limit as string, 10) || 10; // Default to 10 items per page
+  const offset = (page - 1) * limit;
+
+  return {
+    page,
+    limit,
+    offset,
+  };
+};
+
+const getTotalPages = (totalItems: number, limit: number) => {
+  // Calculate pagination metadata
+  const totalPages = Math.ceil(totalItems / limit);
+
+  return totalPages;
+};
+
 // Export functions
-export { generateOTP, capitalizeFirstLetter, sendSMS, fetchAdminWithPermissions, verifyPayment, shuffleArray, generateReferralCode, getJobsBySearch, formatCourse };
+export {
+  generateOTP,
+  capitalizeFirstLetter,
+  sendSMS,
+  fetchAdminWithPermissions,
+  verifyPayment,
+  shuffleArray,
+  generateReferralCode,
+  getJobsBySearch,
+  formatCourse,
+  getPaginationFields,
+  getTotalPages,
+};

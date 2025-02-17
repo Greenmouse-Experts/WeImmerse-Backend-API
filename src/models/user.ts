@@ -1,7 +1,7 @@
 // models/user.ts
-import bcrypt from "bcrypt";
-import { Model, DataTypes, Op, Sequelize } from "sequelize";
-import Lesson from "./lesson";
+import bcrypt from 'bcrypt';
+import { Model, DataTypes, Op, Sequelize } from 'sequelize';
+import Lesson from './lesson';
 class User extends Model {
   public id!: string; // Use '!' to indicate these fields are definitely assigned
   public name!: string;
@@ -20,7 +20,7 @@ class User extends Model {
   public photo?: string;
   public evToken?: number;
   public accountType?: string;
-  public status?: "active" | "inactive";
+  public status?: 'active' | 'inactive';
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -34,11 +34,16 @@ class User extends Model {
     return bcrypt.compare(password, this.password);
   }
 
-  static associate(models: any ) { // Define expected model types
+  static associate(models: any) {
+    // Define expected model types
     this.hasOne(models.OTP, {
       as: 'otp',
       foreignKey: 'userId', // Ensure the OTP model has a 'userId' column
-      onDelete: 'RESTRICT'
+      onDelete: 'RESTRICT',
+    });
+    this.hasMany(models.CourseProgress, {
+      as: 'progress',
+      foreignKey: 'studentId',
     });
   }
 
@@ -116,7 +121,7 @@ const initModel = (sequelize: Sequelize) => {
       },
       dateOfBirth: {
         type: DataTypes.STRING,
-        allowNull: true
+        allowNull: true,
       },
       educationalLevel: {
         type: DataTypes.STRING,
@@ -166,24 +171,24 @@ const initModel = (sequelize: Sequelize) => {
     },
     {
       sequelize,
-      modelName: "User",
+      modelName: 'User',
       timestamps: true,
       paranoid: false,
-      tableName: "users",
+      tableName: 'users',
       defaultScope: {
-        attributes: { exclude: ["password"] },
+        attributes: { exclude: ['password'] },
       },
       scopes: {
         auth: {
-          attributes: { include: ["password"] }, // Add necessary fields for authentication
+          attributes: { include: ['password'] }, // Add necessary fields for authentication
         },
       },
     }
   );
 
   // Add the password hashing hook before saving
-  User.addHook("beforeSave", async (user: User) => {
-    if (user.changed("password") || user.isNewRecord) {
+  User.addHook('beforeSave', async (user: User) => {
+    if (user.changed('password') || user.isNewRecord) {
       user.password = await User.hashPassword(user.password);
     }
   });

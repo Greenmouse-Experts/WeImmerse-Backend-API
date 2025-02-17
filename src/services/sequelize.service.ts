@@ -25,6 +25,7 @@ const sequelizeService = {
         process.env.DB_PASS!,
         {
           host: process.env.DB_HOST!,
+          port: +process.env.DB_PORT!,
           dialect: process.env.DB_DIALECT as any,
           logging: false,
           define: {
@@ -35,12 +36,14 @@ const sequelizeService = {
 
       // Test connection
       await sequelizeService.connection.authenticate();
-      console.log("Database connected successfully");
+      console.log('Database connected successfully');
 
       // Load models dynamically
       const modelDirectory = path.join(__dirname, '../models');
-      const modelFiles = fs.readdirSync(modelDirectory).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
-      
+      const modelFiles = fs
+        .readdirSync(modelDirectory)
+        .filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
+
       // Make sure to adjust the order of loading if needed.
       for (const file of modelFiles) {
         const modelModule = await import(path.join(modelDirectory, file));
@@ -69,7 +72,10 @@ const sequelizeService = {
       await sequelizeService.connection.sync({ force: false });
       console.log('[SEQUELIZE] Database service initialized');
     } catch (error) {
-      console.error('[SEQUELIZE] Error during database service initialization', error);
+      console.error(
+        '[SEQUELIZE] Error during database service initialization',
+        error
+      );
       throw error;
     }
   },
