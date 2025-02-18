@@ -13,12 +13,13 @@ import {
   updateProgress,
   getAllCourseProgress,
   saveCourseProgress,
+  submitQuiz,
+  getAttempts,
+  getLatestAttempt,
 } from '../controllers/studentController';
+import { generateCertificateValidationRules } from '../utils/validations/studentValidations';
 
 const studentRoutes = Router();
-
-// Get courses based on filters
-// studentRoutes.get('courses', authMiddleware, )
 
 /**
  * Authorized route to get all enrolled courses
@@ -39,7 +40,37 @@ studentRoutes.post('/course/:courseId/enroll', authMiddleware, enrollCourse);
 /**
  * Progress tracking
  */
-studentRoutes.post('/course-progress/update', authMiddleware, updateProgress);
 studentRoutes.post('/course-progress/save', authMiddleware, saveCourseProgress);
+
+/**
+ * Quiz attempt
+ */
+studentRoutes.post('/submit-quiz', authMiddleware, submitQuiz);
+
+studentRoutes.get('/quiz-attempt/:quizId', authMiddleware, getAttempts);
+
+studentRoutes.get(
+  '/latest-quiz-attempt/:quizId',
+  authMiddleware,
+  getLatestAttempt
+);
+
+/**
+ * Certification
+ */
+studentRoutes.post(
+  '/generate-certificate',
+  authMiddleware,
+  generateCertificateValidationRules(),
+  validate,
+  studentController.generateCertificate
+);
+studentRoutes.get(
+  '/certificate/:courseId',
+  authMiddleware,
+  generateCertificateValidationRules(),
+  validate,
+  studentController.getCertificate
+);
 
 export default studentRoutes;

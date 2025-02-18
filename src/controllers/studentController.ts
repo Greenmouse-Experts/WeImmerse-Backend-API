@@ -18,6 +18,8 @@ import courseProgressService from '../services/course-progress.service';
 import CourseCategory from '../models/coursecategory';
 import lessonCompletionService from '../services/lesson-completion.service';
 import LessonCompletion from '../models/lessoncompletion';
+import quizService from '../services/quiz.service';
+import certificateService from '../services/certificate.service';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -326,5 +328,125 @@ export const saveCourseProgress = async (
     console.log(error);
 
     res.status(500).json({ error: 'Failed to create course progress' });
+  }
+};
+
+/**
+ * Submit quiz
+ * @param req
+ * @param res
+ * @returns
+ */
+export const submitQuiz = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const studentId = (req as AuthenticatedRequest).user?.id as string;
+    const { quizId, answers } = req.body;
+
+    if (!quizId || !Array.isArray(answers) || answers.length === 0) {
+      return res.status(400).json({ message: 'Invalid request data' });
+    }
+
+    const result = await quizService.saveQuizAttempt(
+      studentId,
+      quizId,
+      answers
+    );
+    return res.status(201).json(result);
+  } catch (error: any) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+/**
+ * Get attempts
+ * @param req
+ * @param res
+ * @returns
+ */
+export const getAttempts = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const studentId = (req as AuthenticatedRequest).user?.id as string;
+  const { quizId } = req.params;
+
+  try {
+    const attempts = await quizService.getQuizAttempts(studentId, quizId);
+    return res.status(200).json({ success: true, attempts });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+export const getLatestAttempt = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const studentId = (req as AuthenticatedRequest).user?.id as string;
+  const { quizId } = req.params;
+
+  try {
+    const attempt = await quizService.getLatestQuizAttempt(studentId, quizId);
+    return res.status(200).json({ success: true, attempt });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Generate certificate
+ * @param req
+ * @param res
+ * @returns
+ */
+export const generateCertificate = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const studentId = (req as AuthenticatedRequest).user?.id as string;
+
+  const { courseId } = req.body;
+
+  try {
+    const certificate = await certificateService.generateCertificate(
+      studentId,
+      courseId
+    );
+    return res.status(201).json({
+      success: true,
+      message: 'Certificate generate successfully.',
+      certificate,
+    });
+  } catch (error: any) {
+    return res.status(400).json({ success: false, message: error.message });
+  }
+};
+
+/**
+ * Get certificate
+ * @param req
+ * @param res
+ * @returns
+ */
+export const getCertificate = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  const { courseId } = req.params;
+  const studentId = (req as AuthenticatedRequest).user?.id as string;
+
+  try {
+    const certificate = await certificateService.getCertificate(
+      studentId,
+      courseId
+    );
+    if (!certificate) {
+      return res
+        .status(404)
+        .json({ success: false, message: 'Certificate not found' });
+    }
+    return res.status(200).json({ success: true, certificate });
+  } catch (error: any) {
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
