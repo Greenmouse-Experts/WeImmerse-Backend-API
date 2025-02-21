@@ -28,10 +28,15 @@ class User extends sequelize_1.Model {
         return bcrypt_1.default.compare(password, this.password);
     }
     static associate(models) {
+        // Define expected model types
         this.hasOne(models.OTP, {
             as: 'otp',
             foreignKey: 'userId',
-            onDelete: 'RESTRICT'
+            onDelete: 'RESTRICT',
+        });
+        this.hasMany(models.CourseProgress, {
+            as: 'progress',
+            foreignKey: 'studentId',
         });
     }
 }
@@ -69,7 +74,7 @@ const initModel = (sequelize) => {
         },
         dateOfBirth: {
             type: sequelize_1.DataTypes.STRING,
-            allowNull: true
+            allowNull: true,
         },
         educationalLevel: {
             type: sequelize_1.DataTypes.STRING,
@@ -118,22 +123,22 @@ const initModel = (sequelize) => {
         },
     }, {
         sequelize,
-        modelName: "User",
+        modelName: 'User',
         timestamps: true,
         paranoid: false,
-        tableName: "users",
+        tableName: 'users',
         defaultScope: {
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ['password'] },
         },
         scopes: {
             auth: {
-                attributes: { include: ["password"] }, // Add necessary fields for authentication
+                attributes: { include: ['password'] }, // Add necessary fields for authentication
             },
         },
     });
     // Add the password hashing hook before saving
-    User.addHook("beforeSave", (user) => __awaiter(void 0, void 0, void 0, function* () {
-        if (user.changed("password") || user.isNewRecord) {
+    User.addHook('beforeSave', (user) => __awaiter(void 0, void 0, void 0, function* () {
+        if (user.changed('password') || user.isNewRecord) {
             user.password = yield User.hashPassword(user.password);
         }
     }));

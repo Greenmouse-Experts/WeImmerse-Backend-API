@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatCourse = exports.getJobsBySearch = exports.generateReferralCode = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.capitalizeFirstLetter = exports.generateOTP = void 0;
+exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.generateReferralCode = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.capitalizeFirstLetter = exports.generateOTP = void 0;
 // utils/helpers.ts
 const http_1 = __importDefault(require("http"));
 const https_1 = __importDefault(require("https"));
@@ -22,6 +22,14 @@ const role_1 = __importDefault(require("../models/role"));
 const permission_1 = __importDefault(require("../models/permission"));
 const sequelize_1 = require("sequelize");
 const job_1 = __importDefault(require("../models/job"));
+const aws_sdk_1 = __importDefault(require("aws-sdk"));
+const uuid_1 = require("uuid");
+const path_1 = __importDefault(require("path"));
+const s3 = new aws_sdk_1.default.S3({
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    region: process.env.AWS_REGION,
+});
 // Function to generate a 6-digit OTP
 const generateOTP = () => {
     const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
@@ -37,7 +45,6 @@ function generateReferralCode(name) {
     return `${name.substring(0, 3)}${Date.now().toString().slice(-5)}`;
 }
 exports.generateReferralCode = generateReferralCode;
-;
 const sendSMS = (mobile, messageContent) => __awaiter(void 0, void 0, void 0, function* () {
     const apiUrl = 'portal.nigeriabulksms.com';
     const data = querystring_1.default.stringify({
@@ -101,19 +108,19 @@ exports.fetchAdminWithPermissions = fetchAdminWithPermissions;
 const verifyPayment = (refId, paystackSecretKey) => {
     return new Promise((resolve, reject) => {
         const options = {
-            hostname: "api.paystack.co",
+            hostname: 'api.paystack.co',
             path: `/transaction/verify/${refId}`,
-            method: "GET",
+            method: 'GET',
             headers: {
                 Authorization: `Bearer ${paystackSecretKey}`, // Use dynamic key
             },
         };
         const req = https_1.default.request(options, (res) => {
-            let data = "";
-            res.on("data", (chunk) => {
+            let data = '';
+            res.on('data', (chunk) => {
                 data += chunk;
             });
-            res.on("end", () => {
+            res.on('end', () => {
                 try {
                     const response = JSON.parse(data);
                     if (response.status) {
@@ -124,11 +131,11 @@ const verifyPayment = (refId, paystackSecretKey) => {
                     }
                 }
                 catch (err) {
-                    reject(new Error("Invalid response from Paystack"));
+                    reject(new Error('Invalid response from Paystack'));
                 }
             });
         });
-        req.on("error", (e) => {
+        req.on('error', (e) => {
             reject(new Error(`Error validating payment: ${e.message}`));
         });
         req.end();
@@ -218,7 +225,44 @@ const formatUser = (user) => ({
 });
 const formatModule = (module) => ({
     id: module.id,
-    title: module.title
+    title: module.title,
     // Add other fields as needed
 });
+const getPaginationFields = (_page, _limit) => {
+    const page = parseInt(_page, 10) || 1; // Default to page 1
+    const limit = parseInt(_limit, 10) || 10; // Default to 10 items per page
+    const offset = (page - 1) * limit;
+    return {
+        page,
+        limit,
+        offset,
+    };
+};
+exports.getPaginationFields = getPaginationFields;
+const getTotalPages = (totalItems, limit) => {
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(totalItems / limit);
+    return totalPages;
+};
+exports.getTotalPages = getTotalPages;
+const uploadToS3 = (fileBuffer, originalFileName, bucketName) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const fileExtension = path_1.default.extname(originalFileName);
+        const uniqueFileName = `${(0, uuid_1.v4)()}${fileExtension}`;
+        const params = {
+            Bucket: bucketName,
+            Key: uniqueFileName,
+            Body: fileBuffer,
+            ContentType: 'application/octet-stream',
+            ACL: 'public-read',
+        };
+        const uploadResult = yield s3.upload(params).promise();
+        return uploadResult.Location;
+    }
+    catch (error) {
+        console.error('Error uploading file to S3:', error);
+        throw new Error('File upload failed');
+    }
+});
+exports.uploadToS3 = uploadToS3;
 //# sourceMappingURL=helpers.js.map

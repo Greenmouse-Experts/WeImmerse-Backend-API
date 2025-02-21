@@ -10,45 +10,56 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = void 0;
+exports.initModel = exports.CourseStatus = void 0;
 const sequelize_1 = require("sequelize");
 const method_1 = require("./course/method");
+var CourseStatus;
+(function (CourseStatus) {
+    CourseStatus["LIVE"] = "live";
+    CourseStatus["UNPUBLISHED"] = "unpublished";
+    CourseStatus["UNDER_REVIEW"] = "under_review";
+    CourseStatus["DRAFT"] = "draft";
+})(CourseStatus = exports.CourseStatus || (exports.CourseStatus = {}));
 class Course extends sequelize_1.Model {
     static associate(models) {
-        this.belongsTo(models.User, { as: "creator", foreignKey: "creatorId" });
+        this.belongsTo(models.User, { as: 'creator', foreignKey: 'creatorId' });
         this.belongsTo(models.CourseCategory, {
-            as: "courseCategory",
-            foreignKey: "categoryId",
+            as: 'courseCategory',
+            foreignKey: 'categoryId',
         });
-        this.hasMany(models.Module, { as: "modules", foreignKey: "courseId" });
-        this.hasMany(models.Lesson, { as: "lessons", foreignKey: "courseId" });
-        this.hasMany(models.LessonQuiz, { as: "quizzes", foreignKey: "courseId" });
+        this.hasMany(models.Module, { as: 'modules', foreignKey: 'courseId' });
+        this.hasMany(models.Lesson, { as: 'lessons', foreignKey: 'courseId' });
+        this.hasMany(models.LessonQuiz, { as: 'quizzes', foreignKey: 'courseId' });
         this.hasMany(models.LessonQuizQuestion, {
-            as: "questions",
-            foreignKey: "courseId",
+            as: 'questions',
+            foreignKey: 'courseId',
         });
         this.hasMany(models.CourseReview, {
-            as: "reviews",
-            foreignKey: "courseId",
+            as: 'reviews',
+            foreignKey: 'courseId',
         });
         this.belongsToMany(models.User, {
-            as: "students",
+            as: 'students',
             through: models.CourseEnrollment,
-            foreignKey: "courseId",
-            otherKey: "userId",
+            foreignKey: 'courseId',
+            otherKey: 'userId',
         });
         this.hasMany(models.CourseEnrollment, {
-            as: "enrollments",
-            foreignKey: "courseId",
+            as: 'enrollments',
+            foreignKey: 'courseId',
+        });
+        this.hasOne(models.CourseProgress, {
+            as: 'progress',
+            foreignKey: 'courseId',
         });
     }
     // Scope to filter live courses
     static live() {
-        return { where: { status: "live" } };
+        return { where: { status: 'live' } };
     }
     // Check if the course is live
     isLive() {
-        return this.status === "live";
+        return this.status === 'live';
     }
     // Check if the course is published
     isPublished() {
@@ -77,7 +88,7 @@ class Course extends sequelize_1.Model {
                 yield this.destroy();
             }
             else {
-                throw new Error("Course cannot be deleted because it is live and published.");
+                throw new Error('Course cannot be deleted because it is live and published.');
             }
         });
     }
@@ -92,14 +103,14 @@ const initModel = (sequelize) => {
         },
         creatorId: {
             type: sequelize_1.DataTypes.UUID,
-            allowNull: false
+            allowNull: false,
         },
         categoryId: {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: "course_categories",
-                key: "id",
+                model: 'course_categories',
+                key: 'id',
             },
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
@@ -125,7 +136,7 @@ const initModel = (sequelize) => {
             allowNull: true,
         },
         level: {
-            type: sequelize_1.DataTypes.ENUM("beginner", "intermediate", "advanced"),
+            type: sequelize_1.DataTypes.ENUM('beginner', 'intermediate', 'advanced'),
             allowNull: true,
         },
         currency: {
@@ -149,15 +160,15 @@ const initModel = (sequelize) => {
             defaultValue: false,
         },
         status: {
-            type: sequelize_1.DataTypes.ENUM("live", "unpublished", "under_review", "draft"),
-            defaultValue: "draft",
+            type: sequelize_1.DataTypes.ENUM('live', 'unpublished', 'under_review', 'draft'),
+            defaultValue: 'draft',
         },
     }, {
         sequelize,
-        modelName: "Course",
+        modelName: 'Course',
         timestamps: true,
         paranoid: false,
-        tableName: "courses",
+        tableName: 'courses',
     });
     // Assign custom methods to Course prototype
     Object.assign(Course.prototype, method_1.courseMethods);

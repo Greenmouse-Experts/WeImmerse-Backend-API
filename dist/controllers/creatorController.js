@@ -49,7 +49,7 @@ const courseCategories = (req, res) => __awaiter(void 0, void 0, void 0, functio
         logger_1.default.error(error);
         res.status(500).json({
             message: error.message ||
-                "fetching course category failed. Please try again later.",
+                'fetching course category failed. Please try again later.',
         });
     }
 });
@@ -65,7 +65,7 @@ const courseCreate = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const category = coursecategory_1.default.findByPk(categoryId, { transaction });
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
@@ -77,20 +77,20 @@ const courseCreate = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         // Create module
         const module = yield module_1.default.create({
             courseId: course.id,
-            title: "Module Title",
+            title: 'Module Title',
             sortOrder: 1,
         }, { transaction });
         // Create lesson
         yield lesson_1.default.create({
             moduleId: module.id,
             courseId: course.id,
-            title: "Lesson Title",
+            title: 'Lesson Title',
             sortOrder: 1,
         }, { transaction });
         // Commit transaction
         yield transaction.commit();
         res.status(200).json({
-            message: "Course created successfully, and moved to draft.",
+            message: 'Course created successfully, and moved to draft.',
             data: course, // You can populate related data as needed
         });
     }
@@ -99,7 +99,7 @@ const courseCreate = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         yield transaction.rollback();
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.message || "Creating course failed. Please try again later.",
+            message: error.message || 'Creating course failed. Please try again later.',
         });
     }
 });
@@ -109,7 +109,7 @@ const courseBasic = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const category = coursecategory_1.default.findByPk(categoryId);
     if (!category) {
         res.status(404).json({
-            message: "Category not found in our database.",
+            message: 'Category not found in our database.',
         });
         return;
     }
@@ -117,7 +117,7 @@ const courseBasic = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     const course = yield course_1.default.findByPk(courseId);
     if (!course) {
         res.status(404).json({
-            message: "Course not found in our database.",
+            message: 'Course not found in our database.',
         });
         return;
     }
@@ -143,14 +143,14 @@ const courseBasic = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             currency,
         });
         res.status(200).json({
-            message: "Course basic created successfully.",
+            message: 'Course basic created successfully.',
             data: course, // You can populate related data as needed
         });
     }
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.message || "Failed to update course details.",
+            message: error.message || 'Failed to update course details.',
         });
     }
 });
@@ -161,7 +161,7 @@ const courseThumbnailImage = (req, res) => __awaiter(void 0, void 0, void 0, fun
     const course = yield course_1.default.findByPk(courseId);
     if (!course) {
         res.status(404).json({
-            message: "Course not found in our database.",
+            message: 'Course not found in our database.',
         });
         return;
     }
@@ -178,7 +178,7 @@ const courseThumbnailImage = (req, res) => __awaiter(void 0, void 0, void 0, fun
             image: thumbnail,
         });
         res.status(200).json({
-            message: "Course thumbnail updated successfully.",
+            message: 'Course thumbnail updated successfully.',
             data: course, // You can populate related data as needed
         });
     }
@@ -186,7 +186,7 @@ const courseThumbnailImage = (req, res) => __awaiter(void 0, void 0, void 0, fun
         logger_1.default.error(error);
         res.status(500).json({
             message: error.message ||
-                "An error occurred while updating the course thumbnail.",
+                'An error occurred while updating the course thumbnail.',
         });
     }
 });
@@ -198,7 +198,7 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id;
         // Ensure userId is defined
         if (!userId) {
-            res.status(401).json({ message: "Unauthorized: User ID is missing." });
+            res.status(401).json({ message: 'Unauthorized: User ID is missing.' });
             return;
         }
         // Extract pagination query parameters
@@ -223,19 +223,21 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 { model: user_1.default, as: 'creator' },
                 { model: module_1.default, as: 'modules' }, // Adjust alias to match your associations
             ],
-            order: [["createdAt", "DESC"]],
+            order: [['createdAt', 'DESC']],
             limit,
             offset,
         });
         if (courses.length === 0) {
-            res.status(404).json({ message: "No courses found for the authenticated user." });
+            res
+                .status(404)
+                .json({ message: 'No courses found for the authenticated user.' });
             return;
         }
         // Calculate pagination metadata
         const totalPages = Math.ceil(totalItems / limit);
         // Respond with the paginated courses and metadata
         res.status(200).json({
-            message: "Courses retrieved successfully.",
+            message: 'Courses retrieved successfully.',
             data: courses,
             meta: {
                 totalItems,
@@ -247,7 +249,9 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
     catch (error) {
         logger_1.default.error(error.message);
-        res.status(500).json({ message: error.message || "Failed to fetch courses." });
+        res
+            .status(500)
+            .json({ message: error.message || 'Failed to fetch courses.' });
     }
 });
 exports.getCourses = getCourses;
@@ -259,12 +263,12 @@ const viewCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const courseId = req.query.courseId;
         // Ensure userId is defined
         if (!userId) {
-            res.status(401).json({ message: "Unauthorized: User ID is missing." });
+            res.status(401).json({ message: 'Unauthorized: User ID is missing.' });
             return;
         }
         // Fetch paginated courses created by the authenticated user
         const course = yield course_1.default.findOne({
-            where: { id: courseId, creatorId: userId }
+            where: { id: courseId, creatorId: userId },
         });
         if (!course) {
             res.status(403).json({
@@ -274,13 +278,15 @@ const viewCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
         // Respond with the paginated courses and metadata
         res.status(200).json({
-            message: "Course retrieved successfully.",
-            data: course
+            message: 'Course retrieved successfully.',
+            data: course,
         });
     }
     catch (error) {
         logger_1.default.error(error.message);
-        res.status(500).json({ message: error.message || "Failed to fetch courses." });
+        res
+            .status(500)
+            .json({ message: error.message || 'Failed to fetch courses.' });
     }
 });
 exports.viewCourse = viewCourse;
@@ -291,7 +297,7 @@ const courseStatistics = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id;
         // Ensure userId is defined
         if (!userId) {
-            res.status(401).json({ message: "Unauthorized: User ID is missing." });
+            res.status(401).json({ message: 'Unauthorized: User ID is missing.' });
             return;
         }
         // Extract courseId query
@@ -305,23 +311,25 @@ const courseStatistics = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 { model: user_1.default, as: 'creator' },
                 { model: module_1.default, as: 'modules' }, // Adjust alias to match your associations
             ],
-            order: [["createdAt", "DESC"]],
+            order: [['createdAt', 'DESC']],
         });
         if (!course) {
-            res.status(404).json({ message: "No course found" });
+            res.status(404).json({ message: 'No course found' });
             return;
         }
         // Format the courses
         const formattedCourses = yield (0, helpers_1.formatCourse)(course, userId);
         // Respond with the paginated courses and metadata
         res.status(200).json({
-            message: "Course retrieved successfully.",
+            message: 'Course retrieved successfully.',
             data: formattedCourses,
         });
     }
     catch (error) {
         logger_1.default.error(error.message);
-        res.status(500).json({ message: error.message || "Failed to fetch courses." });
+        res
+            .status(500)
+            .json({ message: error.message || 'Failed to fetch courses.' });
     }
 });
 exports.courseStatistics = courseStatistics;
@@ -332,51 +340,52 @@ const coursePublish = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const course = yield course_1.default.findByPk(courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
         // Check if all required fields are present and not null
         const requiredFields = [
-            "creatorId",
-            "categoryId",
-            "title",
-            "subtitle",
-            "description",
-            "language",
-            "image",
-            "level",
-            "currency",
-            "price",
-            "requirement",
-            "whatToLearn",
+            'creatorId',
+            'categoryId',
+            'title',
+            'subtitle',
+            'description',
+            'language',
+            'image',
+            'level',
+            'currency',
+            'price',
+            'requirement',
+            'whatToLearn',
         ];
         const missingFields = [];
         for (const field of requiredFields) {
-            if (course[field] === null || course[field] === undefined) {
+            if (course[field] === null ||
+                course[field] === undefined) {
                 missingFields.push(field);
             }
         }
         // If there are missing fields, return an error
         if (missingFields.length > 0) {
             res.status(400).json({
-                message: "Course cannot be published. Missing required fields.",
+                message: 'Course cannot be published. Missing required fields.',
                 data: missingFields,
             });
             return;
         }
         // Update the course status to published (true)
         course.published = true; // Assuming `status` is a boolean column
-        course.status = "under_review";
+        course.status = 'under_review';
         yield course.save();
         res.status(200).json({
-            message: "Course published successfully.",
+            message: 'Course published successfully.',
             data: course,
         });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while publishing the course.",
+            message: error.message || 'An error occurred while publishing the course.',
         });
     }
 });
@@ -388,19 +397,19 @@ const getCourseModules = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const course = yield course_1.default.findByPk(courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
         const modules = yield module_1.default.findAll({ where: { courseId: course.id } });
         res.status(200).json({
-            message: "Course modules retrieved successfully.",
+            message: 'Course modules retrieved successfully.',
             data: modules,
         });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while processing your request.",
+            message: error.message || 'An error occurred while processing your request.',
         });
     }
 });
@@ -411,7 +420,7 @@ const createCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const course = yield course_1.default.findByPk(courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
@@ -419,7 +428,7 @@ const createCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
             // Fetch the module with the highest sortOrder
             const maxSortModule = yield module_1.default.findOne({
                 where: { courseId: course.id },
-                order: [["sortOrder", "DESC"]], // Sort by sortOrder in descending order
+                order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
             });
             // Calculate the new sortOrder
             const sortOrder = maxSortModule ? maxSortModule.sortOrder + 1 : 1;
@@ -430,7 +439,7 @@ const createCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 sortOrder,
             });
             res.status(200).json({
-                message: "Course module created successfully.",
+                message: 'Course module created successfully.',
             });
         }
         else {
@@ -441,7 +450,7 @@ const createCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while processing your request.",
+            message: error.message || 'An error occurred while processing your request.',
         });
     }
 });
@@ -452,7 +461,7 @@ const updateCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
             res.status(404).json({
-                message: "Module not found in our database.",
+                message: 'Module not found in our database.',
             });
             return;
         }
@@ -462,7 +471,7 @@ const updateCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 title,
             });
             res.status(200).json({
-                message: "Course module updated successfully.",
+                message: 'Course module updated successfully.',
                 data: module,
             });
         }
@@ -474,7 +483,7 @@ const updateCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while processing your request.",
+            message: error.message || 'An error occurred while processing your request.',
         });
     }
 });
@@ -485,7 +494,7 @@ const deleteCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
             res.status(404).json({
-                message: "Module not found in our database.",
+                message: 'Module not found in our database.',
             });
             return;
         }
@@ -500,7 +509,7 @@ const deleteCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
             // Delete the module
             yield module.destroy();
             res.status(200).json({
-                message: "Course module deleted successfully.",
+                message: 'Course module deleted successfully.',
             });
         }
         else {
@@ -511,7 +520,7 @@ const deleteCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while processing your request.",
+            message: error.message || 'An error occurred while processing your request.',
         });
     }
 });
@@ -528,12 +537,12 @@ const updateDraggableCourseModule = (req, res) => __awaiter(void 0, void 0, void
         // Call the static updateDraggable function on the Module model
         yield module_1.default.updateDraggable(data);
         res.status(200).json({
-            message: "Modules updated successfully.",
+            message: 'Modules updated successfully.',
         });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while processing your request.",
+            message: error.message || 'An error occurred while processing your request.',
         });
     }
 });
@@ -545,19 +554,19 @@ const getModuleLessons = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
             res.status(404).json({
-                message: "Module not found in our database.",
+                message: 'Module not found in our database.',
             });
             return;
         }
         const lessons = yield lesson_1.default.findAll({ where: { moduleId: module.id } });
         res.status(200).json({
-            message: "Module lessons retrieved successfully.",
+            message: 'Module lessons retrieved successfully.',
             data: lessons,
         });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while processing your request.",
+            message: error.message || 'An error occurred while processing your request.',
         });
     }
 });
@@ -577,14 +586,14 @@ const createModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
             res.status(404).json({
-                message: "Module not found in our database.",
+                message: 'Module not found in our database.',
             });
             return;
         }
         const course = yield course_1.default.findByPk(module.courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
@@ -592,7 +601,7 @@ const createModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
             // Fetch the lesson with the highest sortOrder
             const maxSortLesson = yield lesson_1.default.findOne({
                 where: { moduleId: module.id },
-                order: [["sortOrder", "DESC"]], // Sort by sortOrder in descending order
+                order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
             });
             // Calculate the new sortOrder
             const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
@@ -606,7 +615,7 @@ const createModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 duration,
                 sortOrder,
             });
-            res.status(200).json({ message: "Lesson created successfully" });
+            res.status(200).json({ message: 'Lesson created successfully' });
         }
         else {
             res.status(403).json({
@@ -616,7 +625,7 @@ const createModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "Error creating lesson",
+            message: error.message || 'Error creating lesson',
         });
     }
 });
@@ -627,7 +636,7 @@ const updateModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Find the lesson by ID (replace with actual DB logic)
         const lesson = yield lesson_1.default.findByPk(lessonId);
         if (!lesson) {
-            res.status(404).json({ message: "Lesson not found" });
+            res.status(404).json({ message: 'Lesson not found' });
             return;
         }
         const course = yield course_1.default.findByPk(lesson.courseId);
@@ -639,7 +648,7 @@ const updateModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
             lesson.contentUrl = contentUrl || lesson.contentUrl;
             lesson.duration = duration || lesson.duration;
             lesson.save();
-            res.status(200).json({ message: "Lesson updated successfully" });
+            res.status(200).json({ message: 'Lesson updated successfully' });
         }
         else {
             res.status(403).json({
@@ -648,7 +657,7 @@ const updateModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
         }
     }
     catch (error) {
-        res.status(500).json({ message: "Error updating lesson" });
+        res.status(500).json({ message: 'Error updating lesson' });
     }
 });
 exports.updateModuleLesson = updateModuleLesson;
@@ -658,14 +667,14 @@ const deleteModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Find the lesson by ID (replace with actual DB logic)
         const lesson = yield lesson_1.default.findByPk(lessonId);
         if (!lesson) {
-            res.status(404).json({ message: "Lesson not found" });
+            res.status(404).json({ message: 'Lesson not found' });
             return;
         }
         lesson.destroy();
-        res.status(200).json({ message: "Lesson deleted successfully" });
+        res.status(200).json({ message: 'Lesson deleted successfully' });
     }
     catch (error) {
-        res.status(500).json({ message: "Error deleting lesson" });
+        res.status(500).json({ message: 'Error deleting lesson' });
     }
 });
 exports.deleteModuleLesson = deleteModuleLesson;
@@ -681,12 +690,12 @@ const updateDraggableLesson = (req, res) => __awaiter(void 0, void 0, void 0, fu
         // Call the static updateDraggable function on the Lesson model
         yield lesson_1.default.updateDraggable(data);
         res.status(200).json({
-            message: "Lessons updated successfully.",
+            message: 'Lessons updated successfully.',
         });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while processing your request.",
+            message: error.message || 'An error occurred while processing your request.',
         });
     }
 });
@@ -699,14 +708,14 @@ const createLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
             res.status(404).json({
-                message: "Module not found in our database.",
+                message: 'Module not found in our database.',
             });
             return;
         }
         const course = yield course_1.default.findByPk(module.courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
@@ -714,7 +723,7 @@ const createLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
             // Fetch the lesson with the highest sortOrder
             const maxSortLesson = yield lesson_1.default.findOne({
                 where: { moduleId: module.id },
-                order: [["sortOrder", "DESC"]], // Sort by sortOrder in descending order
+                order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
             });
             // Calculate the new sortOrder
             const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
@@ -722,7 +731,7 @@ const createLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 moduleId,
                 courseId: module.courseId,
                 title: lessonTitle,
-                contentType: "quiz",
+                contentType: 'quiz',
                 sortOrder,
             });
             const newQuiz = yield lessonquiz_1.default.create({
@@ -736,7 +745,7 @@ const createLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
             });
             res
                 .status(200)
-                .json({ message: "Module Quiz created successfully.", data: newQuiz });
+                .json({ message: 'Module Quiz created successfully.', data: newQuiz });
         }
         else {
             res.status(403).json({
@@ -748,7 +757,7 @@ const createLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
         logger_1.default.error(error);
         res
             .status(500)
-            .json({ message: error.message || "Failed to create Module Quiz." });
+            .json({ message: error.message || 'Failed to create Module Quiz.' });
     }
 });
 exports.createLessonQuiz = createLessonQuiz;
@@ -757,13 +766,13 @@ const updateLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const { quizId, title, description, timePerQuestion } = req.body;
         const quiz = yield lessonquiz_1.default.findByPk(quizId);
         if (!quiz) {
-            res.status(404).json({ message: "Module Quiz not found." });
+            res.status(404).json({ message: 'Module Quiz not found.' });
             return;
         }
         const course = yield course_1.default.findByPk(quiz.courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
@@ -781,13 +790,13 @@ const updateLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
         yield quiz.save();
         res
             .status(200)
-            .json({ message: "Module Quiz updated successfully.", data: quiz });
+            .json({ message: 'Module Quiz updated successfully.', data: quiz });
     }
     catch (error) {
         logger_1.default.error(error);
         res
             .status(500)
-            .json({ message: error.message || "Failed to update Module Quiz." });
+            .json({ message: error.message || 'Failed to update Module Quiz.' });
     }
 });
 exports.updateLessonQuiz = updateLessonQuiz;
@@ -796,13 +805,13 @@ const deleteLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const quizId = req.query.quizId; // Quiz ID from URL
         const quiz = yield lessonquiz_1.default.findByPk(quizId);
         if (!quiz) {
-            res.status(404).json({ message: "Module Quiz not found." });
+            res.status(404).json({ message: 'Module Quiz not found.' });
             return;
         }
         const course = yield course_1.default.findByPk(quiz.courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
@@ -816,24 +825,24 @@ const deleteLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, functio
         // Find the lesson by ID (replace with actual DB logic)
         const lesson = yield lesson_1.default.findByPk(quiz.lessonId);
         if (!lesson) {
-            res.status(404).json({ message: "Lesson not found" });
+            res.status(404).json({ message: 'Lesson not found' });
             return;
         }
         yield quiz.destroy();
         yield lesson.destroy();
-        res.status(200).json({ message: "Module Quiz deleted successfully." });
+        res.status(200).json({ message: 'Module Quiz deleted successfully.' });
     }
     catch (error) {
         if (error instanceof sequelize_1.ForeignKeyConstraintError) {
             res.status(400).json({
-                message: "Cannot delete job category because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+                message: 'Cannot delete job category because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.',
             });
         }
         else {
             logger_1.default.error(error);
             res
                 .status(500)
-                .json({ message: error.message || "Failed to delete Module Quiz." });
+                .json({ message: error.message || 'Failed to delete Module Quiz.' });
         }
     }
 });
@@ -850,7 +859,7 @@ const getLessonQuizzes = (req, res) => __awaiter(void 0, void 0, void 0, functio
         // Fetch quizzes with filters and pagination
         const { rows: quizzes, count: total } = yield lessonquiz_1.default.findAndCountAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]],
+            order: [['createdAt', 'DESC']],
             offset,
             limit: Number(limit),
         });
@@ -867,7 +876,7 @@ const getLessonQuizzes = (req, res) => __awaiter(void 0, void 0, void 0, functio
     catch (error) {
         res
             .status(500)
-            .json({ message: error.message || "Failed to fetch Module Quizzes." });
+            .json({ message: error.message || 'Failed to fetch Module Quizzes.' });
     }
 });
 exports.getLessonQuizzes = getLessonQuizzes;
@@ -882,7 +891,7 @@ const createLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0,
         // Validate associated LessonQuiz
         const quiz = yield lessonquiz_1.default.findByPk(lessonQuizId);
         if (!quiz) {
-            res.status(404).json({ message: "Module quiz not found." });
+            res.status(404).json({ message: 'Module quiz not found.' });
             return;
         }
         // Create new question
@@ -899,13 +908,13 @@ const createLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0,
         });
         res
             .status(200)
-            .json({ message: "Question created successfully.", data: newQuestion });
+            .json({ message: 'Question created successfully.', data: newQuestion });
     }
     catch (error) {
         logger_1.default.error(error);
         res
             .status(500)
-            .json({ message: error.message || "Failed to create question." });
+            .json({ message: error.message || 'Failed to create question.' });
     }
 });
 exports.createLessonQuizQuestion = createLessonQuizQuestion;
@@ -918,7 +927,7 @@ const updateLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0,
         // Find existing question
         const existingQuestion = yield lessonquizquestion_1.default.findByPk(questionId);
         if (!existingQuestion) {
-            res.status(404).json({ message: "Question not found." });
+            res.status(404).json({ message: 'Question not found.' });
             return;
         }
         // Update question
@@ -928,10 +937,8 @@ const updateLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0,
             correctOption,
             score,
         });
-        res
-            .status(200)
-            .json({
-            message: "Question updated successfully.",
+        res.status(200).json({
+            message: 'Question updated successfully.',
             data: existingQuestion,
         });
     }
@@ -939,7 +946,7 @@ const updateLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0,
         logger_1.default.error(error);
         res
             .status(500)
-            .json({ message: error.message || "Failed to update question." });
+            .json({ message: error.message || 'Failed to update question.' });
     }
 });
 exports.updateLessonQuizQuestion = updateLessonQuizQuestion;
@@ -952,17 +959,17 @@ const deleteLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0,
         // Find and delete the question
         const question = yield lessonquizquestion_1.default.findByPk(questionId);
         if (!question) {
-            res.status(404).json({ message: "Question not found." });
+            res.status(404).json({ message: 'Question not found.' });
             return;
         }
         yield question.destroy();
-        res.status(200).json({ message: "Question deleted successfully." });
+        res.status(200).json({ message: 'Question deleted successfully.' });
     }
     catch (error) {
         logger_1.default.error(error);
         res
             .status(500)
-            .json({ message: error.message || "Failed to delete question." });
+            .json({ message: error.message || 'Failed to delete question.' });
     }
 });
 exports.deleteLessonQuizQuestion = deleteLessonQuizQuestion;
@@ -978,12 +985,12 @@ const getLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, fu
             where: { lessonQuizId },
             limit: Number(limit),
             offset,
-            order: [["createdAt", "DESC"]], // Optional: Sort by creation date
+            order: [['createdAt', 'DESC']], // Optional: Sort by creation date
         });
         if (!questions || questions.length === 0) {
             res
                 .status(404)
-                .json({ message: "No questions found for the given LessonQuizId." });
+                .json({ message: 'No questions found for the given LessonQuizId.' });
             return;
         }
         res.status(200).json({
@@ -1000,7 +1007,7 @@ const getLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, fu
         logger_1.default.error(error);
         res
             .status(500)
-            .json({ message: error.message || "Failed to fetch questions." });
+            .json({ message: error.message || 'Failed to fetch questions.' });
     }
 });
 exports.getLessonQuizQuestion = getLessonQuizQuestion;
@@ -1012,14 +1019,14 @@ const createLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
             res.status(404).json({
-                message: "Module not found in our database.",
+                message: 'Module not found in our database.',
             });
             return;
         }
         const course = yield course_1.default.findByPk(module.courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
@@ -1027,7 +1034,7 @@ const createLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
             // Fetch the lesson with the highest sortOrder
             const maxSortLesson = yield lesson_1.default.findOne({
                 where: { moduleId: module.id },
-                order: [["sortOrder", "DESC"]], // Sort by sortOrder in descending order
+                order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
             });
             // Calculate the new sortOrder
             const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
@@ -1035,7 +1042,7 @@ const createLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
                 moduleId,
                 courseId: module.courseId,
                 title: lessonTitle,
-                contentType: "quiz",
+                contentType: 'quiz',
                 sortOrder,
             });
             const lessonAssignment = yield lessonassignment_1.default.create({
@@ -1048,7 +1055,7 @@ const createLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
                 dueDate,
             });
             res.status(201).json({
-                message: "Lesson Assignment created successfully.",
+                message: 'Lesson Assignment created successfully.',
                 data: lessonAssignment,
             });
         }
@@ -1060,7 +1067,7 @@ const createLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "Failed to create Lesson Assignment.",
+            message: error.message || 'Failed to create Lesson Assignment.',
             error: error.message,
         });
     }
@@ -1071,14 +1078,14 @@ const getLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, func
         const { id } = req.params;
         const lessonAssignment = yield lessonassignment_1.default.findByPk(id);
         if (!lessonAssignment) {
-            res.status(404).json({ message: "Lesson Assignment not found." });
+            res.status(404).json({ message: 'Lesson Assignment not found.' });
             return;
         }
         res.status(200).json({ data: lessonAssignment });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "Failed to fetch Lesson Assignment.",
+            message: error.message || 'Failed to fetch Lesson Assignment.',
             error: error.message,
         });
     }
@@ -1096,7 +1103,7 @@ const getLessonAssignments = (req, res) => __awaiter(void 0, void 0, void 0, fun
         // Fetch assignments with filters and pagination
         const { rows: assignments, count: total } = yield lessonassignment_1.default.findAndCountAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]],
+            order: [['createdAt', 'DESC']],
             offset,
             limit: Number(limit),
         });
@@ -1112,7 +1119,7 @@ const getLessonAssignments = (req, res) => __awaiter(void 0, void 0, void 0, fun
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "Failed to fetch Lesson Assignments.",
+            message: error.message || 'Failed to fetch Lesson Assignments.',
         });
     }
 });
@@ -1122,7 +1129,7 @@ const updateLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
         const { assignmentId, title, description, dueDate } = req.body;
         const lessonAssignment = yield lessonassignment_1.default.findByPk(assignmentId);
         if (!lessonAssignment) {
-            res.status(404).json({ message: "Lesson Assignment not found." });
+            res.status(404).json({ message: 'Lesson Assignment not found.' });
             return;
         }
         const updatedAssignment = yield lessonAssignment.update({
@@ -1131,13 +1138,13 @@ const updateLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
             dueDate,
         });
         res.status(200).json({
-            message: "Lesson Assignment updated successfully.",
+            message: 'Lesson Assignment updated successfully.',
             data: updatedAssignment,
         });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "Failed to update Lesson Assignment.",
+            message: error.message || 'Failed to update Lesson Assignment.',
             error: error.message,
         });
     }
@@ -1148,13 +1155,13 @@ const deleteLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
         const assignmentId = req.query.assignmentId;
         const lessonAssignment = yield lessonassignment_1.default.findByPk(assignmentId);
         if (!lessonAssignment) {
-            res.status(404).json({ message: "Lesson Assignment not found." });
+            res.status(404).json({ message: 'Lesson Assignment not found.' });
             return;
         }
         const course = yield course_1.default.findByPk(lessonAssignment.courseId);
         if (!course) {
             res.status(404).json({
-                message: "Course not found in our database.",
+                message: 'Course not found in our database.',
             });
             return;
         }
@@ -1168,18 +1175,18 @@ const deleteLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
         // Find the lesson by ID (replace with actual DB logic)
         const lesson = yield lesson_1.default.findByPk(lessonAssignment.lessonId);
         if (!lesson) {
-            res.status(404).json({ message: "Lesson not found" });
+            res.status(404).json({ message: 'Lesson not found' });
             return;
         }
         yield lessonAssignment.destroy();
         yield lesson.destroy();
         res
             .status(200)
-            .json({ message: "Lesson Assignment deleted successfully." });
+            .json({ message: 'Lesson Assignment deleted successfully.' });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "Failed to delete Lesson Assignment.",
+            message: error.message || 'Failed to delete Lesson Assignment.',
             error: error.message,
         });
     }
@@ -1196,7 +1203,7 @@ const assetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function
         logger_1.default.error(error);
         res.status(500).json({
             message: error.message ||
-                "fetching asset category failed. Please try again later.",
+                'fetching asset category failed. Please try again later.',
         });
     }
 });
@@ -1211,7 +1218,7 @@ const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
@@ -1220,14 +1227,14 @@ const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Create the DigitalAsset
         const asset = yield digitalasset_1.default.create(digitalAssetData);
         res.status(200).json({
-            message: "Digital Asset created successfully",
+            message: 'Digital Asset created successfully',
             data: asset,
         });
     }
     catch (error) {
-        logger_1.default.error("Error creating Digital Asset:", error);
+        logger_1.default.error('Error creating Digital Asset:', error);
         res.status(500).json({
-            error: error.message || "Failed to create Digital Asset",
+            error: error.message || 'Failed to create Digital Asset',
         });
     }
 });
@@ -1253,15 +1260,15 @@ const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functio
         // Fetch assets with optional search criteria
         const assets = yield digitalasset_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: assets });
     }
     catch (error) {
-        logger_1.default.error("Error fetching digital assets:", error);
+        logger_1.default.error('Error fetching digital assets:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch Digital Assets" });
+            .json({ error: error.message || 'Failed to fetch Digital Assets' });
     }
 });
 exports.getDigitalAssets = getDigitalAssets;
@@ -1276,19 +1283,19 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             include: [
                 {
                     model: assetcategory_1.default,
-                    as: "assetCategory",
-                    attributes: ["id", "name"], // You can specify the fields you want to include
+                    as: 'assetCategory',
+                    attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
             ],
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: asset });
     }
     catch (error) {
-        logger_1.default.error("Error fetching digital asset:", error);
+        logger_1.default.error('Error fetching digital asset:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch Digital Asset" });
+            .json({ error: error.message || 'Failed to fetch Digital Asset' });
     }
 });
 exports.viewDigitalAsset = viewDigitalAsset;
@@ -1299,25 +1306,25 @@ const updateDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
         // Find the Digital Asset by ID
         const asset = yield digitalasset_1.default.findByPk(id);
         if (!asset) {
-            res.status(404).json({ message: "Digital Asset not found" });
+            res.status(404).json({ message: 'Digital Asset not found' });
             return;
         }
         // Update the Digital Asset with new data
         yield asset.update(Object.assign(Object.assign({}, req.body), { categoryId: category.id }));
         res.status(200).json({
-            message: "Digital Asset updated successfully",
+            message: 'Digital Asset updated successfully',
         });
     }
     catch (error) {
-        logger_1.default.error("Error updating Digital Asset:", error);
-        res.status(500).json({ error: "Failed to update Digital Asset" });
+        logger_1.default.error('Error updating Digital Asset:', error);
+        res.status(500).json({ error: 'Failed to update Digital Asset' });
     }
 });
 exports.updateDigitalAsset = updateDigitalAsset;
@@ -1328,17 +1335,17 @@ const deleteDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const asset = yield digitalasset_1.default.findByPk(id);
         // If the asset is not found, return a 404 response
         if (!asset) {
-            res.status(404).json({ message: "Digital Asset not found" });
+            res.status(404).json({ message: 'Digital Asset not found' });
             return;
         }
         // Delete the asset
         yield asset.destroy();
         // Return success response
-        res.status(200).json({ message: "Digital Asset deleted successfully" });
+        res.status(200).json({ message: 'Digital Asset deleted successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error deleting Digital Asset:", error);
-        res.status(500).json({ error: "Failed to delete Digital Asset" });
+        logger_1.default.error('Error deleting Digital Asset:', error);
+        res.status(500).json({ error: 'Failed to delete Digital Asset' });
     }
 });
 exports.deleteDigitalAsset = deleteDigitalAsset;
@@ -1352,7 +1359,7 @@ const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
@@ -1361,14 +1368,14 @@ const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
         // Create the PhysicalAsset
         const asset = yield physicalasset_1.default.create(physicalAssetData);
         res.status(200).json({
-            message: "Physical Asset created successfully",
+            message: 'Physical Asset created successfully',
             data: asset,
         });
     }
     catch (error) {
-        logger_1.default.error("Error creating Physical Asset:", error);
+        logger_1.default.error('Error creating Physical Asset:', error);
         res.status(500).json({
-            error: error.message || "Failed to create Physical Asset",
+            error: error.message || 'Failed to create Physical Asset',
         });
     }
 });
@@ -1391,15 +1398,15 @@ const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Fetch assets with optional search criteria
         const assets = yield physicalasset_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: assets });
     }
     catch (error) {
-        logger_1.default.error("Error fetching physical assets:", error);
+        logger_1.default.error('Error fetching physical assets:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch physical Assets" });
+            .json({ error: error.message || 'Failed to fetch physical Assets' });
     }
 });
 exports.getPhysicalAssets = getPhysicalAssets;
@@ -1414,19 +1421,19 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
             include: [
                 {
                     model: assetcategory_1.default,
-                    as: "assetCategory",
-                    attributes: ["id", "name"], // You can specify the fields you want to include
+                    as: 'assetCategory',
+                    attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
             ],
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: asset });
     }
     catch (error) {
-        logger_1.default.error("Error fetching physical asset:", error);
+        logger_1.default.error('Error fetching physical asset:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch physical asset" });
+            .json({ error: error.message || 'Failed to fetch physical asset' });
     }
 });
 exports.viewPhysicalAsset = viewPhysicalAsset;
@@ -1437,25 +1444,25 @@ const updatePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
         // Find the Physical Asset by ID
         const asset = yield physicalasset_1.default.findByPk(id);
         if (!asset) {
-            res.status(404).json({ message: "Physical Asset not found" });
+            res.status(404).json({ message: 'Physical Asset not found' });
             return;
         }
         // Update the Physical Asset with new data
         yield asset.update(Object.assign(Object.assign({}, req.body), { categoryId: category.id }));
         res.status(200).json({
-            message: "Physical Asset updated successfully",
+            message: 'Physical Asset updated successfully',
         });
     }
     catch (error) {
-        logger_1.default.error("Error updating physical Asset:", error);
-        res.status(500).json({ error: "Failed to update physical Asset" });
+        logger_1.default.error('Error updating physical Asset:', error);
+        res.status(500).json({ error: 'Failed to update physical Asset' });
     }
 });
 exports.updatePhysicalAsset = updatePhysicalAsset;
@@ -1466,17 +1473,17 @@ const deletePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
         const asset = yield physicalasset_1.default.findByPk(id);
         // If the asset is not found, return a 404 response
         if (!asset) {
-            res.status(404).json({ message: "Physical Asset not found" });
+            res.status(404).json({ message: 'Physical Asset not found' });
             return;
         }
         // Delete the asset
         yield asset.destroy();
         // Return success response
-        res.status(200).json({ message: "Physical Asset deleted successfully" });
+        res.status(200).json({ message: 'Physical Asset deleted successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error deleting physical asset:", error);
-        res.status(500).json({ error: "Failed to delete physical asset" });
+        logger_1.default.error('Error deleting physical asset:', error);
+        res.status(500).json({ error: 'Failed to delete physical asset' });
     }
 });
 exports.deletePhysicalAsset = deletePhysicalAsset;
@@ -1492,7 +1499,7 @@ const jobCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         logger_1.default.error(error);
         res.status(500).json({
             message: error.message ||
-                "fetching asset category failed. Please try again later.",
+                'fetching asset category failed. Please try again later.',
         });
     }
 });
@@ -1507,7 +1514,7 @@ const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const category = yield jobcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
@@ -1516,23 +1523,23 @@ const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             creatorId: userId,
             categoryId,
             title,
-            slug: `${title.toLowerCase().replace(/ /g, "-")}-${(0, uuid_1.v4)()}`,
+            slug: `${title.toLowerCase().replace(/ /g, '-')}-${(0, uuid_1.v4)()}`,
             company,
             logo,
             workplaceType,
             location,
             jobType,
-            status: "draft", // Default status
+            status: 'draft', // Default status
         });
         res.status(200).json({
-            message: "Job added successfully.",
+            message: 'Job added successfully.',
             data: newJob, // Optional: format with a resource transformer if needed
         });
     }
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.message || "An error occurred while adding the job.",
+            message: error.message || 'An error occurred while adding the job.',
         });
     }
 });
@@ -1543,7 +1550,7 @@ const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const job = yield job_1.default.findByPk(jobId);
         if (!job) {
             res.status(404).json({
-                message: "Job not found in our database.",
+                message: 'Job not found in our database.',
             });
             return;
         }
@@ -1551,7 +1558,7 @@ const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             const category = yield jobcategory_1.default.findByPk(categoryId);
             if (!category) {
                 res.status(404).json({
-                    message: "Category not found in our database.",
+                    message: 'Category not found in our database.',
                 });
                 return;
             }
@@ -1570,16 +1577,16 @@ const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             applyLink,
             applicantCollectionEmailAddress,
             rejectionEmails,
-            status: "active",
+            status: 'active',
         });
         res.status(200).json({
-            message: "Job posted successfully.",
+            message: 'Job posted successfully.',
             data: job, // Include a JobResource equivalent if needed
         });
     }
     catch (error) {
         res.status(500).json({
-            message: error.message || "An error occurred while posting the job.",
+            message: error.message || 'An error occurred while posting the job.',
         });
     }
 });
@@ -1591,17 +1598,17 @@ const getJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const userId = (_q = req.user) === null || _q === void 0 ? void 0 : _q.id; // Extract user ID from authenticated request
         const jobs = yield job_1.default.findAll({
             where: Object.assign(Object.assign({ creatorId: userId }, (status && { status: { [sequelize_1.Op.eq]: status } })), (title && { title: { [sequelize_1.Op.like]: `%${title}%` } })),
-            order: [["createdAt", "DESC"]],
+            order: [['createdAt', 'DESC']],
         });
         res.status(200).json({
-            message: "Jobs retrieved successfully.",
+            message: 'Jobs retrieved successfully.',
             data: jobs, // Include a JobResource equivalent if needed
         });
     }
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.message || "An error occurred while retrieving jobs.",
+            message: error.message || 'An error occurred while retrieving jobs.',
         });
     }
 });
@@ -1614,23 +1621,23 @@ const closeJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const job = yield job_1.default.findByPk(jobId);
         if (!job) {
             res.status(404).json({
-                message: "Job not found in our database.",
+                message: 'Job not found in our database.',
             });
             return;
         }
         // Update the job status to 'Closed'
-        job.status = "closed";
+        job.status = 'closed';
         job.updatedAt = new Date();
         yield job.save();
         res.status(200).json({
-            message: "Job closed successfully.",
+            message: 'Job closed successfully.',
             data: job, // Replace with a JobResource equivalent if necessary
         });
     }
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.message || "An error occurred while closing the job.",
+            message: error.message || 'An error occurred while closing the job.',
         });
     }
 });
@@ -1643,26 +1650,26 @@ const deleteJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const job = yield job_1.default.findByPk(jobId);
         if (!job) {
             res.status(404).json({
-                message: "Job not found in our database.",
+                message: 'Job not found in our database.',
             });
             return;
         }
-        if (job.status !== "draft") {
+        if (job.status !== 'draft') {
             res.status(400).json({
-                message: "Only draft jobs can be deleted.",
+                message: 'Only draft jobs can be deleted.',
             });
             return;
         }
         // Delete the job
         yield job.destroy();
         res.status(200).json({
-            message: "Job deleted successfully.",
+            message: 'Job deleted successfully.',
         });
     }
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.message || "An error occurred while deleting the job.",
+            message: error.message || 'An error occurred while deleting the job.',
         });
     }
 });
@@ -1684,18 +1691,18 @@ const getJobApplicants = (req, res) => __awaiter(void 0, void 0, void 0, functio
             include: [
                 {
                     model: user_1.default,
-                    as: "user",
+                    as: 'user',
                 },
             ],
         });
         res.status(200).json({
-            message: "All applicants retrieved successfully.",
+            message: 'All applicants retrieved successfully.',
             data: applicants,
         });
     }
     catch (error) {
         logger_1.default.error(error);
-        res.status(500).json({ message: error.message || "Server error." });
+        res.status(500).json({ message: error.message || 'Server error.' });
     }
 });
 exports.getJobApplicants = getJobApplicants;
@@ -1706,25 +1713,25 @@ const viewApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             include: [
                 {
                     model: user_1.default,
-                    as: "user",
-                    attributes: ["id", "name", "email", "photo"], // Select only the fields you need
+                    as: 'user',
+                    attributes: ['id', 'name', 'email', 'photo'], // Select only the fields you need
                 },
                 {
                     model: job_1.default,
-                    as: "job",
+                    as: 'job',
                 },
             ],
         });
         if (!applicant) {
             res.status(404).json({
-                message: "Not found in our database.",
+                message: 'Not found in our database.',
             });
             return;
         }
         const job = yield job_1.default.findByPk(applicant.jobId);
         if (!job) {
             res.status(404).json({
-                message: "Job not found.",
+                message: 'Job not found.',
             });
             return;
         }
@@ -1735,7 +1742,7 @@ const viewApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             const applicantUser = yield user_1.default.findByPk(applicant.userId);
             if (!jobUser || !applicantUser) {
                 res.status(404).json({
-                    message: "Associated users not found.",
+                    message: 'Associated users not found.',
                 });
                 return;
             }
@@ -1744,13 +1751,13 @@ const viewApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             yield (0, mail_service_1.sendMail)(jobUser.email, `${process.env.APP_NAME} - Your application for ${job.title} was viewed by ${job.company}`, messageToApplicant);
         }
         res.status(200).json({
-            message: "Applicant retrieved successfully.",
+            message: 'Applicant retrieved successfully.',
             data: applicant,
         });
     }
     catch (error) {
         logger_1.default.error(error);
-        res.status(500).json({ message: "Server error." });
+        res.status(500).json({ message: 'Server error.' });
     }
 });
 exports.viewApplicant = viewApplicant;
@@ -1762,18 +1769,18 @@ const repostJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const job = yield job_1.default.findByPk(jobId);
         if (!job) {
             res.status(404).json({
-                message: "Job not found in our database.",
+                message: 'Job not found in our database.',
             });
             return;
         }
         if (!job.title) {
-            throw new Error("Job title cannot be null.");
+            throw new Error('Job title cannot be null.');
         }
         const repost = yield job_1.default.create({
             creatorId: userId,
             categoryId: job.categoryId,
             title: job.title,
-            slug: `${job.title.toLowerCase().replace(/\s+/g, "-")}-${Math.floor(Math.random() * 10000)}`,
+            slug: `${job.title.toLowerCase().replace(/\s+/g, '-')}-${Math.floor(Math.random() * 10000)}`,
             company: job.company,
             logo: job.logo,
             workplaceType: job.workplaceType,
@@ -1784,16 +1791,16 @@ const repostJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             applyLink: job.applyLink,
             applicantCollectionEmailAddress: job.applicantCollectionEmailAddress,
             rejectionEmails: job.rejectionEmails,
-            status: "active",
+            status: 'active',
         });
         res.status(200).json({
-            message: "Job reposted successfully.",
+            message: 'Job reposted successfully.',
             data: repost,
         });
     }
     catch (error) {
         logger_1.default.error(error);
-        res.status(500).json({ message: "Server error." });
+        res.status(500).json({ message: 'Server error.' });
     }
 });
 exports.repostJob = repostJob;
@@ -1803,33 +1810,31 @@ const downloadApplicantResume = (req, res) => __awaiter(void 0, void 0, void 0, 
         const applicant = yield applicant_1.default.findByPk(applicantId);
         if (!applicant || !applicant.resume) {
             res.status(404).json({
-                message: "File damaged or not found.",
+                message: 'File damaged or not found.',
             });
             return;
         }
-        console.log("Resume URL:", applicant.resume);
+        console.log('Resume URL:', applicant.resume);
         const response = yield fetch(applicant.resume);
         if (!response.ok) {
-            console.error("Resume Fetch Failed", {
+            console.error('Resume Fetch Failed', {
                 applicantId,
                 resumeUrl: applicant.resume,
                 status: response.status,
                 statusText: response.statusText,
             });
             if (response.status === 404) {
-                res
-                    .status(404)
-                    .json({
-                    message: "Resume file not found. Please update the record.",
+                res.status(404).json({
+                    message: 'Resume file not found. Please update the record.',
                 });
             }
             else {
-                res.status(500).json({ message: "Failed to download the resume." });
+                res.status(500).json({ message: 'Failed to download the resume.' });
             }
             return;
         }
         const fileName = path_1.default.basename(applicant.resume);
-        const localPath = path_1.default.join(__dirname, "../storage/resumes", fileName);
+        const localPath = path_1.default.join(__dirname, '../storage/resumes', fileName);
         const resumeContent = Buffer.from(yield response.arrayBuffer());
         fs_1.default.writeFileSync(localPath, resumeContent);
         res.download(localPath, fileName, (err) => {
@@ -1841,7 +1846,7 @@ const downloadApplicantResume = (req, res) => __awaiter(void 0, void 0, void 0, 
     }
     catch (error) {
         logger_1.default.error(error);
-        res.status(500).json({ message: "Server error." });
+        res.status(500).json({ message: 'Server error.' });
     }
 });
 exports.downloadApplicantResume = downloadApplicantResume;
@@ -1852,19 +1857,19 @@ const rejectApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function
         const applicant = yield applicant_1.default.findByPk(applicantId);
         if (!applicant) {
             res.status(404).json({
-                message: "Applicant not found in our database.",
+                message: 'Applicant not found in our database.',
             });
             return;
         }
         // Check if the applicant is already rejected
-        if (applicant.status !== "rejected") {
+        if (applicant.status !== 'rejected') {
             // Update the applicant's status
-            yield applicant.update({ status: "rejected" });
+            yield applicant.update({ status: 'rejected' });
             // Find the associated job
             const job = yield job_1.default.findByPk(applicant.jobId);
             if (!job) {
                 res.status(404).json({
-                    message: "Job not found in our database.",
+                    message: 'Job not found in our database.',
                 });
                 return;
             }
@@ -1874,7 +1879,7 @@ const rejectApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function
                 const jobPoster = yield user_1.default.findByPk(job.creatorId);
                 if (!jobPoster || !user) {
                     res.status(404).json({
-                        message: "Associated users not found.",
+                        message: 'Associated users not found.',
                     });
                     return;
                 }
@@ -1883,20 +1888,20 @@ const rejectApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function
                 yield (0, mail_service_1.sendMail)(user.email, `${process.env.APP_NAME} - Your application to ${job.title} [${job.jobType}] at ${job.company}`, messageToApplicant);
             }
             res.status(200).json({
-                message: "Rejection successful.",
+                message: 'Rejection successful.',
                 data: applicant, // Return the updated applicant data
             });
             return;
         }
         // If already rejected
         res.status(400).json({
-            message: "Applicant is already rejected.",
+            message: 'Applicant is already rejected.',
         });
     }
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.data || "Server error.",
+            message: error.data || 'Server error.',
         });
     }
 });

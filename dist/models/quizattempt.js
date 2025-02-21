@@ -1,22 +1,15 @@
 "use strict";
-// models/lessonCompletion.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
 const sequelize_1 = require("sequelize");
-class LessonCompletion extends sequelize_1.Model {
+class QuizAttempt extends sequelize_1.Model {
     static associate(models) {
-        // Define associations here
-        // Example:
-        // LessonCompletion.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
-        // LessonCompletion.belongsTo(models.Course, { foreignKey: 'courseId', as: 'course' });
-        this.belongsTo(models.Lesson, {
-            as: 'lesson',
-            foreignKey: 'lessonId',
-        });
+        this.belongsTo(models.User, { as: 'user', foreignKey: 'userId' });
+        this.belongsTo(models.LessonQuiz, { as: 'quiz', foreignKey: 'quizId' });
     }
 }
 const initModel = (sequelize) => {
-    LessonCompletion.init({
+    QuizAttempt.init({
         id: {
             type: sequelize_1.DataTypes.UUID,
             defaultValue: sequelize_1.DataTypes.UUIDV4,
@@ -33,23 +26,31 @@ const initModel = (sequelize) => {
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
         },
-        lessonId: {
+        quizId: {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'lessons',
+                model: 'lesson_quizzes',
                 key: 'id',
             },
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
         },
+        score: {
+            type: sequelize_1.DataTypes.DECIMAL(5, 2),
+            allowNull: false,
+        },
+        passed: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: false,
+        },
     }, {
         sequelize,
-        modelName: 'LessonCompletion',
+        modelName: 'QuizAttempt',
         timestamps: true,
-        tableName: 'lesson_completions',
+        tableName: 'quiz_attempts',
     });
 };
 exports.initModel = initModel;
-exports.default = LessonCompletion;
-//# sourceMappingURL=lessoncompletion.js.map
+exports.default = QuizAttempt;
+//# sourceMappingURL=quizattempt.js.map

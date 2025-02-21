@@ -49,6 +49,7 @@ const sequelizeService = {
             // Create the connection
             sequelizeService.connection = new sequelize_1.Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.DB_PASS, {
                 host: process.env.DB_HOST,
+                port: +process.env.DB_PORT,
                 dialect: process.env.DB_DIALECT,
                 logging: false,
                 define: {
@@ -57,10 +58,12 @@ const sequelizeService = {
             });
             // Test connection
             yield sequelizeService.connection.authenticate();
-            console.log("Database connected successfully");
+            console.log('Database connected successfully');
             // Load models dynamically
             const modelDirectory = path_1.default.join(__dirname, '../models');
-            const modelFiles = fs_1.default.readdirSync(modelDirectory).filter(file => file.endsWith('.ts') || file.endsWith('.js'));
+            const modelFiles = fs_1.default
+                .readdirSync(modelDirectory)
+                .filter((file) => file.endsWith('.ts') || file.endsWith('.js'));
             // Make sure to adjust the order of loading if needed.
             for (const file of modelFiles) {
                 const modelModule = yield Promise.resolve(`${path_1.default.join(modelDirectory, file)}`).then(s => __importStar(require(s)));

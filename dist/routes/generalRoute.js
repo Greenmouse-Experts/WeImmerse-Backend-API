@@ -33,7 +33,7 @@ const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"
 const validations_1 = require("../utils/validations");
 const generalRoutes = (0, express_1.Router)();
 // User routes
-generalRoutes.post("/logout", authMiddleware_1.default, generalController.logout);
+generalRoutes.post('/logout', authMiddleware_1.default, generalController.logout);
 generalRoutes.get('/profile', authMiddleware_1.default, generalController.profile);
 generalRoutes.get('/profile', authMiddleware_1.default, generalController.profile);
 generalRoutes.put('/profile/update', authMiddleware_1.default, generalController.updateProfile);
@@ -45,5 +45,6 @@ generalRoutes.post('/save/job', authMiddleware_1.default, generalController.save
 generalRoutes.post('/apply/job', authMiddleware_1.default, (0, validations_1.validateJobApplication)(), validations_1.validate, generalController.applyJob);
 generalRoutes.get('/fetch/savedJob', authMiddleware_1.default, generalController.getSavedJobs);
 generalRoutes.get('/fetch/appliedJob', authMiddleware_1.default, generalController.getAppliedJobs);
+generalRoutes.get('/courses', generalController.getCourses);
 exports.default = generalRoutes;
 //# sourceMappingURL=generalRoute.js.map

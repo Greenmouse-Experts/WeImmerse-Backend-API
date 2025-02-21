@@ -1,31 +1,28 @@
 "use strict";
-// models/courseEnrollment.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
 const sequelize_1 = require("sequelize");
-class CourseEnrollment extends sequelize_1.Model {
+class CourseProgress extends sequelize_1.Model {
     static associate(models) {
-        // Define associations here
-        // Example:
-        CourseEnrollment.belongsTo(models.User, {
-            foreignKey: 'userId',
-            as: 'user',
+        CourseProgress.belongsTo(models.User, {
+            foreignKey: 'studentId',
+            as: 'student',
         });
-        CourseEnrollment.belongsTo(models.Course, {
+        CourseProgress.belongsTo(models.Course, {
             foreignKey: 'courseId',
             as: 'course',
         });
     }
 }
 const initModel = (sequelize) => {
-    CourseEnrollment.init({
+    CourseProgress.init({
         id: {
             type: sequelize_1.DataTypes.UUID,
             defaultValue: sequelize_1.DataTypes.UUIDV4,
             allowNull: false,
             primaryKey: true,
         },
-        userId: {
+        studentId: {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
@@ -45,13 +42,32 @@ const initModel = (sequelize) => {
             onDelete: 'CASCADE',
             onUpdate: 'CASCADE',
         },
+        completedLessons: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+            defaultValue: 0,
+        },
+        totalLessons: {
+            type: sequelize_1.DataTypes.INTEGER,
+            allowNull: false,
+        },
+        progressPercentage: {
+            type: sequelize_1.DataTypes.FLOAT,
+            allowNull: false,
+            defaultValue: 0,
+        },
+        lastAccessed: {
+            type: sequelize_1.DataTypes.DATE,
+            allowNull: false,
+            defaultValue: sequelize_1.DataTypes.NOW,
+        },
     }, {
         sequelize,
-        modelName: 'CourseEnrollment',
+        modelName: 'CourseProgress',
         timestamps: true,
-        tableName: 'course_enrollments',
+        tableName: 'course_progress',
     });
 };
 exports.initModel = initModel;
-exports.default = CourseEnrollment;
-//# sourceMappingURL=courseenrollment.js.map
+exports.default = CourseProgress;
+//# sourceMappingURL=courseprogress.js.map

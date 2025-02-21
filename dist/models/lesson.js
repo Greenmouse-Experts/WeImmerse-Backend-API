@@ -10,25 +10,37 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = void 0;
+exports.initModel = exports.LessonStatus = void 0;
 const sequelize_1 = require("sequelize");
+var LessonStatus;
+(function (LessonStatus) {
+    LessonStatus["DRAFT"] = "draft";
+    LessonStatus["PUBLISHED"] = "published";
+})(LessonStatus = exports.LessonStatus || (exports.LessonStatus = {}));
 class Lesson extends sequelize_1.Model {
     static associate(models) {
         // Define associations here
         // Example:
-        this.belongsTo(models.Module, { as: "module", foreignKey: "moduleId" });
-        this.belongsTo(models.Course, { as: "course", foreignKey: "courseId" });
+        this.belongsTo(models.Module, { as: 'module', foreignKey: 'moduleId' });
+        this.belongsTo(models.Course, { as: 'course', foreignKey: 'courseId' });
         this.belongsToMany(models.User, {
             as: 'completedLessons',
             through: 'completions',
             foreignKey: 'lessonId',
             otherKey: 'userId',
         });
+        // Associate with lesson completion model
+        this.hasOne(models.LessonCompletion, {
+            as: 'completed',
+            foreignKey: 'lessonId',
+        });
     }
     // Add custom instance methods
     isCompleted(userId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const completion = yield this.getCompletions({ where: { id: userId } });
+            const completion = yield this.getCompletions({
+                where: { id: userId },
+            });
             return completion.length > 0;
         });
     }
@@ -52,7 +64,7 @@ class Lesson extends sequelize_1.Model {
     }
     static updateDraggable(data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const updates = data.map(item => this.update({ sortOrder: item.sortOrder }, { where: { id: item.lessonId } }));
+            const updates = data.map((item) => this.update({ sortOrder: item.sortOrder }, { where: { id: item.lessonId } }));
             yield Promise.all(updates);
         });
     }
@@ -128,10 +140,10 @@ const initModel = (sequelize) => {
         },
     }, {
         sequelize,
-        modelName: "Lesson",
+        modelName: 'Lesson',
         timestamps: true,
         paranoid: false,
-        tableName: "lessons",
+        tableName: 'lessons',
     });
 };
 exports.initModel = initModel;

@@ -268,7 +268,7 @@ const getTotalPages = (totalItems: number, limit: number) => {
 };
 
 const uploadToS3 = async (
-  fileBuffer: Buffer<ArrayBufferLike>,
+  fileBuffer: any,
   originalFileName: string,
   bucketName: string
 ) => {
