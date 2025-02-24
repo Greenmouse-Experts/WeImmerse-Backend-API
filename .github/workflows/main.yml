@@ -3,7 +3,7 @@ name: Backend CI/CD Deploy to AWS Lightsail [Test Environment]
 on:
   push:
     branches:
-      - main  # Runs only when pushing to the main branch
+      - main # Runs only when pushing to the main branch
 
 jobs:
   deploy:
@@ -17,13 +17,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 20
-          cache: 'npm'  # Cache dependencies for faster installs
+          cache: 'npm' # Cache dependencies for faster installs
 
       - name: 📦 Install Dependencies
         run: npm install --omit=dev
 
       - name: 🔨 Build Project (TypeScript)
-        run: npm run build  # Ensure your package.json has "build": "tsc"
+        run: npm run build # Ensure your package.json has "build": "tsc"
 
       - name: 🚀 Deploy to AWS Lightsail
         env:
@@ -43,8 +43,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $AWS_USER@$AWS_HOST << 'EOF'
             cd /var/www/api
             git pull
-            npm install --production  # Install only necessary dependencies
-            npm run prod
+            npm install --omit=dev  # Install only necessary dependencies
+            pm2 describe index > /dev/null && pm2 restart index || pm2 start dist/index.js --name index
           EOF
 
       - name: ✅ Deployment Complete
