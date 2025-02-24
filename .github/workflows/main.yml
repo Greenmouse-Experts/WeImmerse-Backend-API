@@ -20,7 +20,7 @@ jobs:
           cache: 'npm'  # Cache dependencies for faster installs
 
       - name: 📦 Install Dependencies
-        run: npm install
+        run: npm install --omit=dev
 
       - name: 🔨 Build Project (TypeScript)
         run: npm run build  # Ensure your package.json has "build": "tsc"
@@ -42,6 +42,7 @@ jobs:
           # Connect via SSH and restart PM2
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $AWS_USER@$AWS_HOST << 'EOF'
             cd /var/www/api
+            git pull
             npm install --production  # Install only necessary dependencies
             npm run prod
           EOF
