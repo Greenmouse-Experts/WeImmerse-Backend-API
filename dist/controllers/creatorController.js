@@ -71,7 +71,7 @@ const courseCreate = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         }
         // Create course
         const course = yield course_1.default.create({
-            creatorId: userId, // Assuming user is authenticated and their ID is available
+            creatorId: userId,
             categoryId,
         }, { transaction });
         // Create module
@@ -192,10 +192,10 @@ const courseThumbnailImage = (req, res) => __awaiter(void 0, void 0, void 0, fun
 });
 exports.courseThumbnailImage = courseThumbnailImage;
 const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b;
     try {
         // Retrieve the authenticated user's ID
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id;
         // Ensure userId is defined
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized: User ID is missing.' });
@@ -211,7 +211,7 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const whereCondition = { creatorId: userId };
         if (searchQuery) {
             whereCondition[sequelize_1.Op.or] = [
-                { title: { [sequelize_1.Op.like]: `%${searchQuery}%` } }, // Case-insensitive search
+                { title: { [sequelize_1.Op.like]: `%${searchQuery}%` } },
                 { subtitle: { [sequelize_1.Op.like]: `%${searchQuery}%` } },
                 { status: { [sequelize_1.Op.like]: `%${searchQuery}%` } },
             ];
@@ -220,7 +220,7 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const { rows: courses, count: totalItems } = yield course_1.default.findAndCountAll({
             where: whereCondition,
             include: [
-                { model: user_1.default, as: 'creator' }, // Adjust alias to match your associations
+                { model: user_1.default, as: 'creator' },
                 { model: module_1.default, as: 'modules' }, // Adjust alias to match your associations
             ],
             order: [['createdAt', 'DESC']],
@@ -256,10 +256,10 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.getCourses = getCourses;
 const viewCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _c;
     try {
         // Retrieve the authenticated user's ID
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c.id;
         const courseId = req.query.courseId;
         // Ensure userId is defined
         if (!userId) {
@@ -291,10 +291,10 @@ const viewCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.viewCourse = viewCourse;
 const courseStatistics = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _d;
     try {
         // Retrieve the authenticated user's ID
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id;
         // Ensure userId is defined
         if (!userId) {
             res.status(401).json({ message: 'Unauthorized: User ID is missing.' });
@@ -308,7 +308,7 @@ const courseStatistics = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const course = yield course_1.default.findOne({
             where: whereCondition,
             include: [
-                { model: user_1.default, as: 'creator' }, // Adjust alias to match your associations
+                { model: user_1.default, as: 'creator' },
                 { model: module_1.default, as: 'modules' }, // Adjust alias to match your associations
             ],
             order: [['createdAt', 'DESC']],
@@ -701,9 +701,9 @@ const updateDraggableLesson = (req, res) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.updateDraggableLesson = updateDraggableLesson;
 const createLessonQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _e;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
+        const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e.id; // Assuming the user ID is passed in the URL params
         const { moduleId, lessonTitle, title, description, timePerQuestion } = req.body;
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
@@ -884,9 +884,9 @@ exports.getLessonQuizzes = getLessonQuizzes;
  * Create a new LessonQuizQuestion
  */
 const createLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _f;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
+        const userId = (_f = req.user) === null || _f === void 0 ? void 0 : _f.id; // Assuming the user ID is passed in the URL params
         const { lessonQuizId, question, options, correctOption, score } = req.body;
         // Validate associated LessonQuiz
         const quiz = yield lessonquiz_1.default.findByPk(lessonQuizId);
@@ -1012,9 +1012,9 @@ const getLessonQuizQuestion = (req, res) => __awaiter(void 0, void 0, void 0, fu
 });
 exports.getLessonQuizQuestion = getLessonQuizQuestion;
 const createLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _g;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
+        const userId = (_g = req.user) === null || _g === void 0 ? void 0 : _g.id; // Assuming the user ID is passed in the URL params
         const { moduleId, lessonTitle, title, description, dueDate } = req.body;
         const module = yield module_1.default.findByPk(moduleId);
         if (!module) {
@@ -1210,10 +1210,10 @@ const assetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function
 exports.assetCategories = assetCategories;
 // Digital Asset
 const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _h;
     try {
         const { categoryId } = req.body;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
+        const userId = (_h = req.user) === null || _h === void 0 ? void 0 : _h.id; // Extract user ID from authenticated request
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -1240,8 +1240,8 @@ const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.createDigitalAsset = createDigitalAsset;
 const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract authenticated user's ID
+    var _j;
+    const userId = (_j = req.user) === null || _j === void 0 ? void 0 : _j.id; // Extract authenticated user's ID
     try {
         const { assetName, pricingType, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -1273,8 +1273,8 @@ const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.getDigitalAssets = getDigitalAssets;
 const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract authenticated user's ID
+    var _k;
+    const userId = (_k = req.user) === null || _k === void 0 ? void 0 : _k.id; // Extract authenticated user's ID
     try {
         const { id } = req.query; // Extract search parameters
         // Fetch asset with optional search criteria
@@ -1282,8 +1282,8 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id, creatorId: userId },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
-                    as: 'assetCategory', // Alias for the relationship (adjust if necessary)
+                    model: assetcategory_1.default,
+                    as: 'assetCategory',
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
             ],
@@ -1351,10 +1351,10 @@ const deleteDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
 exports.deleteDigitalAsset = deleteDigitalAsset;
 // Physical Asset
 const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _l;
     try {
         const { categoryId } = req.body;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
+        const userId = (_l = req.user) === null || _l === void 0 ? void 0 : _l.id; // Extract user ID from authenticated request
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -1381,8 +1381,8 @@ const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.createPhysicalAsset = createPhysicalAsset;
 const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract authenticated user's ID
+    var _m;
+    const userId = (_m = req.user) === null || _m === void 0 ? void 0 : _m.id; // Extract authenticated user's ID
     try {
         const { assetName, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -1411,8 +1411,8 @@ const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.getPhysicalAssets = getPhysicalAssets;
 const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract authenticated user's ID
+    var _o;
+    const userId = (_o = req.user) === null || _o === void 0 ? void 0 : _o.id; // Extract authenticated user's ID
     try {
         const { id } = req.query; // Extract search parameters
         // Fetch asset with optional search criteria
@@ -1420,8 +1420,8 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id, creatorId: userId },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
-                    as: 'assetCategory', // Alias for the relationship (adjust if necessary)
+                    model: assetcategory_1.default,
+                    as: 'assetCategory',
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
             ],
@@ -1505,11 +1505,11 @@ const jobCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.jobCategories = jobCategories;
 const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _p;
     try {
         const { categoryId, title, company, logo, workplaceType, location, jobType, } = req.body;
         // Extract user ID from authenticated request
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_p = req.user) === null || _p === void 0 ? void 0 : _p.id;
         // Validate category
         const category = yield jobcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -1525,7 +1525,7 @@ const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             title,
             slug: `${title.toLowerCase().replace(/ /g, '-')}-${(0, uuid_1.v4)()}`,
             company,
-            logo, // Assuming a URL for the logo is provided
+            logo,
             workplaceType,
             location,
             jobType,
@@ -1592,10 +1592,10 @@ const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.postJob = postJob;
 const getJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _q;
     try {
         const { status, title } = req.query; // Expecting 'Draft', 'Active', or 'Closed' for status, and a string for title
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
+        const userId = (_q = req.user) === null || _q === void 0 ? void 0 : _q.id; // Extract user ID from authenticated request
         const jobs = yield job_1.default.findAll({
             where: Object.assign(Object.assign({ creatorId: userId }, (status && { status: { [sequelize_1.Op.eq]: status } })), (title && { title: { [sequelize_1.Op.like]: `%${title}%` } })),
             order: [['createdAt', 'DESC']],
@@ -1675,10 +1675,10 @@ const deleteJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.deleteJob = deleteJob;
 const getJobApplicants = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _r;
     try {
         const jobId = req.query.jobId;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const userId = (_r = req.user) === null || _r === void 0 ? void 0 : _r.id;
         const job = yield job_1.default.findOne({ where: { id: jobId, creatorId: userId } });
         if (!job) {
             res.status(403).json({
@@ -1712,8 +1712,8 @@ const viewApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const applicant = yield applicant_1.default.findByPk(applicantId, {
             include: [
                 {
-                    model: user_1.default, // Assuming 'User' is the associated model
-                    as: 'user', // Alias for the relationship if defined in the model association
+                    model: user_1.default,
+                    as: 'user',
                     attributes: ['id', 'name', 'email', 'photo'], // Select only the fields you need
                 },
                 {
@@ -1762,10 +1762,10 @@ const viewApplicant = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.viewApplicant = viewApplicant;
 const repostJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _s;
     try {
         const { jobId } = req.body;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
+        const userId = (_s = req.user) === null || _s === void 0 ? void 0 : _s.id; // Extract user ID from authenticated request
         const job = yield job_1.default.findByPk(jobId);
         if (!job) {
             res.status(404).json({

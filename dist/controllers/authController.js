@@ -480,7 +480,7 @@ const codeCheck = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 otpCode,
             },
             include: {
-                model: user_1.default, // Assuming OTP is linked to User model
+                model: user_1.default,
                 as: "user",
                 where: { email },
             },
@@ -550,7 +550,7 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             where: { email },
             include: [
                 {
-                    model: role_1.default, // Assuming you've imported the Role model
+                    model: role_1.default,
                     as: "role", // Make sure this alias matches the one you used in the association
                 },
             ],

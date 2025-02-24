@@ -36,7 +36,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'asset_categories', // Ensure the related table is correct
+                model: 'asset_categories',
                 key: 'id',
             },
             onDelete: 'CASCADE',
@@ -51,11 +51,11 @@ const initModel = (sequelize) => {
             allowNull: false,
         },
         assetUpload: {
-            type: sequelize_1.DataTypes.STRING, // File path or URL
+            type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
         assetThumbnail: {
-            type: sequelize_1.DataTypes.STRING, // Store file path or URL
+            type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
         specificationSubjectMatter: {
@@ -71,7 +71,7 @@ const initModel = (sequelize) => {
             allowNull: false,
         },
         specificationTags: {
-            type: sequelize_1.DataTypes.JSON, // Stored as a JSON array
+            type: sequelize_1.DataTypes.JSON,
             allowNull: false,
         },
         specificationVersion: {

@@ -128,7 +128,7 @@ exports.courseMethods = {
         return __awaiter(this, void 0, void 0, function* () {
             const publishedLessons = yield lesson_1.default.findAll({
                 where: {
-                    courseId: this.id, // Assuming 'this.id' refers to the course's identifier
+                    courseId: this.id,
                     status: 'published'
                 }
             });
@@ -139,7 +139,7 @@ exports.courseMethods = {
         return __awaiter(this, void 0, void 0, function* () {
             const lessons = yield lesson_1.default.findAll({
                 where: {
-                    courseId: this.id, // Assuming 'this.id' refers to the course's identifier
+                    courseId: this.id,
                     contentType: ["video", "audio", "article", "youtube"]
                 }
             });
@@ -159,7 +159,7 @@ exports.courseMethods = {
         return __awaiter(this, void 0, void 0, function* () {
             const lessons = yield lesson_1.default.findAll({
                 where: {
-                    courseId: this.id, // Ensure the foreign key matches your schema
+                    courseId: this.id,
                     contentType: { [sequelize_1.Op.in]: ['video', 'youtube'] },
                 },
             });

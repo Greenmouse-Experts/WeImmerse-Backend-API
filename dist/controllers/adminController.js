@@ -96,9 +96,9 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.updateProfile = updateProfile;
 const updatePassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b;
     const { oldPassword, newPassword, confirmNewPassword } = req.body;
-    const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id; // Using optional chaining to access adminId
+    const adminId = (_b = req.admin) === null || _b === void 0 ? void 0 : _b.id; // Using optional chaining to access adminId
     try {
         // Find the admin
         const admin = yield admin_1.default.scope("auth").findByPk(adminId);
@@ -155,7 +155,7 @@ const subAdmins = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             where: whereCondition,
             include: [
                 {
-                    model: role_1.default, // Include the Role model in the query
+                    model: role_1.default,
                     as: "role", // Use the alias defined in the association (if any)
                 },
             ],
@@ -1133,10 +1133,10 @@ const getAllDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.getAllDigitalAssets = getAllDigitalAssets;
 const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _c;
     try {
         const { categoryId } = req.body;
-        const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id;
+        const adminId = (_c = req.admin) === null || _c === void 0 ? void 0 : _c.id;
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -1163,8 +1163,8 @@ const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.createDigitalAsset = createDigitalAsset;
 const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id;
+    var _d;
+    const adminId = (_d = req.admin) === null || _d === void 0 ? void 0 : _d.id;
     try {
         const { assetName, pricingType, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -1203,8 +1203,8 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
-                    as: "assetCategory", // Alias for the relationship (adjust if necessary)
+                    model: assetcategory_1.default,
+                    as: "assetCategory",
                     attributes: ["id", "name"], // You can specify the fields you want to include
                 },
                 {
@@ -1218,7 +1218,7 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
                     attributes: ["id", "name", "email"],
                     include: [
                         {
-                            model: role_1.default, // Assuming you've imported the Role model
+                            model: role_1.default,
                             as: "role", // Make sure this alias matches the one you used in the association
                         },
                     ],
@@ -1356,10 +1356,10 @@ const getAllPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, fun
 });
 exports.getAllPhysicalAssets = getAllPhysicalAssets;
 const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _e;
     try {
         const { categoryId } = req.body;
-        const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
+        const adminId = (_e = req.admin) === null || _e === void 0 ? void 0 : _e.id; // Extract user ID from authenticated request
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
@@ -1386,8 +1386,8 @@ const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.createPhysicalAsset = createPhysicalAsset;
 const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id; // Extract authenticated user's ID
+    var _f;
+    const adminId = (_f = req.admin) === null || _f === void 0 ? void 0 : _f.id; // Extract authenticated user's ID
     try {
         const { assetName, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -1423,8 +1423,8 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
-                    as: "assetCategory", // Alias for the relationship (adjust if necessary)
+                    model: assetcategory_1.default,
+                    as: "assetCategory",
                     attributes: ["id", "name"], // You can specify the fields you want to include
                 },
                 {
@@ -1438,7 +1438,7 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
                     attributes: ["id", "name", "email"],
                     include: [
                         {
-                            model: role_1.default, // Assuming you've imported the Role model
+                            model: role_1.default,
                             as: "role", // Make sure this alias matches the one you used in the association
                         },
                     ],

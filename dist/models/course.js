@@ -19,7 +19,7 @@ var CourseStatus;
     CourseStatus["UNPUBLISHED"] = "unpublished";
     CourseStatus["UNDER_REVIEW"] = "under_review";
     CourseStatus["DRAFT"] = "draft";
-})(CourseStatus || (exports.CourseStatus = CourseStatus = {}));
+})(CourseStatus = exports.CourseStatus || (exports.CourseStatus = {}));
 class Course extends sequelize_1.Model {
     static associate(models) {
         this.belongsTo(models.User, { as: 'creator', foreignKey: 'creatorId' });
@@ -109,7 +109,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'course_categories', // Ensure this matches the name of the CourseCategory table
+                model: 'course_categories',
                 key: 'id',
             },
             onDelete: 'CASCADE',

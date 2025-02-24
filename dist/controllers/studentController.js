@@ -15,23 +15,13 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -119,9 +109,9 @@ const getAllCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 exports.getAllCourses = getAllCourses;
 // Get a single course by ID
 const getCourseById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b;
     // Retrieve the authenticated user's ID
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+    const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id;
     const { id } = req.params;
     try {
         const enrolledCourseDetails = yield courseenrollment_1.default.findOne({
@@ -208,10 +198,10 @@ exports.enrollCourse = enrollCourse;
  * @returns
  */
 const getProgress = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _c;
     try {
         // Retrieve the authenticated user's ID
-        const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const studentId = (_c = req.user) === null || _c === void 0 ? void 0 : _c.id;
         const { courseId } = req.params;
         const progress = yield course_progress_service_1.default.getCourseProgress(studentId, courseId);
         if (!progress) {
@@ -237,9 +227,9 @@ exports.getProgress = getProgress;
  * @param res
  */
 const updateProgress = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _d;
     try {
-        const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const studentId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id;
         const { courseId, completedLessons } = req.body;
         const courseProgress = yield course_progress_service_1.default.updateProgress(studentId, courseId, completedLessons);
         res.json({
@@ -259,9 +249,9 @@ exports.updateProgress = updateProgress;
  * @param res
  */
 const getAllCourseProgress = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _e;
     try {
-        const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const studentId = (_e = req.user) === null || _e === void 0 ? void 0 : _e.id;
         const progressList = yield course_progress_service_1.default.getAllProgress(studentId);
         res.json({ status: true, data: progressList });
     }
@@ -277,10 +267,10 @@ exports.getAllCourseProgress = getAllCourseProgress;
  * @returns
  */
 const saveCourseProgress = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _f;
     try {
         const { courseId, lessonId } = req.body;
-        const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const studentId = (_f = req.user) === null || _f === void 0 ? void 0 : _f.id;
         if (!courseId && !lessonId) {
             return res
                 .status(400)
@@ -316,9 +306,9 @@ exports.saveCourseProgress = saveCourseProgress;
  * @returns
  */
 const submitQuiz = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _g;
     try {
-        const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const studentId = (_g = req.user) === null || _g === void 0 ? void 0 : _g.id;
         const { quizId, answers } = req.body;
         if (!quizId || !Array.isArray(answers) || answers.length === 0) {
             return res.status(400).json({ message: 'Invalid request data' });
@@ -338,8 +328,8 @@ exports.submitQuiz = submitQuiz;
  * @returns
  */
 const getAttempts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+    var _h;
+    const studentId = (_h = req.user) === null || _h === void 0 ? void 0 : _h.id;
     const { quizId } = req.params;
     try {
         const attempts = yield quiz_service_1.default.getQuizAttempts(studentId, quizId);
@@ -351,8 +341,8 @@ const getAttempts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
 });
 exports.getAttempts = getAttempts;
 const getLatestAttempt = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+    var _j;
+    const studentId = (_j = req.user) === null || _j === void 0 ? void 0 : _j.id;
     const { quizId } = req.params;
     try {
         const attempt = yield quiz_service_1.default.getLatestQuizAttempt(studentId, quizId);
@@ -370,8 +360,8 @@ exports.getLatestAttempt = getLatestAttempt;
  * @returns
  */
 const generateCertificate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+    var _k;
+    const studentId = (_k = req.user) === null || _k === void 0 ? void 0 : _k.id;
     const { courseId } = req.body;
     try {
         const certificate = yield certificate_service_1.default.generateCertificate(studentId, courseId);
@@ -393,9 +383,9 @@ exports.generateCertificate = generateCertificate;
  * @returns
  */
 const getCertificate = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _l;
     const { courseId } = req.params;
-    const studentId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+    const studentId = (_l = req.user) === null || _l === void 0 ? void 0 : _l.id;
     try {
         const certificate = yield certificate_service_1.default.getCertificate(studentId, courseId);
         if (!certificate) {

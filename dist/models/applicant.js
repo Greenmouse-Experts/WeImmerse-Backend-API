@@ -23,7 +23,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'users', // Ensure the related table is correct
+                model: 'users',
                 key: 'id',
             },
             onDelete: 'CASCADE',
@@ -33,7 +33,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'jobs', // Ensure this matches the jobs table name
+                model: 'jobs',
                 key: 'id',
             },
             onDelete: 'CASCADE',

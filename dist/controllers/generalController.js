@@ -15,23 +15,13 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -106,10 +96,10 @@ const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.profile = profile;
 const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _b;
     try {
         const { name, email, phoneNumber, dateOfBirth, gender, educationalLevel, schoolId, professionalSkill, industry, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation, } = req.body;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
+        const userId = (_b = req.user) === null || _b === void 0 ? void 0 : _b.id; // Assuming the user ID is passed in the URL params
         const user = yield user_1.default.findByPk(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found.' });
@@ -172,10 +162,10 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.updateProfile = updateProfile;
 const updateProfilePhoto = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _c;
     try {
         const { photo } = req.body;
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
+        const userId = (_c = req.user) === null || _c === void 0 ? void 0 : _c.id; // Assuming the user ID is passed in the URL params
         const user = yield user_1.default.findByPk(userId);
         if (!user) {
             res.status(404).json({ message: 'User not found.' });
@@ -198,9 +188,9 @@ const updateProfilePhoto = (req, res) => __awaiter(void 0, void 0, void 0, funct
 });
 exports.updateProfilePhoto = updateProfilePhoto;
 const updatePassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _d;
     const { oldPassword, newPassword, confirmNewPassword } = req.body;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Using optional chaining to access userId
+    const userId = (_d = req.user) === null || _d === void 0 ? void 0 : _d.id; // Using optional chaining to access userId
     try {
         // Find the user
         const user = yield user_1.default.scope('auth').findByPk(userId);
@@ -238,8 +228,8 @@ const updatePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.updatePassword = updatePassword;
 const getUserNotificationSettings = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Get the authenticated user's ID
+    var _e;
+    const userId = (_e = req.user) === null || _e === void 0 ? void 0 : _e.id; // Get the authenticated user's ID
     try {
         // Step 1: Retrieve the user's notification settings
         const userSettings = yield usernotificationsetting_1.default.findOne({
@@ -267,8 +257,8 @@ const getUserNotificationSettings = (req, res) => __awaiter(void 0, void 0, void
 });
 exports.getUserNotificationSettings = getUserNotificationSettings;
 const updateUserNotificationSettings = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Get the authenticated user's ID
+    var _f;
+    const userId = (_f = req.user) === null || _f === void 0 ? void 0 : _f.id; // Get the authenticated user's ID
     const { hotDeals, auctionProducts, subscription } = req.body; // These values will be passed from the frontend
     // Step 1: Validate the notification settings
     if (typeof hotDeals !== 'boolean' ||
@@ -317,10 +307,10 @@ const updateUserNotificationSettings = (req, res) => __awaiter(void 0, void 0, v
 });
 exports.updateUserNotificationSettings = updateUserNotificationSettings;
 const saveJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _g;
     try {
         const jobId = req.query.jobId; // Retrieve jobId from query
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Get the authenticated user's ID
+        const userId = (_g = req.user) === null || _g === void 0 ? void 0 : _g.id; // Get the authenticated user's ID
         if (!userId) {
             res
                 .status(401)
@@ -355,11 +345,11 @@ const saveJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.saveJob = saveJob;
 const applyJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _h;
     // Start transaction
     const transaction = yield sequelize_service_1.default.connection.transaction();
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Get the authenticated user's ID
+        const userId = (_h = req.user) === null || _h === void 0 ? void 0 : _h.id; // Get the authenticated user's ID
         const { jobId, email, phone, resume } = req.body;
         const job = yield job_1.default.findByPk(jobId);
         if (!job) {
@@ -409,9 +399,9 @@ const applyJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.applyJob = applyJob;
 const getAppliedJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _j;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Get the authenticated user's ID
+        const userId = (_j = req.user) === null || _j === void 0 ? void 0 : _j.id; // Get the authenticated user's ID
         const appliedJobs = yield applicant_1.default.findAll({
             where: { userId },
             include: [
@@ -434,9 +424,9 @@ const getAppliedJobs = (req, res) => __awaiter(void 0, void 0, void 0, function*
 });
 exports.getAppliedJobs = getAppliedJobs;
 const getSavedJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _k;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Get the authenticated user's ID
+        const userId = (_k = req.user) === null || _k === void 0 ? void 0 : _k.id; // Get the authenticated user's ID
         const savedJobs = yield savedjob_1.default.findAll({
             where: { userId },
             include: [
