@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+import * as dotenv from 'dotenv';
 import http from 'http';
 import { Server } from 'socket.io';
 import createExpressApp from './services/express.service';
