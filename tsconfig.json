@@ -10,7 +10,13 @@
     "rootDir": "./src",
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "sourceMap": true,
-    "types": ["node"]
+    "types": [
+      "node",
+      "passport",
+      "passport-facebook",
+      "passport-google-oauth20",
+      "express"
+    ]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
