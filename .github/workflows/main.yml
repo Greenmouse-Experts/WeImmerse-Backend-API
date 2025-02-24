@@ -40,7 +40,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $AWS_USER@$AWS_HOST << 'EOF'
             cd /var/www/api
             git pull
-            npm install --production  # Install only necessary dependencies
+            npm install --omit=dev  # Install only necessary dependencies
             npm run prod
           EOF
 
