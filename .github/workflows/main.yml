@@ -43,8 +43,8 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $AWS_USER@$AWS_HOST << 'EOF'
             cd /var/www/api
             git pull
-            npm install --omit=dev  # Install only necessary dependencies
-            pm2 describe index > /dev/null && pm2 restart index || pm2 start dist/index.js --name index
+            npm install --production  # Install only necessary dependencies
+            npm run prod
           EOF
 
       - name: ✅ Deployment Complete
