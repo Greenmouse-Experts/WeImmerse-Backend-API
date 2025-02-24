@@ -22,8 +22,8 @@ jobs:
       - name: 📦 Install Dependencies
         run: npm install --omit=dev
 
-      - name: 🔨 Build Project (TypeScript)
-        run: npm run build # Ensure your package.json has "build": "tsc"
+      # - name: 🔨 Build Project (TypeScript)
+      #   run: npm run build # Ensure your package.json has "build": "tsc"
 
       - name: 🚀 Deploy to AWS Lightsail
         env:
