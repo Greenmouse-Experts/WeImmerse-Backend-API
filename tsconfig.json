@@ -10,13 +10,6 @@
     "rootDir": "./src",
     "typeRoots": ["./node_modules/@types", "./src/types"],
     "sourceMap": true,
-    "types": [
-      "node",
-      "passport",
-      "passport-facebook",
-      "passport-google-oauth20",
-      "express"
-    ],
     "moduleResolution": "node"
   },
   "include": ["src/**/*"],
