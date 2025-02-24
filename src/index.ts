@@ -4,7 +4,6 @@ import { Server } from 'socket.io';
 import createExpressApp from './services/express.service';
 import sequelizeService from './services/sequelize.service'; // Adjusted to match your service structure
 import apiRouter from './routes/authRoute'; // Import your routes here
-import { Request, Response } from 'express';
 // import { configureSocket } from "./services/socket.service";
 
 dotenv.config();
@@ -20,10 +19,6 @@ const io = new Server(server, {
   cors: {
     origin: '*', // Change to specific origins in production
   },
-});
-
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello world.');
 });
 
 app.use('/api', apiRouter); // Mount the router to /api
