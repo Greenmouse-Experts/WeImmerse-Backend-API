@@ -40,8 +40,8 @@ const createExpressApp = () => {
   app.use(cookieParser());
   app.use(bodyParser.json());
 
-  app.get('/', (req: Request, res: Response) => {
-    res.send('Hello world.');
+  app.get('/', (req: Request, res: Response): any => {
+    return res.send('Hello world.');
   });
   // Use your routes
   app.use('/v1/api/', apiRouter);
