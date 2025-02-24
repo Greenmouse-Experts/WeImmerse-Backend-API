@@ -1,7 +1,23 @@
 {
-    "workbench.colorCustomizations": {
-        "activityBar.background": "#23320A",
-        "titleBar.activeBackground": "#31460D",
-        "titleBar.activeForeground": "#F7FCEE"
+  "workbench.colorCustomizations": {
+    "activityBar.background": "#23320A",
+    "titleBar.activeBackground": "#31460D",
+    "titleBar.activeForeground": "#F7FCEE"
+  },
+  "sqltools.connections": [
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "ls-4088e7a910827543f1e9c49971a623dbb9269184.c3u0ii6eku8l.eu-west-2.rds.amazonaws.com",
+      "driver": "MySQL",
+      "name": "Weimmersive",
+      "connectString": "ls-4088e7a910827543f1e9c49971a623dbb9269184.c3u0ii6eku8l.eu-west-2.rds.amazonaws.com",
+      "username": "dbmasteruser",
+      "password": "(7cujmWrhlB:sym:a}BJ~f{jh[]7FIvB",
+      "database": "test-weimmersive"
     }
+  ]
 }

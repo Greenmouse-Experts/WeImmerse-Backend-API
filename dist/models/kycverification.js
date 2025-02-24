@@ -1,75 +1,84 @@
 "use strict";
-// models/kycverification.ts
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = exports.KYCVerificationStatus = void 0;
-const sequelize_1 = require("sequelize");
-var KYCVerificationStatus;
-(function (KYCVerificationStatus) {
-    KYCVerificationStatus["PENDING"] = "pending";
-    KYCVerificationStatus["APPROVED"] = "approved";
-    KYCVerificationStatus["REJECTED"] = "rejected";
-})(KYCVerificationStatus = exports.KYCVerificationStatus || (exports.KYCVerificationStatus = {}));
-class KYCVerification extends sequelize_1.Model {
-    static associate(models) {
-        this.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
-        this.belongsTo(models.Admin, {
-            foreignKey: 'adminReviewedBy',
-            as: 'admin',
-        });
-    }
-}
-const initModel = (sequelize) => {
-    KYCVerification.init({
-        id: {
-            type: sequelize_1.DataTypes.UUID,
-            defaultValue: sequelize_1.DataTypes.UUIDV4,
-            allowNull: false,
-            primaryKey: true,
-        },
-        userId: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: false,
-            references: {
-                model: 'users',
-                key: 'id',
-            },
-            onDelete: 'CASCADE',
-            onUpdate: 'CASCADE',
-        },
-        verificationProvider: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: false,
-        },
-        verificationReference: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: false,
-        },
-        status: {
-            type: sequelize_1.DataTypes.ENUM('pending', 'approved', 'rejected'),
-            defaultValue: 'pending',
-        },
-        adminReviewedBy: {
-            type: sequelize_1.DataTypes.STRING,
-            allowNull: true,
-            references: {
-                model: 'admins',
-                key: 'id',
-            },
-            onDelete: 'SET NULL',
-            onUpdate: 'CASCADE',
-        },
-        adminReviewedAt: {
-            type: sequelize_1.DataTypes.DATE,
-            allowNull: true,
-        },
-    }, {
-        sequelize,
-        modelName: 'KYCVerification',
-        timestamps: true,
-        paranoid: false,
-        tableName: 'kyc_verifications',
-    });
-};
-exports.initModel = initModel;
-exports.default = KYCVerification;
+// // models/kycverification.ts
+// import { Model, DataTypes, Sequelize } from 'sequelize';
+// export enum KYCVerificationStatus {
+//   PENDING = 'pending',
+//   APPROVED = 'approved',
+//   REJECTED = 'rejected',
+// }
+// class KYCVerification extends Model {
+//   public id!: string;
+//   public userId!: string;
+//   public verificationProvider!: string;
+//   public verificationReference!: string;
+//   public status!: 'pending' | 'approved' | 'rejected';
+//   public adminReviewedBy!: string | null;
+//   public adminReviewedAt!: Date | null;
+//   public readonly createdAt!: Date;
+//   public readonly updatedAt!: Date;
+//   static associate(models: any) {
+//     this.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+//     this.belongsTo(models.Admin, {
+//       foreignKey: 'adminReviewedBy',
+//       as: 'admin',
+//     });
+//   }
+// }
+// const initModel = (sequelize: Sequelize) => {
+//   KYCVerification.init(
+//     {
+//       id: {
+//         type: DataTypes.UUID,
+//         defaultValue: DataTypes.UUIDV4,
+//         allowNull: false,
+//         primaryKey: true,
+//       },
+//       userId: {
+//         type: DataTypes.STRING,
+//         allowNull: false,
+//         references: {
+//           model: 'users', // Ensure this matches the name of the Users table
+//           key: 'id',
+//         },
+//         onDelete: 'CASCADE',
+//         onUpdate: 'CASCADE',
+//       },
+//       verificationProvider: {
+//         type: DataTypes.STRING,
+//         allowNull: false,
+//       },
+//       verificationReference: {
+//         type: DataTypes.STRING,
+//         allowNull: false,
+//       },
+//       status: {
+//         type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+//         defaultValue: 'pending',
+//       },
+//       adminReviewedBy: {
+//         type: DataTypes.STRING,
+//         allowNull: true,
+//         references: {
+//           model: 'admins', // Ensure this matches the name of the Admins table
+//           key: 'id',
+//         },
+//         onDelete: 'SET NULL',
+//         onUpdate: 'CASCADE',
+//       },
+//       adminReviewedAt: {
+//         type: DataTypes.DATE,
+//         allowNull: true,
+//       },
+//     },
+//     {
+//       sequelize,
+//       modelName: 'KYCVerification',
+//       timestamps: true,
+//       paranoid: false,
+//       tableName: 'kyc_verifications',
+//     }
+//   );
+// };
+// export default KYCVerification;
+// export { initModel };
 //# sourceMappingURL=kycverification.js.map
