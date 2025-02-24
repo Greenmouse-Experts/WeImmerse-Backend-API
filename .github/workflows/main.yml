@@ -1,0 +1,50 @@
+name: Backend CI/CD Deploy to AWS Lightsail [Test Environment]
+
+on:
+  push:
+    branches:
+      - main  # Runs only when pushing to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🛎️ Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'  # Cache dependencies for faster installs
+
+      - name: 📦 Install Dependencies
+        run: npm install
+
+      - name: 🔨 Build Project (TypeScript)
+        run: npm run build  # Ensure your package.json has "build": "tsc"
+
+      - name: 🚀 Deploy to AWS Lightsail
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          AWS_HOST: ${{ secrets.AWS_HOST }}
+          AWS_USER: ${{ secrets.AWS_USER }}
+        run: |
+          # Add SSH key to known hosts
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
+          # Deploy files to AWS Lightsail
+          rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa" ./ $AWS_USER@$AWS_HOST:/var/www/api/
+
+          # Connect via SSH and restart PM2
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $AWS_USER@$AWS_HOST << 'EOF'
+            cd /var/www/api
+            npm install --production  # Install only necessary dependencies
+            npm run prod
+          EOF
+
+      - name: ✅ Deployment Complete
+        run: echo "🚀 Successfully deployed to AWS Lightsail!"
