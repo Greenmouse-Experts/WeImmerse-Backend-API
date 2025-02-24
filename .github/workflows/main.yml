@@ -42,6 +42,7 @@ jobs:
           # Connect via SSH and restart PM2
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa $AWS_USER@$AWS_HOST << 'EOF'
             cd /var/www/api
+            cp /var/www/.env /var/www/api
             git pull
             npm install --omit=dev  # Install only necessary dependencies
             npm run prod
