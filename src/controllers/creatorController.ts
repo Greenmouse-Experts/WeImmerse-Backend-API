@@ -276,9 +276,10 @@ export const getCourses = async (
     });
 
     if (courses.length === 0) {
-      res
-        .status(404)
-        .json({ message: 'No courses found for the authenticated user.' });
+      res.status(200).json({
+        message: 'No courses found for the authenticated user.',
+        data: [],
+      });
       return;
     }
 

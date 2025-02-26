@@ -418,6 +418,8 @@ export const generateCertificate = async (
       certificate,
     });
   } catch (error: any) {
+    console.log(error);
+
     return res.status(400).json({ success: false, message: error.message });
   }
 };

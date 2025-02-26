@@ -3,6 +3,7 @@ import { uploadToS3 } from '../utils/helpers'; // Utility function to upload fil
 import CourseProgress from '../models/courseprogress';
 import QuizAttempt from '../models/quizattempt';
 import Certificate from '../models/certificate';
+import LessonQuiz from '../models/lessonquiz';
 
 const generateCertificatePdf = async (userId: string, courseId: string) => {
   const canvas = createCanvas(800, 600);
@@ -26,7 +27,11 @@ const generateCertificatePdf = async (userId: string, courseId: string) => {
   const buffer = canvas.toBuffer('image/png');
 
   // Upload to S3 and return URL
-  return await uploadToS3(buffer, `certificates/${userId}_${courseId}.png`, '');
+  return await uploadToS3(
+    buffer,
+    `certificates/${userId}_${courseId}.png`,
+    'test-weimmersive-bucket'
+  );
 };
 
 const generateCertificate = async (userId: string, courseId: string) => {
@@ -39,11 +44,16 @@ const generateCertificate = async (userId: string, courseId: string) => {
     throw new Error('Course is not fully completed.');
   }
 
+  console.log(progress, courseId);
+
   // Check if quiz is passed
   const quizAttempt = await QuizAttempt.findOne({
-    where: { userId, courseId, passed: true },
+    where: { userId, passed: true },
+    include: [{ model: LessonQuiz, as: 'quiz', where: { courseId } }],
     order: [['createdAt', 'DESC']],
   });
+
+  console.log(quizAttempt);
 
   if (!quizAttempt) {
     throw new Error('User has not passed the required quiz.');
