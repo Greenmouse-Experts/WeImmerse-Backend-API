@@ -1885,7 +1885,7 @@ export const publishCourse = async (
   res: Response
 ): Promise<void> => {
   try {
-    const courseId = req.query.courseId as string;
+    const courseId = req.params.id as string;
 
     // Find the course by its ID
     const course = await Course.findByPk(courseId);
