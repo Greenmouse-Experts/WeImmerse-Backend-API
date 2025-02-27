@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
+exports.validate = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
 // User registration validation rules
@@ -384,6 +384,22 @@ const reviewJobValidationRules = () => {
     ];
 };
 exports.reviewJobValidationRules = reviewJobValidationRules;
+// Validation rules for review job validation
+const uploadKycDocumentValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('documentType')
+            .not()
+            .isEmpty()
+            .withMessage('Document type is required.')
+            .isIn(['passport', 'national_id', 'driver_license', 'CAC_document'])
+            .withMessage('Document type must be of the following: passport, national_id, driver_license, CAC_document.'),
+        (0, express_validator_1.check)('documentUrl')
+            .not()
+            .isEmpty()
+            .withMessage('Document URL is required'),
+    ];
+};
+exports.uploadKycDocumentValidationRules = uploadKycDocumentValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

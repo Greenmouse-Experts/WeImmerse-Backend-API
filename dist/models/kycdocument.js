@@ -1,7 +1,7 @@
 "use strict";
 // models/kycdocuments.ts
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = exports.KYCDocumentType = void 0;
+exports.initModel = exports.KYCDocumentVettingStatus = exports.KYCDocumentType = void 0;
 const sequelize_1 = require("sequelize");
 var KYCDocumentType;
 (function (KYCDocumentType) {
@@ -10,9 +10,16 @@ var KYCDocumentType;
     KYCDocumentType["DRIVER_LICENSE"] = "driver_license";
     KYCDocumentType["CAC_DOCUMENT"] = "CAC_document";
 })(KYCDocumentType || (exports.KYCDocumentType = KYCDocumentType = {}));
+var KYCDocumentVettingStatus;
+(function (KYCDocumentVettingStatus) {
+    KYCDocumentVettingStatus["PENDING"] = "pending";
+    KYCDocumentVettingStatus["APPROVED"] = "approved";
+    KYCDocumentVettingStatus["REJECTED"] = "rejected";
+})(KYCDocumentVettingStatus || (exports.KYCDocumentVettingStatus = KYCDocumentVettingStatus = {}));
 class KYCDocuments extends sequelize_1.Model {
     static associate(models) {
         this.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+        this.belongsTo(models.Admin, { foreignKey: 'vettedBy', as: 'admin' }); // Reference Admin who reviewed
     }
 }
 const initModel = (sequelize) => {
@@ -45,6 +52,21 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
             defaultValue: sequelize_1.DataTypes.NOW,
+        },
+        vettingStatus: {
+            type: sequelize_1.DataTypes.ENUM('pending', 'approved', 'rejected'),
+            allowNull: false,
+            defaultValue: 'pending',
+        },
+        vettedBy: {
+            type: sequelize_1.DataTypes.UUID, // Ensure it matches the `id` type in Admins table
+            allowNull: true,
+            references: {
+                model: 'admins',
+                key: 'id',
+            },
+            onDelete: 'SET NULL',
+            onUpdate: 'CASCADE',
         },
     }, {
         sequelize,

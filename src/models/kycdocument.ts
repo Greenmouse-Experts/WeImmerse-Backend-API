@@ -9,6 +9,12 @@ export enum KYCDocumentType {
   CAC_DOCUMENT = 'CAC_document',
 }
 
+export enum KYCDocumentVettingStatus {
+  PENDING = 'pending',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
 class KYCDocuments extends Model {
   public id!: string;
   public userId!: string;
@@ -19,11 +25,15 @@ class KYCDocuments extends Model {
     | 'CAC_document';
   public documentUrl!: string;
   public uploadedAt!: Date;
+  public vettingStatus!: 'pending' | 'approved' | 'rejected';
+  public vettedBy!: string | null; // Admin who vetted the document
+  public vettedAt!: Date | null; // Date when vetting was done
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
   static associate(models: any) {
     this.belongsTo(models.User, { foreignKey: 'userId', as: 'user' });
+    this.belongsTo(models.Admin, { foreignKey: 'vettedBy', as: 'admin' }); // Reference Admin who reviewed
   }
 }
 
@@ -63,6 +73,21 @@ const initModel = (sequelize: Sequelize) => {
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: DataTypes.NOW,
+      },
+      vettingStatus: {
+        type: DataTypes.ENUM('pending', 'approved', 'rejected'),
+        allowNull: false,
+        defaultValue: 'pending',
+      },
+      vettedBy: {
+        type: DataTypes.UUID, // Ensure it matches the `id` type in Admins table
+        allowNull: true,
+        references: {
+          model: 'admins',
+          key: 'id',
+        },
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE',
       },
     },
     {

@@ -432,6 +432,24 @@ export const reviewJobValidationRules = () => {
   ];
 };
 
+// Validation rules for review job validation
+export const uploadKycDocumentValidationRules = () => {
+  return [
+    check('documentType')
+      .not()
+      .isEmpty()
+      .withMessage('Document type is required.')
+      .isIn(['passport', 'national_id', 'driver_license', 'CAC_document'])
+      .withMessage(
+        'Document type must be of the following: passport, national_id, driver_license, CAC_document.'
+      ),
+    check('documentUrl')
+      .not()
+      .isEmpty()
+      .withMessage('Document URL is required'),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,

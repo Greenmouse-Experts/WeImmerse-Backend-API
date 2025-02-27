@@ -12,15 +12,26 @@ import {
   forgotPasswordValidationRules,
   resetPasswordValidationRules,
   validate,
+  uploadKycDocumentValidationRules,
 } from '../utils/validations'; // Import the service
 import authMiddleware from '../middlewares/authMiddleware';
-import { uploadKYCDocument } from '../controllers/kycController';
+import { reviewKYC, uploadKYCDocument } from '../controllers/kycController';
 import adminAuthMiddleware from '../middlewares/adminAuthMiddleware';
 
 const kycRouter = Router();
 
-kycRouter.post('/upload', authMiddleware, uploadKYCDocument);
-kycRouter.post('/initiate-verification', authMiddleware, uploadKYCDocument);
-kycRouter.post('/review', adminAuthMiddleware, uploadKYCDocument);
+kycRouter.post(
+  '/upload',
+  authMiddleware,
+  uploadKycDocumentValidationRules(),
+  validate,
+  uploadKYCDocument
+);
+// kycRouter.post(
+//   '/initiate-verification',
+//   authMiddleware,
+//   initiateKYCVerification
+// );
+kycRouter.post('/review', adminAuthMiddleware, reviewKYC);
 
 export default kycRouter;

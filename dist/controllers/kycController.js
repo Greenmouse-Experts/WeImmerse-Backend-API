@@ -42,8 +42,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reviewKYC = exports.initiateKYCVerification = exports.uploadKYCDocument = void 0;
-const kycverification_1 = __importStar(require("../models/kycverification"));
+exports.reviewKYC = exports.uploadKYCDocument = void 0;
+const kycverification_1 = require("../models/kycverification");
 const kycdocument_1 = __importStar(require("../models/kycdocument"));
 // Upload KYC Document
 const uploadKYCDocument = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -52,86 +52,114 @@ const uploadKYCDocument = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
         const { documentType, documentUrl } = req.body;
         if (!userId || !documentType || !documentUrl) {
-            return res.status(400).json({ message: 'All fields are required' });
+            return res
+                .status(400)
+                .json({ status: false, message: 'All fields are required' });
         }
         const allowedTypes = Object.values(kycdocument_1.KYCDocumentType);
         if (!allowedTypes.includes(documentType)) {
-            return res.status(400).json({ message: 'Invalid document type' });
+            return res
+                .status(400)
+                .json({ status: false, message: 'Invalid document type' });
+        }
+        // Check if document type has already been uploaded
+        const savedDocument = yield kycdocument_1.default.findOne({
+            where: { userId, documentType },
+        });
+        if (savedDocument) {
+            return res.status(409).json({
+                status: false,
+                message: 'KYC Document type has already been uploaded.',
+            });
         }
         const document = yield kycdocument_1.default.create({
             userId,
             documentType,
             documentUrl,
         });
-        return res.status(201).json({ message: 'Document uploaded', document });
+        return res.status(201).json({
+            status: true,
+            message: 'Document uploaded',
+            document,
+        });
     }
     catch (error) {
-        return res.status(500).json({ message: 'Server error', error });
+        return res.status(500).json({
+            status: false,
+            message: 'Server error',
+            error,
+        });
     }
 });
 exports.uploadKYCDocument = uploadKYCDocument;
 // Initiate KYC Verification Request
-const initiateKYCVerification = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
-    try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
-        const { verificationProvider, verificationReference } = req.body;
-        if (!userId || !verificationProvider || !verificationReference) {
-            return res.status(400).json({ message: 'All fields are required' });
-        }
-        const existingRequest = yield kycverification_1.default.findOne({
-            where: { userId, status: 'pending' },
-        });
-        if (existingRequest) {
-            return res
-                .status(400)
-                .json({ message: 'A pending KYC request already exists' });
-        }
-        const kycRequest = yield kycverification_1.default.create({
-            userId,
-            verificationProvider,
-            verificationReference,
-            status: kycverification_1.KYCVerificationStatus.PENDING,
-        });
-        return res
-            .status(201)
-            .json({ message: 'KYC verification initiated', kycRequest });
-    }
-    catch (error) {
-        return res.status(500).json({ message: 'Server error', error });
-    }
-});
-exports.initiateKYCVerification = initiateKYCVerification;
+// export const initiateKYCVerification = async (
+//   req: Request,
+//   res: Response
+// ): Promise<any> => {
+//   try {
+//     const userId = (req as AuthRequest).user?.id; // Assuming the user ID is passed in the URL params
+//     const { verificationProvider, verificationReference } = req.body;
+//     if (!userId || !verificationProvider || !verificationReference) {
+//       return res.status(400).json({ message: 'All fields are required' });
+//     }
+//     const existingRequest = await KYCVerification.findOne({
+//       where: { userId, status: 'pending' },
+//     });
+//     if (existingRequest) {
+//       return res
+//         .status(400)
+//         .json({ message: 'A pending KYC request already exists' });
+//     }
+//     const kycRequest = await KYCVerification.create({
+//       userId,
+//       verificationProvider,
+//       verificationReference,
+//       status: KYCVerificationStatus.PENDING,
+//     });
+//     return res
+//       .status(201)
+//       .json({ message: 'KYC verification initiated', kycRequest });
+//   } catch (error) {
+//     return res.status(500).json({ message: 'Server error', error });
+//   }
+// };
 // Admin Review KYC
 const reviewKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
-        const { verificationId } = req.params;
-        const { status } = req.body;
-        if (!adminId || !status) {
+        const { kycId, status } = req.body;
+        if (!kycId || !status) {
             return res
                 .status(400)
-                .json({ message: 'Admin ID and status are required' });
+                .json({ status: false, message: 'KYC ID and status are required' });
         }
         if (![
             kycverification_1.KYCVerificationStatus.APPROVED,
             kycverification_1.KYCVerificationStatus.REJECTED,
         ].includes(status)) {
-            return res.status(400).json({ message: 'Invalid status' });
+            return res.status(400).json({ status: false, message: 'Invalid status' });
         }
-        const verification = yield kycverification_1.default.findByPk(verificationId);
-        if (!verification) {
-            return res.status(404).json({ message: 'KYC request not found' });
+        const kycDoc = yield kycdocument_1.default.findByPk(kycId);
+        if (!kycDoc) {
+            return res
+                .status(404)
+                .json({ status: false, message: 'KYC document not found' });
         }
-        verification.status = status;
-        verification.adminReviewedBy = adminId;
-        verification.adminReviewedAt = new Date();
-        yield verification.save();
-        return res.status(200).json({ message: `KYC ${status}`, verification });
+        kycDoc.vettingStatus = status;
+        kycDoc.vettedBy = adminId;
+        kycDoc.vettedAt = new Date();
+        yield kycDoc.save();
+        // Send email notification to creator/instructor regarding kyc document review
+        return res
+            .status(200)
+            .json({ status: true, message: `KYC ${status}`, kycDoc });
     }
     catch (error) {
-        return res.status(500).json({ message: 'Server error', error });
+        return res
+            .status(500)
+            .json({ status: false, message: 'Server error', error });
     }
 });
 exports.reviewKYC = reviewKYC;
