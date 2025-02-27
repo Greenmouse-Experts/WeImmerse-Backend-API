@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
-exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
+exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -32,6 +32,7 @@ const jobcategory_1 = __importDefault(require("../models/jobcategory"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const course_1 = __importDefault(require("../models/course"));
+const job_1 = __importDefault(require("../models/job"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -1613,4 +1614,32 @@ const publishCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.publishCourse = publishCourse;
+// Job Post
+// Review job post
+const reviewJobPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const jobPostId = req.params.id;
+        const { status } = req.body;
+        // Find the job by its ID
+        const job = yield job_1.default.findByPk(jobPostId);
+        if (!job) {
+            return res.status(404).json({
+                message: 'Job not found in our database.',
+            });
+        }
+        // Update job
+        yield job.update(Object.assign({}, (status && { status })));
+        // Send email to creator about the review
+        return res.status(200).json({
+            message: 'Job reviewed successfully.',
+            data: job,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while review the job post.',
+        });
+    }
+});
+exports.reviewJobPost = reviewJobPost;
 //# sourceMappingURL=adminController.js.map

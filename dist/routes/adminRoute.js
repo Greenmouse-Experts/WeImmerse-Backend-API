@@ -108,6 +108,9 @@ adminRoutes.post('/physical/asset/create', adminAuthMiddleware_1.default, (0, ad
 adminRoutes.put('/physical/asset/update', adminAuthMiddleware_1.default, (0, adminValidations_1.physicalAssetValidationRules)(), validations_1.validate, adminController.updatePhysicalAsset);
 adminRoutes.delete('/physical/asset/delete', adminAuthMiddleware_1.default, adminController.deletePhysicalAsset);
 adminRoutes.patch('/physical/asset/update/status', adminAuthMiddleware_1.default, adminController.updatePhysicalAssetStatus);
+// Course
 adminRoutes.post('/course/:id/publish', adminAuthMiddleware_1.default, adminController.publishCourse);
+// Job post
+adminRoutes.patch('/job/:id/review', adminAuthMiddleware_1.default, (0, validations_1.reviewJobValidationRules)(), validations_1.validate, adminController.reviewJobPost);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map
