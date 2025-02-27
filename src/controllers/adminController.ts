@@ -20,6 +20,7 @@ import JobCategory from '../models/jobcategory';
 import PhysicalAsset from '../models/physicalasset';
 import DigitalAsset from '../models/digitalasset';
 import Course from '../models/course';
+import Job from '../models/job';
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -1946,6 +1947,42 @@ export const publishCourse = async (
     res.status(500).json({
       message:
         error.message || 'An error occurred while publishing the course.',
+    });
+  }
+};
+
+// Job Post
+// Review job post
+export const reviewJobPost = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const jobPostId = req.params.id as string;
+    const { status } = req.body;
+
+    // Find the job by its ID
+    const job = await Job.findByPk(jobPostId);
+    if (!job) {
+      return res.status(404).json({
+        message: 'Job not found in our database.',
+      });
+    }
+
+    // Update job
+    await job.update({
+      ...(status && { status }),
+    });
+
+    // Send email to creator about the review
+
+    return res.status(200).json({
+      message: 'Job reviewed successfully.',
+      data: job,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message: error.message || 'An error occurred while review the job post.',
     });
   }
 };

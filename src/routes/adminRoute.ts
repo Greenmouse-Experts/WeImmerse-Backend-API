@@ -11,6 +11,7 @@ import {
   updateSubscriptionPlanValidationRules,
   validatePaymentGateway,
   validate,
+  reviewJobValidationRules,
 } from '../utils/validations'; // Import the service
 import {
   digitalAssetValidationRules,
@@ -337,10 +338,20 @@ adminRoutes.patch(
   adminController.updatePhysicalAssetStatus
 );
 
+// Course
 adminRoutes.post(
   '/course/:id/publish',
   adminAuthMiddleware,
   adminController.publishCourse
+);
+
+// Job post
+adminRoutes.patch(
+  '/job/:id/review',
+  adminAuthMiddleware,
+  reviewJobValidationRules(),
+  validate,
+  adminController.reviewJobPost
 );
 
 export default adminRoutes; // Export the router
