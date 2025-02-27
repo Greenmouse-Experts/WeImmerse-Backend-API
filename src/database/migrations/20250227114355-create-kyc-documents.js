@@ -10,12 +10,12 @@ module.exports = {
         primaryKey: true,
       },
       userId: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING,
         allowNull: false,
-        references: {
-          model: 'users', // Ensure this matches the Users table name
-          key: 'id',
-        },
+        // references: {
+        //   model: 'users', // Ensure this matches the Users table name
+        //   key: 'id',
+        // },
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },

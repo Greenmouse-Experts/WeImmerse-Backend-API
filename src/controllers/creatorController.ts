@@ -764,8 +764,15 @@ export const updateModuleLesson = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { lessonId, title, content, contentType, contentUrl, duration } =
-      req.body;
+    const {
+      lessonId,
+      title,
+      content,
+      contentType,
+      contentUrl,
+      duration,
+      status,
+    } = req.body;
 
     // Find the lesson by ID (replace with actual DB logic)
     const lesson = await Lesson.findByPk(lessonId);
@@ -784,6 +791,7 @@ export const updateModuleLesson = async (
     lesson.contentType = contentType || lesson.contentType;
     lesson.contentUrl = contentUrl || lesson.contentUrl;
     lesson.duration = duration || lesson.duration;
+    lesson.status = status || lesson.status;
     lesson.save();
 
     res.status(200).json({ message: 'Lesson updated successfully' });

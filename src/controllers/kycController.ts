@@ -17,7 +17,8 @@ export const uploadKYCDocument = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { userId, documentType, documentUrl } = req.body;
+    const userId = (req as AuthRequest).user?.id; // Assuming the user ID is passed in the URL params
+    const { documentType, documentUrl } = req.body;
 
     if (!userId || !documentType || !documentUrl) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -45,7 +46,9 @@ export const initiateKYCVerification = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { userId, verificationProvider, verificationReference } = req.body;
+    const userId = (req as AuthRequest).user?.id; // Assuming the user ID is passed in the URL params
+
+    const { verificationProvider, verificationReference } = req.body;
 
     if (!userId || !verificationProvider || !verificationReference) {
       return res.status(400).json({ message: 'All fields are required' });
@@ -78,8 +81,10 @@ export const initiateKYCVerification = async (
 // Admin Review KYC
 export const reviewKYC = async (req: Request, res: Response): Promise<any> => {
   try {
+    const adminId = (req as AuthRequest).user?.id; // Assuming the user ID is passed in the URL params
+
     const { verificationId } = req.params;
-    const { adminId, status } = req.body;
+    const { status } = req.body;
 
     if (!adminId || !status) {
       return res

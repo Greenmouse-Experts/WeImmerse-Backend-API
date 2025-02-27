@@ -47,8 +47,10 @@ const kycverification_1 = __importStar(require("../models/kycverification"));
 const kycdocument_1 = __importStar(require("../models/kycdocument"));
 // Upload KYC Document
 const uploadKYCDocument = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const { userId, documentType, documentUrl } = req.body;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
+        const { documentType, documentUrl } = req.body;
         if (!userId || !documentType || !documentUrl) {
             return res.status(400).json({ message: 'All fields are required' });
         }
@@ -70,8 +72,10 @@ const uploadKYCDocument = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.uploadKYCDocument = uploadKYCDocument;
 // Initiate KYC Verification Request
 const initiateKYCVerification = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const { userId, verificationProvider, verificationReference } = req.body;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
+        const { verificationProvider, verificationReference } = req.body;
         if (!userId || !verificationProvider || !verificationReference) {
             return res.status(400).json({ message: 'All fields are required' });
         }
@@ -100,9 +104,11 @@ const initiateKYCVerification = (req, res) => __awaiter(void 0, void 0, void 0, 
 exports.initiateKYCVerification = initiateKYCVerification;
 // Admin Review KYC
 const reviewKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
+        const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
         const { verificationId } = req.params;
-        const { adminId, status } = req.body;
+        const { status } = req.body;
         if (!adminId || !status) {
             return res
                 .status(400)

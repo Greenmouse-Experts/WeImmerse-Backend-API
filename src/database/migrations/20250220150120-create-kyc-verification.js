@@ -10,12 +10,12 @@ module.exports = {
         primaryKey: true,
       },
       userId: {
-        type: Sequelize.UUID,
+        type: Sequelize.STRING,
         allowNull: false,
-        references: {
-          model: 'users', // Ensure this matches the Users table name
-          key: 'id',
-        },
+        // references: {
+        //   model: 'users', // Ensure this matches the Users table name
+        //   key: 'id',
+        // },
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
@@ -34,10 +34,10 @@ module.exports = {
       adminReviewedBy: {
         type: Sequelize.STRING,
         allowNull: true,
-        references: {
-          model: 'admins', // Ensure this matches the Admins table name
-          key: 'id',
-        },
+        // references: {
+        //   model: 'admins', // Ensure this matches the Admins table name
+        //   key: 'id',
+        // },
         onDelete: 'SET NULL',
         onUpdate: 'CASCADE',
       },

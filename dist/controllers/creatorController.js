@@ -629,7 +629,7 @@ const createModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
 exports.createModuleLesson = createModuleLesson;
 const updateModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { lessonId, title, content, contentType, contentUrl, duration } = req.body;
+        const { lessonId, title, content, contentType, contentUrl, duration, status, } = req.body;
         // Find the lesson by ID (replace with actual DB logic)
         const lesson = yield lesson_1.default.findByPk(lessonId);
         if (!lesson) {
@@ -644,6 +644,7 @@ const updateModuleLesson = (req, res) => __awaiter(void 0, void 0, void 0, funct
         lesson.contentType = contentType || lesson.contentType;
         lesson.contentUrl = contentUrl || lesson.contentUrl;
         lesson.duration = duration || lesson.duration;
+        lesson.status = status || lesson.status;
         lesson.save();
         res.status(200).json({ message: 'Lesson updated successfully' });
         // } else {
