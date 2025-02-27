@@ -28,7 +28,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'job_categories',
+                model: 'job_categories', // Ensure this matches the job_categories table name
                 key: 'id',
             },
             onDelete: 'CASCADE',

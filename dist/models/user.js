@@ -31,7 +31,7 @@ class User extends sequelize_1.Model {
         // Define expected model types
         this.hasOne(models.OTP, {
             as: 'otp',
-            foreignKey: 'userId',
+            foreignKey: 'userId', // Ensure the OTP model has a 'userId' column
             onDelete: 'RESTRICT',
         });
         this.hasMany(models.CourseProgress, {

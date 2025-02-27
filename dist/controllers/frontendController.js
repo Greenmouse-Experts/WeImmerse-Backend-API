@@ -41,8 +41,8 @@ const fetchDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, funct
             where: searchConditions,
             include: [
                 {
-                    model: assetcategory_1.default,
-                    as: 'assetCategory',
+                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
@@ -56,7 +56,7 @@ const fetchDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, funct
                     attributes: ["id", "name", "email"],
                     include: [
                         {
-                            model: role_1.default,
+                            model: role_1.default, // Assuming you've imported the Role model
                             as: "role", // Make sure this alias matches the one you used in the association
                         },
                     ],
@@ -82,8 +82,8 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default,
-                    as: 'assetCategory',
+                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
@@ -97,7 +97,7 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
                     attributes: ["id", "name", "email"],
                     include: [
                         {
-                            model: role_1.default,
+                            model: role_1.default, // Assuming you've imported the Role model
                             as: "role", // Make sure this alias matches the one you used in the association
                         },
                     ],
@@ -130,8 +130,8 @@ const fetchPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, func
             where: searchConditions,
             include: [
                 {
-                    model: assetcategory_1.default,
-                    as: 'assetCategory',
+                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
@@ -145,7 +145,7 @@ const fetchPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, func
                     attributes: ["id", "name", "email"],
                     include: [
                         {
-                            model: role_1.default,
+                            model: role_1.default, // Assuming you've imported the Role model
                             as: "role", // Make sure this alias matches the one you used in the association
                         },
                     ],
@@ -171,8 +171,8 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default,
-                    as: 'assetCategory',
+                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
@@ -186,7 +186,7 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
                     attributes: ["id", "name", "email"],
                     include: [
                         {
-                            model: role_1.default,
+                            model: role_1.default, // Assuming you've imported the Role model
                             as: "role", // Make sure this alias matches the one you used in the association
                         },
                     ],

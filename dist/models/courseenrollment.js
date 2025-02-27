@@ -29,7 +29,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'users',
+                model: 'users', // Ensure this matches the users table name
                 key: 'id',
             },
             onDelete: 'CASCADE',
@@ -39,7 +39,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'courses',
+                model: 'courses', // Ensure this matches the courses table name
                 key: 'id',
             },
             onDelete: 'CASCADE',

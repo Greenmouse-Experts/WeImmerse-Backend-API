@@ -16,7 +16,7 @@ var LessonStatus;
 (function (LessonStatus) {
     LessonStatus["DRAFT"] = "draft";
     LessonStatus["PUBLISHED"] = "published";
-})(LessonStatus = exports.LessonStatus || (exports.LessonStatus = {}));
+})(LessonStatus || (exports.LessonStatus = LessonStatus = {}));
 class Lesson extends sequelize_1.Model {
     static associate(models) {
         // Define associations here
@@ -94,7 +94,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'modules',
+                model: 'modules', // Ensure this matches the modules table name
                 key: 'id',
             },
             onDelete: 'CASCADE',
@@ -104,7 +104,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'courses',
+                model: 'courses', // Ensure this matches the courses table name
                 key: 'id',
             },
             onDelete: 'CASCADE',

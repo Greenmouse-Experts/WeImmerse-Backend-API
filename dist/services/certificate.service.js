@@ -17,6 +17,7 @@ const helpers_1 = require("../utils/helpers"); // Utility function to upload fil
 const courseprogress_1 = __importDefault(require("../models/courseprogress"));
 const quizattempt_1 = __importDefault(require("../models/quizattempt"));
 const certificate_1 = __importDefault(require("../models/certificate"));
+const lessonquiz_1 = __importDefault(require("../models/lessonquiz"));
 const generateCertificatePdf = (userId, courseId) => __awaiter(void 0, void 0, void 0, function* () {
     const canvas = (0, canvas_1.createCanvas)(800, 600);
     const ctx = canvas.getContext('2d');
@@ -31,7 +32,7 @@ const generateCertificatePdf = (userId, courseId) => __awaiter(void 0, void 0, v
     // Convert canvas to buffer
     const buffer = canvas.toBuffer('image/png');
     // Upload to S3 and return URL
-    return yield (0, helpers_1.uploadToS3)(buffer, `certificates/${userId}_${courseId}.png`, '');
+    return yield (0, helpers_1.uploadToS3)(buffer, `certificates/${userId}_${courseId}.png`, 'test-weimmersive-bucket');
 });
 const generateCertificate = (userId, courseId) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if course is 100% complete
@@ -41,11 +42,14 @@ const generateCertificate = (userId, courseId) => __awaiter(void 0, void 0, void
     if (!progress || progress.progressPercentage < 100) {
         throw new Error('Course is not fully completed.');
     }
+    console.log(progress, courseId);
     // Check if quiz is passed
     const quizAttempt = yield quizattempt_1.default.findOne({
-        where: { userId, courseId, passed: true },
+        where: { userId, passed: true },
+        include: [{ model: lessonquiz_1.default, as: 'quiz', where: { courseId } }],
         order: [['createdAt', 'DESC']],
     });
+    console.log(quizAttempt);
     if (!quizAttempt) {
         throw new Error('User has not passed the required quiz.');
     }

@@ -15,13 +15,23 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 }) : function(o, v) {
     o["default"] = v;
 });
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -35,7 +45,7 @@ const adminValidations_1 = require("../utils/validations/adminValidations");
 const checkPermissionMiddleware_1 = __importDefault(require("../middlewares/checkPermissionMiddleware"));
 const adminRoutes = (0, express_1.Router)();
 // User routes
-adminRoutes.post("/logout", adminAuthMiddleware_1.default, adminController.logout);
+adminRoutes.post('/logout', adminAuthMiddleware_1.default, adminController.logout);
 adminRoutes.put('/profile/update', adminAuthMiddleware_1.default, (0, validations_1.adminUpdateProfileValidationRules)(), validations_1.validate, (0, checkPermissionMiddleware_1.default)('update-profile'), adminController.updateProfile);
 adminRoutes.put('/profile/update/password', adminAuthMiddleware_1.default, (0, validations_1.updatePasswordValidationRules)(), validations_1.validate, (0, checkPermissionMiddleware_1.default)('update-password'), adminController.updatePassword);
 // Sub Admin
@@ -83,20 +93,21 @@ adminRoutes.get('/users', adminAuthMiddleware_1.default, adminController.getAllU
 adminRoutes.get('/students', adminAuthMiddleware_1.default, adminController.getAllStudent);
 adminRoutes.get('/institutions', adminAuthMiddleware_1.default, adminController.getAllInstitution);
 // Digital Asset
-adminRoutes.get("/all/digital/assets", adminAuthMiddleware_1.default, adminController.getAllDigitalAssets);
-adminRoutes.get("/digital/assets", adminAuthMiddleware_1.default, adminController.getDigitalAssets);
-adminRoutes.get("/digital/asset/view", adminAuthMiddleware_1.default, adminController.viewDigitalAsset);
-adminRoutes.post("/digital/asset/create", adminAuthMiddleware_1.default, (0, adminValidations_1.digitalAssetValidationRules)(), validations_1.validate, adminController.createDigitalAsset);
-adminRoutes.put("/digital/asset/update", adminAuthMiddleware_1.default, (0, adminValidations_1.digitalAssetValidationRules)(), validations_1.validate, adminController.updateDigitalAsset);
-adminRoutes.delete("/digital/asset/delete", adminAuthMiddleware_1.default, adminController.deleteDigitalAsset);
-adminRoutes.patch("/digital/asset/update/status", adminAuthMiddleware_1.default, adminController.updateDigitalAssetStatus);
+adminRoutes.get('/all/digital/assets', adminAuthMiddleware_1.default, adminController.getAllDigitalAssets);
+adminRoutes.get('/digital/assets', adminAuthMiddleware_1.default, adminController.getDigitalAssets);
+adminRoutes.get('/digital/asset/view', adminAuthMiddleware_1.default, adminController.viewDigitalAsset);
+adminRoutes.post('/digital/asset/create', adminAuthMiddleware_1.default, (0, adminValidations_1.digitalAssetValidationRules)(), validations_1.validate, adminController.createDigitalAsset);
+adminRoutes.put('/digital/asset/update', adminAuthMiddleware_1.default, (0, adminValidations_1.digitalAssetValidationRules)(), validations_1.validate, adminController.updateDigitalAsset);
+adminRoutes.delete('/digital/asset/delete', adminAuthMiddleware_1.default, adminController.deleteDigitalAsset);
+adminRoutes.patch('/digital/asset/update/status', adminAuthMiddleware_1.default, adminController.updateDigitalAssetStatus);
 // Physical Asset
-adminRoutes.get("/all/physical/assets", adminAuthMiddleware_1.default, adminController.getAllPhysicalAssets);
-adminRoutes.get("/physical/assets", adminAuthMiddleware_1.default, adminController.getPhysicalAssets);
-adminRoutes.get("/physical/asset/view", adminAuthMiddleware_1.default, adminController.viewPhysicalAsset);
-adminRoutes.post("/physical/asset/create", adminAuthMiddleware_1.default, (0, adminValidations_1.physicalAssetValidationRules)(), validations_1.validate, adminController.createPhysicalAsset);
-adminRoutes.put("/physical/asset/update", adminAuthMiddleware_1.default, (0, adminValidations_1.physicalAssetValidationRules)(), validations_1.validate, adminController.updatePhysicalAsset);
-adminRoutes.delete("/physical/asset/delete", adminAuthMiddleware_1.default, adminController.deletePhysicalAsset);
-adminRoutes.patch("/physical/asset/update/status", adminAuthMiddleware_1.default, adminController.updatePhysicalAssetStatus);
+adminRoutes.get('/all/physical/assets', adminAuthMiddleware_1.default, adminController.getAllPhysicalAssets);
+adminRoutes.get('/physical/assets', adminAuthMiddleware_1.default, adminController.getPhysicalAssets);
+adminRoutes.get('/physical/asset/view', adminAuthMiddleware_1.default, adminController.viewPhysicalAsset);
+adminRoutes.post('/physical/asset/create', adminAuthMiddleware_1.default, (0, adminValidations_1.physicalAssetValidationRules)(), validations_1.validate, adminController.createPhysicalAsset);
+adminRoutes.put('/physical/asset/update', adminAuthMiddleware_1.default, (0, adminValidations_1.physicalAssetValidationRules)(), validations_1.validate, adminController.updatePhysicalAsset);
+adminRoutes.delete('/physical/asset/delete', adminAuthMiddleware_1.default, adminController.deletePhysicalAsset);
+adminRoutes.patch('/physical/asset/update/status', adminAuthMiddleware_1.default, adminController.updatePhysicalAssetStatus);
+adminRoutes.post('/course/:id/publish', adminAuthMiddleware_1.default, adminController.publishCourse);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map

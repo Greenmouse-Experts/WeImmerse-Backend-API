@@ -62,7 +62,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'courses',
+                model: 'courses', // Ensure this matches your courses table
                 key: 'id',
             },
             onDelete: 'CASCADE',

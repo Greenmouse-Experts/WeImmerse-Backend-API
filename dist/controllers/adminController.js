@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
-exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
+exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
 const sequelize_1 = require("sequelize");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -31,26 +31,27 @@ const assetcategory_1 = __importDefault(require("../models/assetcategory"));
 const jobcategory_1 = __importDefault(require("../models/jobcategory"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
+const course_1 = __importDefault(require("../models/course"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
         const token = jwt_service_1.default.jwtGetToken(req);
         if (!token) {
             res.status(400).json({
-                message: "Token not provided",
+                message: 'Token not provided',
             });
             return;
         }
         // Blacklist the token to prevent further usage
         yield jwt_service_1.default.jwtBlacklistToken(token);
         res.status(200).json({
-            message: "Logged out successfully.",
+            message: 'Logged out successfully.',
         });
     }
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.message || "Server error during logout.",
+            message: error.message || 'Server error during logout.',
         });
     }
 });
@@ -63,7 +64,7 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         // Fetch the admin by their ID
         const admin = yield admin_1.default.findByPk(adminId);
         if (!admin) {
-            res.status(404).json({ message: "Admin not found." });
+            res.status(404).json({ message: 'Admin not found.' });
             return;
         }
         // Check if email is being updated
@@ -73,7 +74,7 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             if (emailExists) {
                 res
                     .status(400)
-                    .json({ message: "Email is already in use by another user." });
+                    .json({ message: 'Email is already in use by another user.' });
                 return;
             }
         }
@@ -83,33 +84,33 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         admin.email = email || admin.email;
         yield admin.save();
         res.status(200).json({
-            message: "Profile updated successfully.",
+            message: 'Profile updated successfully.',
             data: admin,
         });
     }
     catch (error) {
-        logger_1.default.error("Error updating admin profile:", error);
+        logger_1.default.error('Error updating admin profile:', error);
         res.status(500).json({
-            message: error.message || "Server error during profile update.",
+            message: error.message || 'Server error during profile update.',
         });
     }
 });
 exports.updateProfile = updateProfile;
 const updatePassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _b;
+    var _a;
     const { oldPassword, newPassword, confirmNewPassword } = req.body;
-    const adminId = (_b = req.admin) === null || _b === void 0 ? void 0 : _b.id; // Using optional chaining to access adminId
+    const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id; // Using optional chaining to access adminId
     try {
         // Find the admin
-        const admin = yield admin_1.default.scope("auth").findByPk(adminId);
+        const admin = yield admin_1.default.scope('auth').findByPk(adminId);
         if (!admin) {
-            res.status(404).json({ message: "admin not found." });
+            res.status(404).json({ message: 'admin not found.' });
             return;
         }
         // Check if the old password is correct
         const isMatch = yield admin.checkPassword(oldPassword);
         if (!isMatch) {
-            res.status(400).json({ message: "Old password is incorrect." });
+            res.status(400).json({ message: 'Old password is incorrect.' });
             return;
         }
         // Update the password
@@ -121,16 +122,16 @@ const updatePassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
             yield (0, mail_service_1.sendMail)(admin.email, `${process.env.APP_NAME} - Password Reset Notification`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
         }
         res.status(200).json({
-            message: "Password updated successfully.",
+            message: 'Password updated successfully.',
         });
     }
     catch (error) {
         logger_1.default.error(error);
         res.status(500).json({
-            message: error.message || "Server error during password update.",
+            message: error.message || 'Server error during password update.',
         });
     }
 });
@@ -155,24 +156,22 @@ const subAdmins = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             where: whereCondition,
             include: [
                 {
-                    model: role_1.default,
-                    as: "role", // Use the alias defined in the association (if any)
+                    model: role_1.default, // Include the Role model in the query
+                    as: 'role', // Use the alias defined in the association (if any)
                 },
             ],
         });
         if (subAdmins.length === 0) {
-            res.status(404).json({ message: "Sub-admins not found" });
+            res.status(404).json({ message: 'Sub-admins not found' });
             return;
         }
         res
             .status(200)
-            .json({ message: "Sub-admins retrieved successfully", data: subAdmins });
+            .json({ message: 'Sub-admins retrieved successfully', data: subAdmins });
     }
     catch (error) {
-        logger_1.default.error("Error retrieving sub-admins:", error);
-        res
-            .status(500)
-            .json({
+        logger_1.default.error('Error retrieving sub-admins:', error);
+        res.status(500).json({
             message: error.message || `Error retrieving sub-admins: ${error}`,
         });
     }
@@ -184,14 +183,14 @@ const createSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
         // Check if the email already exists
         const existingSubAdmin = yield admin_1.default.findOne({ where: { email } });
         if (existingSubAdmin) {
-            res.status(400).json({ message: "Email already in use" });
+            res.status(400).json({ message: 'Email already in use' });
             return;
         }
         // Generate a random password (you can change this to your desired method)
         const password = Math.random().toString(36).slice(-8);
         const checkRole = yield role_1.default.findByPk(roleId);
         if (!checkRole) {
-            res.status(404).json({ message: "Role not found" });
+            res.status(404).json({ message: 'Role not found' });
             return;
         }
         // Create the sub-admin
@@ -200,7 +199,7 @@ const createSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
             email,
             password: password,
             roleId,
-            status: "active", // Default status
+            status: 'active', // Default status
         });
         // Send mail
         let message = messages_1.emailTemplates.subAdminCreated(newSubAdmin, password);
@@ -208,9 +207,9 @@ const createSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Your Sub-Admin Login Details`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
         }
-        res.status(200).json({ message: "Sub Admin created successfully." });
+        res.status(200).json({ message: 'Sub Admin created successfully.' });
     }
     catch (error) {
         logger_1.default.error(error);
@@ -226,7 +225,7 @@ const updateSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
         // Find the sub-admin by their ID
         const subAdmin = yield admin_1.default.findByPk(subAdminId);
         if (!subAdmin) {
-            res.status(404).json({ message: "Sub-admin not found" });
+            res.status(404).json({ message: 'Sub-admin not found' });
             return;
         }
         // Check if the email is already in use by another sub-admin
@@ -241,7 +240,7 @@ const updateSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
             if (existingAdmin) {
                 res
                     .status(400)
-                    .json({ message: "Email is already in use by another sub-admin." });
+                    .json({ message: 'Email is already in use by another sub-admin.' });
                 return;
             }
         }
@@ -251,11 +250,11 @@ const updateSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
             email,
             roleId,
         });
-        res.status(200).json({ message: "Sub Admin updated successfully." });
+        res.status(200).json({ message: 'Sub Admin updated successfully.' });
     }
     catch (error) {
         // Log and send the error message in the response
-        logger_1.default.error("Error updating sub-admin:", error);
+        logger_1.default.error('Error updating sub-admin:', error);
         res
             .status(500)
             .json({ message: error.message || `Error updating sub-admin: ${error}` });
@@ -268,11 +267,11 @@ const deactivateOrActivateSubAdmin = (req, res) => __awaiter(void 0, void 0, voi
         // Find the sub-admin by ID
         const subAdmin = yield admin_1.default.findByPk(subAdminId);
         if (!subAdmin) {
-            res.status(404).json({ message: "Sub-admin not found" });
+            res.status(404).json({ message: 'Sub-admin not found' });
             return;
         }
         // Toggle status: if active, set to inactive; if inactive, set to active
-        const newStatus = subAdmin.status === "active" ? "inactive" : "active";
+        const newStatus = subAdmin.status === 'active' ? 'inactive' : 'active';
         subAdmin.status = newStatus;
         // Save the updated status
         yield subAdmin.save();
@@ -282,10 +281,8 @@ const deactivateOrActivateSubAdmin = (req, res) => __awaiter(void 0, void 0, voi
     }
     catch (error) {
         // Log the error and send the response
-        logger_1.default.error("Error updating sub-admin status:", error);
-        res
-            .status(500)
-            .json({
+        logger_1.default.error('Error updating sub-admin status:', error);
+        res.status(500).json({
             message: error.message || `Error updating sub-admin status: ${error}`,
         });
     }
@@ -296,18 +293,16 @@ const deleteSubAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function*
     try {
         const subAdmin = yield admin_1.default.findByPk(subAdminId);
         if (!subAdmin) {
-            res.status(404).json({ message: "Sub-admin not found" });
+            res.status(404).json({ message: 'Sub-admin not found' });
             return;
         }
         yield subAdmin.destroy();
-        res.status(200).json({ message: "Sub-admin deleted successfully" });
+        res.status(200).json({ message: 'Sub-admin deleted successfully' });
     }
     catch (error) {
         logger_1.default.error(error);
-        res
-            .status(500)
-            .json({
-            message: error.message || "Error deleting sub-admin: ${error.message}",
+        res.status(500).json({
+            message: error.message || 'Error deleting sub-admin: ${error.message}',
         });
     }
 });
@@ -317,7 +312,7 @@ const resendLoginDetailsSubAdmin = (req, res) => __awaiter(void 0, void 0, void 
     try {
         const subAdmin = yield admin_1.default.findByPk(subAdminId);
         if (!subAdmin) {
-            res.status(404).json({ message: "Sub-admin not found" });
+            res.status(404).json({ message: 'Sub-admin not found' });
             return;
         }
         // Generate a new password (or reuse the existing one)
@@ -331,16 +326,14 @@ const resendLoginDetailsSubAdmin = (req, res) => __awaiter(void 0, void 0, void 
             yield (0, mail_service_1.sendMail)(subAdmin.email, `${process.env.APP_NAME} - Your New Login Details`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
         }
-        res.status(200).json({ message: "Login details resent successfully" });
+        res.status(200).json({ message: 'Login details resent successfully' });
     }
     catch (error) {
         logger_1.default.error(error);
-        res
-            .status(500)
-            .json({
-            message: error.message || "Error resending login details: ${error.message}",
+        res.status(500).json({
+            message: error.message || 'Error resending login details: ${error.message}',
         });
     }
 });
@@ -351,22 +344,22 @@ const createRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const { name } = req.body;
     try {
         if (!name) {
-            res.status(400).json({ message: "Name is required." });
+            res.status(400).json({ message: 'Name is required.' });
             return;
         }
         // Check if a role with the same name already exists
         const existingRole = yield role_1.default.findOne({ where: { name } });
         if (existingRole) {
-            res.status(409).json({ message: "Role with this name already exists." });
+            res.status(409).json({ message: 'Role with this name already exists.' });
             return;
         }
         // Create the new role
         const role = yield role_1.default.create({ name });
-        res.status(200).json({ message: "Role created successfully" });
+        res.status(200).json({ message: 'Role created successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error creating role:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error creating role:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.createRole = createRole;
@@ -377,8 +370,8 @@ const getRoles = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         res.status(200).json({ data: roles });
     }
     catch (error) {
-        logger_1.default.error("Error fetching roles:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error fetching roles:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.getRoles = getRoles;
@@ -387,12 +380,12 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const { roleId, name } = req.body;
     try {
         if (!name) {
-            res.status(400).json({ message: "Name is required." });
+            res.status(400).json({ message: 'Name is required.' });
             return;
         }
         const role = yield role_1.default.findByPk(roleId);
         if (!role) {
-            res.status(404).json({ message: "Role not found" });
+            res.status(404).json({ message: 'Role not found' });
             return;
         }
         // Check if another role with the same name exists
@@ -402,17 +395,17 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (existingRole) {
             res
                 .status(409)
-                .json({ message: "Another role with this name already exists." });
+                .json({ message: 'Another role with this name already exists.' });
             return;
         }
         // Update the role name
         role.name = name;
         yield role.save();
-        res.status(200).json({ message: "Role updated successfully", role });
+        res.status(200).json({ message: 'Role updated successfully', role });
     }
     catch (error) {
-        logger_1.default.error("Error updating role:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error updating role:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.updateRole = updateRole;
@@ -421,17 +414,17 @@ const viewRolePermissions = (req, res) => __awaiter(void 0, void 0, void 0, func
     const roleId = req.query.roleId;
     try {
         const role = yield role_1.default.findByPk(roleId, {
-            include: [{ model: permission_1.default, as: "permissions" }],
+            include: [{ model: permission_1.default, as: 'permissions' }],
         });
         if (!role) {
-            res.status(404).json({ message: "Role not found" });
+            res.status(404).json({ message: 'Role not found' });
             return;
         }
         res.status(200).json({ data: role });
     }
     catch (error) {
-        logger_1.default.error("Error fetching role permissions:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error fetching role permissions:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.viewRolePermissions = viewRolePermissions;
@@ -443,7 +436,7 @@ const assignPermissionToRole = (req, res) => __awaiter(void 0, void 0, void 0, f
         const role = yield role_1.default.findByPk(roleId);
         const permission = yield permission_1.default.findByPk(permissionId);
         if (!role || !permission) {
-            res.status(404).json({ message: "Role or Permission not found" });
+            res.status(404).json({ message: 'Role or Permission not found' });
             return;
         }
         // Check if the permission is already assigned to the role
@@ -453,18 +446,18 @@ const assignPermissionToRole = (req, res) => __awaiter(void 0, void 0, void 0, f
         if (existingRolePermission) {
             res
                 .status(409)
-                .json({ message: "Permission is already assigned to this role" });
+                .json({ message: 'Permission is already assigned to this role' });
             return;
         }
         // Assign permission to role
         yield rolepermission_1.default.create({ roleId, permissionId });
         res
             .status(200)
-            .json({ message: "Permission assigned to role successfully" });
+            .json({ message: 'Permission assigned to role successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error assigning permission to role:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error assigning permission to role:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.assignPermissionToRole = assignPermissionToRole;
@@ -476,24 +469,24 @@ const deletePermissionFromRole = (req, res) => __awaiter(void 0, void 0, void 0,
             where: { id: roleId },
         });
         if (!role) {
-            res.status(404).json({ message: "Role not found" });
+            res.status(404).json({ message: 'Role not found' });
             return;
         }
         const rolePermission = yield rolepermission_1.default.findOne({
             where: { roleId, permissionId },
         });
         if (!rolePermission) {
-            res.status(404).json({ message: "Permission not found for the role" });
+            res.status(404).json({ message: 'Permission not found for the role' });
             return;
         }
         yield rolePermission.destroy();
         res
             .status(200)
-            .json({ message: "Permission removed from role successfully" });
+            .json({ message: 'Permission removed from role successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error deleting permission from role:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error deleting permission from role:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.deletePermissionFromRole = deletePermissionFromRole;
@@ -503,24 +496,24 @@ const createPermission = (req, res) => __awaiter(void 0, void 0, void 0, functio
     const { name } = req.body;
     try {
         if (!name) {
-            res.status(400).json({ message: "Name is required." });
+            res.status(400).json({ message: 'Name is required.' });
             return;
         }
         // Check if permission name already exists
         const existingPermission = yield permission_1.default.findOne({ where: { name } });
         if (existingPermission) {
-            res.status(409).json({ message: "Permission name already exists." });
+            res.status(409).json({ message: 'Permission name already exists.' });
             return;
         }
         // Create new permission if it doesn't exist
         const permission = yield permission_1.default.create({ name });
         res.status(201).json({
-            message: "Permission created successfully",
+            message: 'Permission created successfully',
         });
     }
     catch (error) {
-        logger_1.default.error("Error creating permission:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error creating permission:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.createPermission = createPermission;
@@ -531,8 +524,8 @@ const getPermissions = (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(200).json({ data: permissions });
     }
     catch (error) {
-        logger_1.default.error("Error fetching permissions:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error fetching permissions:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.getPermissions = getPermissions;
@@ -541,12 +534,12 @@ const updatePermission = (req, res) => __awaiter(void 0, void 0, void 0, functio
     const { permissionId, name } = req.body;
     try {
         if (!name) {
-            res.status(400).json({ message: "Name is required." });
+            res.status(400).json({ message: 'Name is required.' });
             return;
         }
         const permission = yield permission_1.default.findByPk(permissionId);
         if (!permission) {
-            res.status(404).json({ message: "Permission not found" });
+            res.status(404).json({ message: 'Permission not found' });
             return;
         }
         // Check if the new name exists in another permission
@@ -557,16 +550,16 @@ const updatePermission = (req, res) => __awaiter(void 0, void 0, void 0, functio
             },
         });
         if (existingPermission) {
-            res.status(409).json({ message: "Permission name already exists." });
+            res.status(409).json({ message: 'Permission name already exists.' });
             return;
         }
         permission.name = name;
         yield permission.save();
-        res.status(200).json({ message: "Permission updated successfully" });
+        res.status(200).json({ message: 'Permission updated successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error updating permission:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error updating permission:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.updatePermission = updatePermission;
@@ -577,19 +570,19 @@ const deletePermission = (req, res) => __awaiter(void 0, void 0, void 0, functio
         // Find the permission
         const permission = yield permission_1.default.findByPk(permissionId);
         if (!permission) {
-            res.status(404).json({ message: "Permission not found" });
+            res.status(404).json({ message: 'Permission not found' });
             return;
         }
         // Delete the permission and associated role_permissions
         yield permission.destroy();
         yield rolepermission_1.default.destroy({ where: { permissionId } });
         res.status(200).json({
-            message: "Permission and associated role permissions deleted successfully",
+            message: 'Permission and associated role permissions deleted successfully',
         });
     }
     catch (error) {
-        logger_1.default.error("Error deleting permission:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error deleting permission:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.deletePermission = deletePermission;
@@ -611,14 +604,14 @@ const createCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, fun
         // Check if a category with the same name already exists
         const existingCategory = yield coursecategory_1.default.findOne({ where: { name } });
         if (existingCategory) {
-            res.status(400).json({ message: "A course category with the same name already exists." });
+            res.status(400).json({
+                message: 'A course category with the same name already exists.',
+            });
             return;
         }
         const category = yield coursecategory_1.default.create({ name });
-        res
-            .status(200)
-            .json({
-            message: "Course category created successfully",
+        res.status(200).json({
+            message: 'Course category created successfully',
             data: category,
         });
     }
@@ -633,7 +626,7 @@ const updateCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, fun
         const { id, name } = req.body;
         const category = yield coursecategory_1.default.findByPk(id);
         if (!category) {
-            res.status(404).json({ message: "Course category not found" });
+            res.status(404).json({ message: 'Course category not found' });
             return;
         }
         // Check if another category with the same name exists (exclude the current category)
@@ -641,14 +634,14 @@ const updateCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, fun
             where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
         });
         if (existingCategory) {
-            res.status(400).json({ message: "Another course category with the same name already exists." });
+            res.status(400).json({
+                message: 'Another course category with the same name already exists.',
+            });
             return;
         }
         yield category.update({ name });
-        res
-            .status(200)
-            .json({
-            message: "Course category updated successfully",
+        res.status(200).json({
+            message: 'Course category updated successfully',
             data: category,
         });
     }
@@ -663,23 +656,23 @@ const deleteCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, fun
         const id = req.query.id;
         const category = yield coursecategory_1.default.findByPk(id);
         if (!category) {
-            res.status(404).json({ message: "Course category not found" });
+            res.status(404).json({ message: 'Course category not found' });
             return;
         }
         yield category.destroy();
-        res.status(200).json({ message: "Course category deleted successfully" });
+        res.status(200).json({ message: 'Course category deleted successfully' });
     }
     catch (error) {
         if (error instanceof sequelize_1.ForeignKeyConstraintError) {
             res.status(400).json({
-                message: "Cannot delete course category plan because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+                message: 'Cannot delete course category plan because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.',
             });
         }
         else {
-            logger_1.default.error("Error deleting course category:", error);
+            logger_1.default.error('Error deleting course category:', error);
             res
                 .status(500)
-                .json({ message: error.message || "Error deleting course category" });
+                .json({ message: error.message || 'Error deleting course category' });
         }
     }
 });
@@ -702,14 +695,14 @@ const createAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, func
         // Check if a category with the same name already exists
         const existingCategory = yield assetcategory_1.default.findOne({ where: { name } });
         if (existingCategory) {
-            res.status(400).json({ message: "A asset category with the same name already exists." });
+            res.status(400).json({
+                message: 'A asset category with the same name already exists.',
+            });
             return;
         }
         const category = yield assetcategory_1.default.create({ name });
-        res
-            .status(200)
-            .json({
-            message: "Asset category created successfully",
+        res.status(200).json({
+            message: 'Asset category created successfully',
             data: category,
         });
     }
@@ -724,7 +717,7 @@ const updateAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, func
         const { id, name } = req.body;
         const category = yield assetcategory_1.default.findByPk(id);
         if (!category) {
-            res.status(404).json({ message: "Asset category not found" });
+            res.status(404).json({ message: 'Asset category not found' });
             return;
         }
         // Check if another category with the same name exists (exclude the current category)
@@ -732,14 +725,14 @@ const updateAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, func
             where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
         });
         if (existingCategory) {
-            res.status(400).json({ message: "Another asset category with the same name already exists." });
+            res.status(400).json({
+                message: 'Another asset category with the same name already exists.',
+            });
             return;
         }
         yield category.update({ name });
-        res
-            .status(200)
-            .json({
-            message: "Asset category updated successfully",
+        res.status(200).json({
+            message: 'Asset category updated successfully',
             data: category,
         });
     }
@@ -754,23 +747,23 @@ const deleteAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, func
         const id = req.query.id;
         const category = yield assetcategory_1.default.findByPk(id);
         if (!category) {
-            res.status(404).json({ message: "Asset category not found" });
+            res.status(404).json({ message: 'Asset category not found' });
             return;
         }
         yield category.destroy();
-        res.status(200).json({ message: "Asset category deleted successfully" });
+        res.status(200).json({ message: 'Asset category deleted successfully' });
     }
     catch (error) {
         if (error instanceof sequelize_1.ForeignKeyConstraintError) {
             res.status(400).json({
-                message: "Cannot delete asset category plan because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+                message: 'Cannot delete asset category plan because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.',
             });
         }
         else {
-            logger_1.default.error("Error deleting asset category:", error);
+            logger_1.default.error('Error deleting asset category:', error);
             res
                 .status(500)
-                .json({ message: error.message || "Error deleting asset category" });
+                .json({ message: error.message || 'Error deleting asset category' });
         }
     }
 });
@@ -792,8 +785,8 @@ const getAllSubscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, 
         res.status(200).json({ data: plans });
     }
     catch (error) {
-        logger_1.default.error("Error fetching subscription plans:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error fetching subscription plans:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.getAllSubscriptionPlans = getAllSubscriptionPlans;
@@ -805,7 +798,7 @@ const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
         if (existingPlan) {
             res
                 .status(400)
-                .json({ message: "A plan with this name already exists." });
+                .json({ message: 'A plan with this name already exists.' });
             return;
         }
         // Create the subscription plan
@@ -818,12 +811,12 @@ const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
             auctionProductLimit,
         });
         res.status(200).json({
-            message: "Subscription plan created successfully.",
+            message: 'Subscription plan created successfully.',
         });
     }
     catch (error) {
-        logger_1.default.error("Error creating subscription plan:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error creating subscription plan:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.createSubscriptionPlan = createSubscriptionPlan;
@@ -833,14 +826,14 @@ const updateSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
         // Fetch the subscription plan to update
         const plan = yield subscriptionplan_1.default.findByPk(planId);
         if (!plan) {
-            res.status(404).json({ message: "Subscription plan not found." });
+            res.status(404).json({ message: 'Subscription plan not found.' });
             return;
         }
         // Prevent name change for Free Plan
-        if (plan.name === "Free Plan" && name !== "Free Plan") {
+        if (plan.name === 'Free Plan' && name !== 'Free Plan') {
             res
                 .status(400)
-                .json({ message: "The Free Plan name cannot be changed." });
+                .json({ message: 'The Free Plan name cannot be changed.' });
             return;
         }
         // Check if the new name already exists (ignoring the current plan)
@@ -850,7 +843,7 @@ const updateSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
         if (existingPlan) {
             res
                 .status(400)
-                .json({ message: "A different plan with this name already exists." });
+                .json({ message: 'A different plan with this name already exists.' });
             return;
         }
         // Update fields
@@ -861,11 +854,11 @@ const updateSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
         plan.allowsAuction = allowsAuction;
         plan.auctionProductLimit = auctionProductLimit;
         yield plan.save();
-        res.status(200).json({ message: "Subscription plan updated successfully" });
+        res.status(200).json({ message: 'Subscription plan updated successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error updating subscription plan:", error);
-        res.status(500).json({ message: error.message || "Internal server error" });
+        logger_1.default.error('Error updating subscription plan:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
     }
 });
 exports.updateSubscriptionPlan = updateSubscriptionPlan;
@@ -875,31 +868,31 @@ const deleteSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
         // Fetch the subscription plan
         const plan = yield subscriptionplan_1.default.findByPk(planId);
         if (!plan) {
-            res.status(404).json({ message: "Subscription plan not found." });
+            res.status(404).json({ message: 'Subscription plan not found.' });
             return;
         }
         // Prevent deletion of the Free Plan
-        if (plan.name === "Free Plan") {
-            res.status(400).json({ message: "The Free Plan cannot be deleted." });
+        if (plan.name === 'Free Plan') {
+            res.status(400).json({ message: 'The Free Plan cannot be deleted.' });
             return;
         }
         // Attempt to delete the plan
         yield plan.destroy();
         res
             .status(200)
-            .json({ message: "Subscription plan deleted successfully." });
+            .json({ message: 'Subscription plan deleted successfully.' });
     }
     catch (error) {
         if (error instanceof sequelize_1.ForeignKeyConstraintError) {
             res.status(400).json({
-                message: "Cannot delete subscription plan because it is currently assigned to one or more vendors. Please reassign or delete these associations before proceeding.",
+                message: 'Cannot delete subscription plan because it is currently assigned to one or more vendors. Please reassign or delete these associations before proceeding.',
             });
         }
         else {
-            logger_1.default.error("Error deleting subscription plan:", error);
+            logger_1.default.error('Error deleting subscription plan:', error);
             res
                 .status(500)
-                .json({ message: error.message || "Error deleting subscription plan" });
+                .json({ message: error.message || 'Error deleting subscription plan' });
         }
     }
 });
@@ -908,7 +901,7 @@ const getAllCreator = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { name, status, email } = req.query; // Extract filter parameters from query
         // Build search conditions
-        const searchConditions = { accountType: "creator" }; // Filter by accountType
+        const searchConditions = { accountType: 'creator' }; // Filter by accountType
         if (name) {
             searchConditions.name = { [sequelize_1.Op.like]: `%${name}%` }; // Partial match for name
         }
@@ -921,13 +914,15 @@ const getAllCreator = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         // Fetch creators with optional filters
         const creators = yield user_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Order by creation date descending
+            order: [['createdAt', 'DESC']], // Order by creation date descending
         });
         res.status(200).json({ data: creators });
     }
     catch (error) {
-        logger_1.default.error("Error fetching creators:", error);
-        res.status(500).json({ message: error.message || "Failed to fetch creators." });
+        logger_1.default.error('Error fetching creators:', error);
+        res
+            .status(500)
+            .json({ message: error.message || 'Failed to fetch creators.' });
     }
 });
 exports.getAllCreator = getAllCreator;
@@ -935,7 +930,7 @@ const getAllUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const { name, status, email } = req.query; // Extract filter parameters from query
         // Build search conditions
-        const searchConditions = { accountType: "user" }; // Filter by accountType
+        const searchConditions = { accountType: 'user' }; // Filter by accountType
         if (name) {
             searchConditions.name = { [sequelize_1.Op.like]: `%${name}%` }; // Partial match for name
         }
@@ -948,13 +943,15 @@ const getAllUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         // Fetch users with optional filters
         const users = yield user_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Order by creation date descending
+            order: [['createdAt', 'DESC']], // Order by creation date descending
         });
         res.status(200).json({ data: users });
     }
     catch (error) {
-        logger_1.default.error("Error fetching general users:", error);
-        res.status(500).json({ message: error.message || "Failed to fetch general users." });
+        logger_1.default.error('Error fetching general users:', error);
+        res
+            .status(500)
+            .json({ message: error.message || 'Failed to fetch general users.' });
     }
 });
 exports.getAllUser = getAllUser;
@@ -962,7 +959,7 @@ const getAllStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const { name, status, email } = req.query; // Extract filter parameters from query
         // Build search conditions
-        const searchConditions = { accountType: "student" }; // Filter by accountType
+        const searchConditions = { accountType: 'student' }; // Filter by accountType
         if (name) {
             searchConditions.name = { [sequelize_1.Op.like]: `%${name}%` }; // Partial match for name
         }
@@ -975,13 +972,15 @@ const getAllStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         // Fetch students with optional filters
         const students = yield user_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Order by creation date descending
+            order: [['createdAt', 'DESC']], // Order by creation date descending
         });
         res.status(200).json({ data: students });
     }
     catch (error) {
-        logger_1.default.error("Error fetching students:", error);
-        res.status(500).json({ message: error.message || "Failed to fetch students." });
+        logger_1.default.error('Error fetching students:', error);
+        res
+            .status(500)
+            .json({ message: error.message || 'Failed to fetch students.' });
     }
 });
 exports.getAllStudent = getAllStudent;
@@ -989,7 +988,7 @@ const getAllInstitution = (req, res) => __awaiter(void 0, void 0, void 0, functi
     try {
         const { name, status, email } = req.query; // Extract filter parameters from query
         // Build search conditions
-        const searchConditions = { accountType: "institution" }; // Filter by accountType
+        const searchConditions = { accountType: 'institution' }; // Filter by accountType
         if (name) {
             searchConditions.name = { [sequelize_1.Op.like]: `%${name}%` }; // Partial match for name
         }
@@ -1002,13 +1001,15 @@ const getAllInstitution = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Fetch institutions with optional filters
         const institutions = yield user_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Order by creation date descending
+            order: [['createdAt', 'DESC']], // Order by creation date descending
         });
         res.status(200).json({ data: institutions });
     }
     catch (error) {
-        logger_1.default.error("Error fetching institutions:", error);
-        res.status(500).json({ message: error.message || "Failed to fetch institutions." });
+        logger_1.default.error('Error fetching institutions:', error);
+        res
+            .status(500)
+            .json({ message: error.message || 'Failed to fetch institutions.' });
     }
 });
 exports.getAllInstitution = getAllInstitution;
@@ -1029,14 +1030,14 @@ const createJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Check if a category with the same name already exists
         const existingCategory = yield jobcategory_1.default.findOne({ where: { name } });
         if (existingCategory) {
-            res.status(400).json({ message: "A job category with the same name already exists." });
+            res
+                .status(400)
+                .json({ message: 'A job category with the same name already exists.' });
             return;
         }
         const category = yield jobcategory_1.default.create({ name });
-        res
-            .status(200)
-            .json({
-            message: "Job category created successfully",
+        res.status(200).json({
+            message: 'Job category created successfully',
             data: category,
         });
     }
@@ -1050,7 +1051,7 @@ const updateJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const { id, name } = req.body;
         const category = yield jobcategory_1.default.findByPk(id);
         if (!category) {
-            res.status(404).json({ message: "Job category not found" });
+            res.status(404).json({ message: 'Job category not found' });
             return;
         }
         // Check if another category with the same name exists (exclude the current category)
@@ -1058,14 +1059,14 @@ const updateJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
         });
         if (existingCategory) {
-            res.status(400).json({ message: "Another job category with the same name already exists." });
+            res.status(400).json({
+                message: 'Another job category with the same name already exists.',
+            });
             return;
         }
         yield category.update({ name });
-        res
-            .status(200)
-            .json({
-            message: "Job category updated successfully",
+        res.status(200).json({
+            message: 'Job category updated successfully',
             data: category,
         });
     }
@@ -1079,23 +1080,23 @@ const deleteJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const id = req.query.id;
         const category = yield jobcategory_1.default.findByPk(id);
         if (!category) {
-            res.status(404).json({ message: "Job category not found" });
+            res.status(404).json({ message: 'Job category not found' });
             return;
         }
         yield category.destroy();
-        res.status(200).json({ message: "Asset category deleted successfully" });
+        res.status(200).json({ message: 'Asset category deleted successfully' });
     }
     catch (error) {
         if (error instanceof sequelize_1.ForeignKeyConstraintError) {
             res.status(400).json({
-                message: "Cannot delete job category because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.",
+                message: 'Cannot delete job category because it is currently assigned to one or more models. Please reassign or delete these associations before proceeding.',
             });
         }
         else {
-            logger_1.default.error("Error deleting job category:", error);
+            logger_1.default.error('Error deleting job category:', error);
             res
                 .status(500)
-                .json({ message: error.message || "Error deleting job category" });
+                .json({ message: error.message || 'Error deleting job category' });
         }
     }
 });
@@ -1118,53 +1119,53 @@ const getAllDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, func
         // Fetch assets with optional search criteria
         const assets = yield digitalasset_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({
-            data: assets
+            data: assets,
         });
     }
     catch (error) {
-        logger_1.default.error("Error fetching digital assets:", error);
+        logger_1.default.error('Error fetching digital assets:', error);
         res.status(500).json({
-            message: error.message || "Failed to fetch digital assets"
+            message: error.message || 'Failed to fetch digital assets',
         });
     }
 });
 exports.getAllDigitalAssets = getAllDigitalAssets;
 const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _c;
+    var _a;
     try {
         const { categoryId } = req.body;
-        const adminId = (_c = req.admin) === null || _c === void 0 ? void 0 : _c.id;
+        const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id;
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
         // Ensure the creatorId is included in the request payload
-        const digitalAssetData = Object.assign(Object.assign({}, req.body), { creatorId: adminId, categoryId: category.id, status: "published" });
+        const digitalAssetData = Object.assign(Object.assign({}, req.body), { creatorId: adminId, categoryId: category.id, status: 'published' });
         // Create the DigitalAsset
         const asset = yield digitalasset_1.default.create(digitalAssetData);
         res.status(200).json({
-            message: "Digital Asset created successfully",
+            message: 'Digital Asset created successfully',
             data: asset,
         });
     }
     catch (error) {
-        logger_1.default.error("Error creating Digital Asset:", error);
+        logger_1.default.error('Error creating Digital Asset:', error);
         res.status(500).json({
-            error: error.message || "Failed to create Digital Asset",
+            error: error.message || 'Failed to create Digital Asset',
         });
     }
 });
 exports.createDigitalAsset = createDigitalAsset;
 const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _d;
-    const adminId = (_d = req.admin) === null || _d === void 0 ? void 0 : _d.id;
+    var _a;
+    const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id;
     try {
         const { assetName, pricingType, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -1183,15 +1184,15 @@ const getDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functio
         // Fetch assets with optional search criteria
         const assets = yield digitalasset_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: assets });
     }
     catch (error) {
-        logger_1.default.error("Error fetching digital assets:", error);
+        logger_1.default.error('Error fetching digital assets:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch Digital Assets" });
+            .json({ error: error.message || 'Failed to fetch Digital Assets' });
     }
 });
 exports.getDigitalAssets = getDigitalAssets;
@@ -1203,36 +1204,36 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default,
-                    as: "assetCategory",
-                    attributes: ["id", "name"], // You can specify the fields you want to include
+                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    as: 'assetCategory', // Alias for the relationship (adjust if necessary)
+                    attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
                     model: user_1.default,
-                    as: "user",
-                    attributes: ["id", "accountType", "name", "email"],
+                    as: 'user',
+                    attributes: ['id', 'accountType', 'name', 'email'],
                 },
                 {
                     model: admin_1.default,
-                    as: "admin",
-                    attributes: ["id", "name", "email"],
+                    as: 'admin',
+                    attributes: ['id', 'name', 'email'],
                     include: [
                         {
-                            model: role_1.default,
-                            as: "role", // Make sure this alias matches the one you used in the association
+                            model: role_1.default, // Assuming you've imported the Role model
+                            as: 'role', // Make sure this alias matches the one you used in the association
                         },
                     ],
-                }
+                },
             ],
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: asset });
     }
     catch (error) {
-        logger_1.default.error("Error fetching digital asset:", error);
+        logger_1.default.error('Error fetching digital asset:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch Digital Asset" });
+            .json({ error: error.message || 'Failed to fetch Digital Asset' });
     }
 });
 exports.viewDigitalAsset = viewDigitalAsset;
@@ -1243,25 +1244,25 @@ const updateDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
         // Find the Digital Asset by ID
         const asset = yield digitalasset_1.default.findByPk(id);
         if (!asset) {
-            res.status(404).json({ message: "Digital Asset not found" });
+            res.status(404).json({ message: 'Digital Asset not found' });
             return;
         }
         // Update the Digital Asset with new data
         yield asset.update(Object.assign(Object.assign({}, req.body), { categoryId: category.id }));
         res.status(200).json({
-            message: "Digital Asset updated successfully",
+            message: 'Digital Asset updated successfully',
         });
     }
     catch (error) {
-        logger_1.default.error("Error updating Digital Asset:", error);
-        res.status(500).json({ error: "Failed to update Digital Asset" });
+        logger_1.default.error('Error updating Digital Asset:', error);
+        res.status(500).json({ error: 'Failed to update Digital Asset' });
     }
 });
 exports.updateDigitalAsset = updateDigitalAsset;
@@ -1272,17 +1273,17 @@ const deleteDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const asset = yield digitalasset_1.default.findByPk(id);
         // If the asset is not found, return a 404 response
         if (!asset) {
-            res.status(404).json({ message: "Digital Asset not found" });
+            res.status(404).json({ message: 'Digital Asset not found' });
             return;
         }
         // Delete the asset
         yield asset.destroy();
         // Return success response
-        res.status(200).json({ message: "Digital Asset deleted successfully" });
+        res.status(200).json({ message: 'Digital Asset deleted successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error deleting Digital Asset:", error);
-        res.status(500).json({ error: "Failed to delete Digital Asset" });
+        logger_1.default.error('Error deleting Digital Asset:', error);
+        res.status(500).json({ error: 'Failed to delete Digital Asset' });
     }
 });
 exports.deleteDigitalAsset = deleteDigitalAsset;
@@ -1290,14 +1291,14 @@ const updateDigitalAssetStatus = (req, res) => __awaiter(void 0, void 0, void 0,
     try {
         const { assetId, status, adminNote } = req.body; // Extract status and adminNote from request body
         // Validate status
-        if (!["published", "unpublished"].includes(status)) {
+        if (!['published', 'unpublished'].includes(status)) {
             res.status(400).json({
                 message: "Invalid status. Allowed values are 'published' or 'unpublished'.",
             });
             return;
         }
         // Ensure adminNote is provided if status is 'unpublished'
-        if (status === "unpublished" && (!adminNote || adminNote.trim() === "")) {
+        if (status === 'unpublished' && (!adminNote || adminNote.trim() === '')) {
             res.status(400).json({
                 message: "Admin note is required when status is 'unpublished'.",
             });
@@ -1307,21 +1308,24 @@ const updateDigitalAssetStatus = (req, res) => __awaiter(void 0, void 0, void 0,
         const asset = yield digitalasset_1.default.findByPk(assetId);
         if (!asset) {
             res.status(404).json({
-                message: "Asset not found.",
+                message: 'Asset not found.',
             });
             return;
         }
         // Update the asset's status and adminNote
-        yield asset.update({ status, adminNote: status === "unpublished" ? adminNote : null });
+        yield asset.update({
+            status,
+            adminNote: status === 'unpublished' ? adminNote : null,
+        });
         res.status(200).json({
-            message: "Asset status updated successfully.",
+            message: 'Asset status updated successfully.',
             data: asset,
         });
     }
     catch (error) {
-        logger_1.default.error("Error updating asset status:", error);
+        logger_1.default.error('Error updating asset status:', error);
         res.status(500).json({
-            message: error.message || "Failed to update asset status.",
+            message: error.message || 'Failed to update asset status.',
         });
     }
 });
@@ -1341,53 +1345,53 @@ const getAllPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, fun
         // Fetch assets with optional search criteria
         const assets = yield physicalasset_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({
             data: assets,
         });
     }
     catch (error) {
-        logger_1.default.error("Error fetching physical assets:", error);
+        logger_1.default.error('Error fetching physical assets:', error);
         res.status(500).json({
-            message: error.message || "Failed to fetch physical assets",
+            message: error.message || 'Failed to fetch physical assets',
         });
     }
 });
 exports.getAllPhysicalAssets = getAllPhysicalAssets;
 const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _e;
+    var _a;
     try {
         const { categoryId } = req.body;
-        const adminId = (_e = req.admin) === null || _e === void 0 ? void 0 : _e.id; // Extract user ID from authenticated request
+        const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
         // Category check
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
         // Ensure the creatorId is included in the request payload
-        const physicalAssetData = Object.assign(Object.assign({}, req.body), { creatorId: adminId, categoryId: category.id, status: "published" });
+        const physicalAssetData = Object.assign(Object.assign({}, req.body), { creatorId: adminId, categoryId: category.id, status: 'published' });
         // Create the PhysicalAsset
         const asset = yield physicalasset_1.default.create(physicalAssetData);
         res.status(200).json({
-            message: "Physical Asset created successfully",
+            message: 'Physical Asset created successfully',
             data: asset,
         });
     }
     catch (error) {
-        logger_1.default.error("Error creating Physical Asset:", error);
+        logger_1.default.error('Error creating Physical Asset:', error);
         res.status(500).json({
-            error: error.message || "Failed to create Physical Asset",
+            error: error.message || 'Failed to create Physical Asset',
         });
     }
 });
 exports.createPhysicalAsset = createPhysicalAsset;
 const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _f;
-    const adminId = (_f = req.admin) === null || _f === void 0 ? void 0 : _f.id; // Extract authenticated user's ID
+    var _a;
+    const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id; // Extract authenticated user's ID
     try {
         const { assetName, status } = req.query; // Extract search parameters
         // Build search conditions
@@ -1403,15 +1407,15 @@ const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functi
         // Fetch assets with optional search criteria
         const assets = yield physicalasset_1.default.findAll({
             where: searchConditions,
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: assets });
     }
     catch (error) {
-        logger_1.default.error("Error fetching physical assets:", error);
+        logger_1.default.error('Error fetching physical assets:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch physical Assets" });
+            .json({ error: error.message || 'Failed to fetch physical Assets' });
     }
 });
 exports.getPhysicalAssets = getPhysicalAssets;
@@ -1423,36 +1427,36 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default,
-                    as: "assetCategory",
-                    attributes: ["id", "name"], // You can specify the fields you want to include
+                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    as: 'assetCategory', // Alias for the relationship (adjust if necessary)
+                    attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
                     model: user_1.default,
-                    as: "user",
-                    attributes: ["id", "accountType", "name", "email"],
+                    as: 'user',
+                    attributes: ['id', 'accountType', 'name', 'email'],
                 },
                 {
                     model: admin_1.default,
-                    as: "admin",
-                    attributes: ["id", "name", "email"],
+                    as: 'admin',
+                    attributes: ['id', 'name', 'email'],
                     include: [
                         {
-                            model: role_1.default,
-                            as: "role", // Make sure this alias matches the one you used in the association
+                            model: role_1.default, // Assuming you've imported the Role model
+                            as: 'role', // Make sure this alias matches the one you used in the association
                         },
                     ],
-                }
+                },
             ],
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: asset });
     }
     catch (error) {
-        logger_1.default.error("Error fetching physical asset:", error);
+        logger_1.default.error('Error fetching physical asset:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch physical asset" });
+            .json({ error: error.message || 'Failed to fetch physical asset' });
     }
 });
 exports.viewPhysicalAsset = viewPhysicalAsset;
@@ -1463,25 +1467,25 @@ const updatePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
         const category = yield assetcategory_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
-                message: "Category not found in our database.",
+                message: 'Category not found in our database.',
             });
             return;
         }
         // Find the Physical Asset by ID
         const asset = yield physicalasset_1.default.findByPk(id);
         if (!asset) {
-            res.status(404).json({ message: "Physical Asset not found" });
+            res.status(404).json({ message: 'Physical Asset not found' });
             return;
         }
         // Update the Physical Asset with new data
         yield asset.update(Object.assign(Object.assign({}, req.body), { categoryId: category.id }));
         res.status(200).json({
-            message: "Physical Asset updated successfully",
+            message: 'Physical Asset updated successfully',
         });
     }
     catch (error) {
-        logger_1.default.error("Error updating physical Asset:", error);
-        res.status(500).json({ error: "Failed to update physical Asset" });
+        logger_1.default.error('Error updating physical Asset:', error);
+        res.status(500).json({ error: 'Failed to update physical Asset' });
     }
 });
 exports.updatePhysicalAsset = updatePhysicalAsset;
@@ -1492,17 +1496,17 @@ const deletePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
         const asset = yield physicalasset_1.default.findByPk(id);
         // If the asset is not found, return a 404 response
         if (!asset) {
-            res.status(404).json({ message: "Physical Asset not found" });
+            res.status(404).json({ message: 'Physical Asset not found' });
             return;
         }
         // Delete the asset
         yield asset.destroy();
         // Return success response
-        res.status(200).json({ message: "Physical Asset deleted successfully" });
+        res.status(200).json({ message: 'Physical Asset deleted successfully' });
     }
     catch (error) {
-        logger_1.default.error("Error deleting physical asset:", error);
-        res.status(500).json({ error: "Failed to delete physical asset" });
+        logger_1.default.error('Error deleting physical asset:', error);
+        res.status(500).json({ error: 'Failed to delete physical asset' });
     }
 });
 exports.deletePhysicalAsset = deletePhysicalAsset;
@@ -1510,14 +1514,14 @@ const updatePhysicalAssetStatus = (req, res) => __awaiter(void 0, void 0, void 0
     try {
         const { assetId, status, adminNote } = req.body; // Extract status and adminNote from request body
         // Validate status
-        if (!["published", "unpublished"].includes(status)) {
+        if (!['published', 'unpublished'].includes(status)) {
             res.status(400).json({
                 message: "Invalid status. Allowed values are 'published' or 'unpublished'.",
             });
             return;
         }
         // Ensure adminNote is provided if status is 'unpublished'
-        if (status === "unpublished" && (!adminNote || adminNote.trim() === "")) {
+        if (status === 'unpublished' && (!adminNote || adminNote.trim() === '')) {
             res.status(400).json({
                 message: "Admin note is required when status is 'unpublished'.",
             });
@@ -1527,23 +1531,86 @@ const updatePhysicalAssetStatus = (req, res) => __awaiter(void 0, void 0, void 0
         const asset = yield physicalasset_1.default.findByPk(assetId);
         if (!asset) {
             res.status(404).json({
-                message: "Asset not found.",
+                message: 'Asset not found.',
             });
             return;
         }
         // Update the asset's status and adminNote
-        yield asset.update({ status, adminNote: status === "unpublished" ? adminNote : null });
+        yield asset.update({
+            status,
+            adminNote: status === 'unpublished' ? adminNote : null,
+        });
         res.status(200).json({
-            message: "Asset status updated successfully.",
+            message: 'Asset status updated successfully.',
             data: asset,
         });
     }
     catch (error) {
-        logger_1.default.error("Error updating asset status:", error);
+        logger_1.default.error('Error updating asset status:', error);
         res.status(500).json({
-            message: error.message || "Failed to update asset status.",
+            message: error.message || 'Failed to update asset status.',
         });
     }
 });
 exports.updatePhysicalAssetStatus = updatePhysicalAssetStatus;
+// Course
+// Publish course
+const publishCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const courseId = req.params.id;
+        // Find the course by its ID
+        const course = yield course_1.default.findByPk(courseId);
+        if (!course) {
+            res.status(404).json({
+                message: 'Course not found in our database.',
+            });
+            return;
+        }
+        // Check if all required fields are present and not null
+        const requiredFields = [
+            'creatorId',
+            'categoryId',
+            'title',
+            'subtitle',
+            'description',
+            'language',
+            'image',
+            'level',
+            'currency',
+            'price',
+            'requirement',
+            'whatToLearn',
+        ];
+        const missingFields = [];
+        for (const field of requiredFields) {
+            if (course[field] === null ||
+                course[field] === undefined) {
+                missingFields.push(field);
+            }
+        }
+        // If there are missing fields, return an error
+        if (missingFields.length > 0) {
+            res.status(400).json({
+                message: 'Course cannot be published. Missing required fields.',
+                data: missingFields,
+            });
+            return;
+        }
+        // Update the course status to published (true)
+        course.published = true; // Assuming `status` is a boolean column
+        course.status = 'live';
+        yield course.save();
+        // Send email to the creator about course status update
+        res.status(200).json({
+            message: 'Course is now live.',
+            data: course,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while publishing the course.',
+        });
+    }
+});
+exports.publishCourse = publishCourse;
 //# sourceMappingURL=adminController.js.map
