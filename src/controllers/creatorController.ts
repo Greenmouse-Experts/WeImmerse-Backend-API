@@ -561,20 +561,20 @@ export const updateCourseModule = async (
 
     const course = await Course.findByPk(module.courseId);
 
-    if (course?.canEdit()) {
-      await module.update({
-        title,
-      });
+    // if (course?.canEdit()) {
+    await module.update({
+      title,
+    });
 
-      res.status(200).json({
-        message: 'Course module updated successfully.',
-        data: module,
-      });
-    } else {
-      res.status(403).json({
-        message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-      });
-    }
+    res.status(200).json({
+      message: 'Course module updated successfully.',
+      data: module,
+    });
+    // } else {
+    //   res.status(403).json({
+    //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+    //   });
+    // }
   } catch (error: any) {
     res.status(500).json({
       message:

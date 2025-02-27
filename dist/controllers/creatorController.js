@@ -467,20 +467,19 @@ const updateCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, funct
             return;
         }
         const course = yield course_1.default.findByPk(module.courseId);
-        if (course === null || course === void 0 ? void 0 : course.canEdit()) {
-            yield module.update({
-                title,
-            });
-            res.status(200).json({
-                message: 'Course module updated successfully.',
-                data: module,
-            });
-        }
-        else {
-            res.status(403).json({
-                message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-            });
-        }
+        // if (course?.canEdit()) {
+        yield module.update({
+            title,
+        });
+        res.status(200).json({
+            message: 'Course module updated successfully.',
+            data: module,
+        });
+        // } else {
+        //   res.status(403).json({
+        //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+        //   });
+        // }
     }
     catch (error) {
         res.status(500).json({
