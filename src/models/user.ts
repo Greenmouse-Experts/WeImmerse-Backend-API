@@ -45,6 +45,14 @@ class User extends Model {
       as: 'progress',
       foreignKey: 'studentId',
     });
+    this.hasMany(models.KYCDocuments, {
+      as: 'kyc_docs',
+      foreignKey: 'userId',
+    });
+    this.hasMany(models.KYCVerification, {
+      as: 'kyc_verification',
+      foreignKey: 'user_id',
+    });
   }
 
   // async percentCompleted(courseId: string): Promise<number> {

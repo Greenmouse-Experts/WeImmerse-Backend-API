@@ -2,7 +2,7 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('kyc_verifications', {
+    await queryInterface.createTable('kyc_documents', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
@@ -19,31 +19,23 @@ module.exports = {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
-      verificationProvider: {
+      documentType: {
+        type: Sequelize.ENUM(
+          'passport',
+          'national_id',
+          'driver_license',
+          'CAC_document'
+        ),
+        allowNull: false,
+      },
+      documentUrl: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      verificationReference: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      status: {
-        type: Sequelize.ENUM('pending', 'approved', 'rejected'),
-        defaultValue: 'pending',
-      },
-      adminReviewedBy: {
-        type: Sequelize.STRING,
-        allowNull: true,
-        references: {
-          model: 'admins', // Ensure this matches the Admins table name
-          key: 'id',
-        },
-        onDelete: 'SET NULL',
-        onUpdate: 'CASCADE',
-      },
-      adminReviewedAt: {
+      uploadedAt: {
         type: Sequelize.DATE,
-        allowNull: true,
+        allowNull: false,
+        defaultValue: Sequelize.NOW,
       },
       createdAt: {
         type: Sequelize.DATE,
@@ -59,6 +51,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('kyc_verifications');
+    await queryInterface.dropTable('kyc_documents');
   },
 };

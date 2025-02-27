@@ -510,31 +510,31 @@ export const createCourseModule = async (
       return;
     }
 
-    if (course.canEdit()) {
-      // Fetch the module with the highest sortOrder
-      const maxSortModule = await Module.findOne({
-        where: { courseId: course.id },
-        order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
-      });
+    // if (course.canEdit()) {
+    // Fetch the module with the highest sortOrder
+    const maxSortModule = await Module.findOne({
+      where: { courseId: course.id },
+      order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
+    });
 
-      // Calculate the new sortOrder
-      const sortOrder = maxSortModule ? maxSortModule.sortOrder + 1 : 1;
+    // Calculate the new sortOrder
+    const sortOrder = maxSortModule ? maxSortModule.sortOrder + 1 : 1;
 
-      // Create the new module
-      await Module.create({
-        courseId: course.id,
-        title,
-        sortOrder,
-      });
+    // Create the new module
+    await Module.create({
+      courseId: course.id,
+      title,
+      sortOrder,
+    });
 
-      res.status(200).json({
-        message: 'Course module created successfully.',
-      });
-    } else {
-      res.status(403).json({
-        message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-      });
-    }
+    res.status(200).json({
+      message: 'Course module created successfully.',
+    });
+    // } else {
+    //   res.status(403).json({
+    //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+    //   });
+    // }
   } catch (error: any) {
     res.status(500).json({
       message:
@@ -601,27 +601,27 @@ export const deleteCourseModule = async (
 
     const course = await Course.findByPk(module.courseId);
 
-    if (course?.canEdit()) {
-      // Delete all lessons associated with the module
-      await Lesson.destroy({ where: { moduleId: module.id } });
+    // if (course?.canEdit()) {
+    // Delete all lessons associated with the module
+    await Lesson.destroy({ where: { moduleId: module.id } });
 
-      // Delete all quizzes associated with the module
-      await LessonQuiz.destroy({ where: { moduleId: module.id } });
+    // Delete all quizzes associated with the module
+    await LessonQuiz.destroy({ where: { moduleId: module.id } });
 
-      // Delete all quizzes associated with the module
-      await LessonQuizQuestion.destroy({ where: { moduleId: module.id } });
+    // Delete all quizzes associated with the module
+    await LessonQuizQuestion.destroy({ where: { moduleId: module.id } });
 
-      // Delete the module
-      await module.destroy();
+    // Delete the module
+    await module.destroy();
 
-      res.status(200).json({
-        message: 'Course module deleted successfully.',
-      });
-    } else {
-      res.status(403).json({
-        message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-      });
-    }
+    res.status(200).json({
+      message: 'Course module deleted successfully.',
+    });
+    // } else {
+    //   res.status(403).json({
+    //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+    //   });
+    // }
   } catch (error: any) {
     res.status(500).json({
       message:
@@ -725,33 +725,33 @@ export const createModuleLesson = async (
       return;
     }
 
-    if (course.canEdit()) {
-      // Fetch the lesson with the highest sortOrder
-      const maxSortLesson = await Lesson.findOne({
-        where: { moduleId: module.id },
-        order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
-      });
+    // if (course.canEdit()) {
+    // Fetch the lesson with the highest sortOrder
+    const maxSortLesson = await Lesson.findOne({
+      where: { moduleId: module.id },
+      order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
+    });
 
-      // Calculate the new sortOrder
-      const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
+    // Calculate the new sortOrder
+    const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
 
-      await Lesson.create({
-        moduleId,
-        courseId: module.courseId,
-        title,
-        content,
-        contentType,
-        contentUrl,
-        duration,
-        sortOrder,
-      });
+    await Lesson.create({
+      moduleId,
+      courseId: module.courseId,
+      title,
+      content,
+      contentType,
+      contentUrl,
+      duration,
+      sortOrder,
+    });
 
-      res.status(200).json({ message: 'Lesson created successfully' });
-    } else {
-      res.status(403).json({
-        message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-      });
-    }
+    res.status(200).json({ message: 'Lesson created successfully' });
+    // } else {
+    //   res.status(403).json({
+    //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+    //   });
+    // }
   } catch (error: any) {
     res.status(500).json({
       message: error.message || 'Error creating lesson',
@@ -777,21 +777,21 @@ export const updateModuleLesson = async (
 
     const course = await Course.findByPk(lesson.courseId);
 
-    if (course?.canEdit()) {
-      // Update lesson properties
-      lesson.title = title || lesson.title;
-      lesson.content = content || lesson.content;
-      lesson.contentType = contentType || lesson.contentType;
-      lesson.contentUrl = contentUrl || lesson.contentUrl;
-      lesson.duration = duration || lesson.duration;
-      lesson.save();
+    // if (course?.canEdit()) {
+    // Update lesson properties
+    lesson.title = title || lesson.title;
+    lesson.content = content || lesson.content;
+    lesson.contentType = contentType || lesson.contentType;
+    lesson.contentUrl = contentUrl || lesson.contentUrl;
+    lesson.duration = duration || lesson.duration;
+    lesson.save();
 
-      res.status(200).json({ message: 'Lesson updated successfully' });
-    } else {
-      res.status(403).json({
-        message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-      });
-    }
+    res.status(200).json({ message: 'Lesson updated successfully' });
+    // } else {
+    //   res.status(403).json({
+    //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+    //   });
+    // }
   } catch (error) {
     res.status(500).json({ message: 'Error updating lesson' });
   }
@@ -876,42 +876,42 @@ export const createLessonQuiz = async (
       return;
     }
 
-    if (course.canEdit()) {
-      // Fetch the lesson with the highest sortOrder
-      const maxSortLesson = await Lesson.findOne({
-        where: { moduleId: module.id },
-        order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
-      });
+    // if (course.canEdit()) {
+    // Fetch the lesson with the highest sortOrder
+    const maxSortLesson = await Lesson.findOne({
+      where: { moduleId: module.id },
+      order: [['sortOrder', 'DESC']], // Sort by sortOrder in descending order
+    });
 
-      // Calculate the new sortOrder
-      const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
+    // Calculate the new sortOrder
+    const sortOrder = maxSortLesson ? maxSortLesson.sortOrder + 1 : 1;
 
-      const lesson = await Lesson.create({
-        moduleId,
-        courseId: module.courseId,
-        title: lessonTitle,
-        contentType: 'quiz',
-        sortOrder,
-      });
+    const lesson = await Lesson.create({
+      moduleId,
+      courseId: module.courseId,
+      title: lessonTitle,
+      contentType: 'quiz',
+      sortOrder,
+    });
 
-      const newQuiz = await LessonQuiz.create({
-        creatorId: userId,
-        courseId: module.courseId,
-        moduleId,
-        lessonId: lesson.id,
-        title,
-        description,
-        timePerQuestion,
-      });
+    const newQuiz = await LessonQuiz.create({
+      creatorId: userId,
+      courseId: module.courseId,
+      moduleId,
+      lessonId: lesson.id,
+      title,
+      description,
+      timePerQuestion,
+    });
 
-      res
-        .status(200)
-        .json({ message: 'Module Quiz created successfully.', data: newQuiz });
-    } else {
-      res.status(403).json({
-        message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-      });
-    }
+    res
+      .status(200)
+      .json({ message: 'Module Quiz created successfully.', data: newQuiz });
+    // } else {
+    //   res.status(403).json({
+    //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+    //   });
+    // }
   } catch (error: any) {
     logger.error(error);
     res
@@ -944,12 +944,12 @@ export const updateLessonQuiz = async (
     }
 
     // Ensure course can be edited
-    if (!course.canEdit()) {
-      res.status(403).json({
-        message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-      });
-      return;
-    }
+    // if (!course.canEdit()) {
+    //   res.status(403).json({
+    //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+    //   });
+    //   return;
+    // }
 
     // Update fields
     quiz.title = title || quiz.title;
@@ -993,12 +993,12 @@ export const deleteLessonQuiz = async (
     }
 
     // Ensure course can be edited
-    if (!course.canEdit()) {
-      res.status(403).json({
-        message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
-      });
-      return;
-    }
+    // if (!course.canEdit()) {
+    //   res.status(403).json({
+    //     message: `Cannot edit this course that is published and live. Please contact ${process.env.APP_NAME} customer care for change of status to make modifications.`,
+    //   });
+    //   return;
+    // }
 
     // Find the lesson by ID (replace with actual DB logic)
     const lesson = await Lesson.findByPk(quiz.lessonId);

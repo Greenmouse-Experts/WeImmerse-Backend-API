@@ -38,6 +38,14 @@ class User extends sequelize_1.Model {
             as: 'progress',
             foreignKey: 'studentId',
         });
+        this.hasMany(models.KYCDocuments, {
+            as: 'kyc_docs',
+            foreignKey: 'userId',
+        });
+        this.hasMany(models.KYCVerification, {
+            as: 'kyc_verification',
+            foreignKey: 'user_id',
+        });
     }
 }
 const initModel = (sequelize) => {

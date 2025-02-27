@@ -36,6 +36,10 @@ class Admin extends sequelize_1.Model {
             as: 'role',
             foreignKey: 'roleId',
         });
+        this.hasMany(models.KYCVerification, {
+            as: 'kyc_verification',
+            foreignKey: 'adminReviewedBy',
+        });
     }
 }
 const initModel = (sequelize) => {
@@ -53,25 +57,25 @@ const initModel = (sequelize) => {
         password: sequelize_1.DataTypes.STRING,
         photo: sequelize_1.DataTypes.TEXT,
         roleId: sequelize_1.DataTypes.UUID,
-        status: sequelize_1.DataTypes.ENUM("active", "inactive"),
+        status: sequelize_1.DataTypes.ENUM('active', 'inactive'),
     }, {
         sequelize,
-        modelName: "Admin",
+        modelName: 'Admin',
         timestamps: true,
         paranoid: false,
-        tableName: "admins",
+        tableName: 'admins',
         defaultScope: {
-            attributes: { exclude: ["password"] },
+            attributes: { exclude: ['password'] },
         },
         scopes: {
             auth: {
-                attributes: { include: ["password"] }, // Add necessary fields for authentication
+                attributes: { include: ['password'] }, // Add necessary fields for authentication
             },
         },
     });
     // Add the password hashing hook before saving
-    Admin.addHook("beforeSave", (admin) => __awaiter(void 0, void 0, void 0, function* () {
-        if (admin.changed("password") || admin.isNewRecord) {
+    Admin.addHook('beforeSave', (admin) => __awaiter(void 0, void 0, void 0, function* () {
+        if (admin.changed('password') || admin.isNewRecord) {
             admin.password = yield Admin.hashPassword(admin.password);
         }
     }));

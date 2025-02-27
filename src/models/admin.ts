@@ -1,6 +1,6 @@
 // models/admin.ts
-import bcrypt from "bcrypt";
-import { Model, DataTypes, Sequelize } from "sequelize";
+import bcrypt from 'bcrypt';
+import { Model, DataTypes, Sequelize } from 'sequelize';
 
 class Admin extends Model {
   public id!: string; // Use '!' to indicate these fields are definitely assigned
@@ -9,7 +9,7 @@ class Admin extends Model {
   public password!: string;
   public photo?: string;
   public roleId?: string;
-  public status?: "active" | "inactive";
+  public status?: 'active' | 'inactive';
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -33,8 +33,11 @@ class Admin extends Model {
       as: 'role',
       foreignKey: 'roleId',
     });
+    this.hasMany(models.KYCVerification, {
+      as: 'kyc_verification',
+      foreignKey: 'adminReviewedBy',
+    });
   }
-
 }
 
 const initModel = (sequelize: Sequelize) => {
@@ -53,32 +56,31 @@ const initModel = (sequelize: Sequelize) => {
       password: DataTypes.STRING,
       photo: DataTypes.TEXT,
       roleId: DataTypes.UUID,
-      status: DataTypes.ENUM("active", "inactive"),
+      status: DataTypes.ENUM('active', 'inactive'),
     },
     {
       sequelize,
-      modelName: "Admin",
+      modelName: 'Admin',
       timestamps: true,
       paranoid: false,
-      tableName: "admins",
+      tableName: 'admins',
       defaultScope: {
-        attributes: { exclude: ["password"] },
+        attributes: { exclude: ['password'] },
       },
       scopes: {
         auth: {
-          attributes: { include: ["password"] }, // Add necessary fields for authentication
+          attributes: { include: ['password'] }, // Add necessary fields for authentication
         },
       },
     }
   );
 
   // Add the password hashing hook before saving
-  Admin.addHook("beforeSave", async (admin: Admin) => {
-    if (admin.changed("password") || admin.isNewRecord) {
+  Admin.addHook('beforeSave', async (admin: Admin) => {
+    if (admin.changed('password') || admin.isNewRecord) {
       admin.password = await Admin.hashPassword(admin.password);
     }
   });
-  
 };
 
 // Export the User model and the init function
