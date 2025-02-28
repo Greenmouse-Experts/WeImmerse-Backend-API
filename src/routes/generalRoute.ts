@@ -63,5 +63,6 @@ generalRoutes.get(
 );
 
 generalRoutes.get('/courses', generalController.getCourses);
+generalRoutes.get('/course/:id', generalController.getSingleCourse);
 
 export default generalRoutes;

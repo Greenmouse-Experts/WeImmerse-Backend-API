@@ -566,3 +566,36 @@ export const getCourses = async (req: Request, res: Response): Promise<any> => {
       .json({ message: 'An error occurred while fetching courses.' });
   }
 };
+
+/**
+ * Get single course details
+ * @param req
+ * @param res
+ * @returns
+ */
+export const getSingleCourse = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { id } = req.params;
+
+    const courseDetails = await Course.findOne({
+      where: { id },
+      include: [
+        { model: User, as: 'creator' },
+        // Adjust alias to match your associations
+      ],
+    });
+
+    return res.status(200).json({
+      message: 'Course details retrieved successfully.',
+      data: courseDetails,
+    });
+  } catch (error) {
+    logger.error('Error fetching single course details:', error);
+    res.status(500).json({
+      message: 'An error occurred while fetching single course details.',
+    });
+  }
+};

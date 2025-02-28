@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCourses = exports.getSavedJobs = exports.getAppliedJobs = exports.applyJob = exports.saveJob = exports.updateUserNotificationSettings = exports.getUserNotificationSettings = exports.updatePassword = exports.updateProfilePhoto = exports.updateProfile = exports.profile = exports.logout = void 0;
+exports.getSingleCourse = exports.getCourses = exports.getSavedJobs = exports.getAppliedJobs = exports.applyJob = exports.saveJob = exports.updateUserNotificationSettings = exports.getUserNotificationSettings = exports.updatePassword = exports.updateProfilePhoto = exports.updateProfile = exports.profile = exports.logout = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const helpers_1 = require("../utils/helpers");
 const mail_service_1 = require("../services/mail.service");
@@ -502,4 +502,33 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.getCourses = getCourses;
+/**
+ * Get single course details
+ * @param req
+ * @param res
+ * @returns
+ */
+const getSingleCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const courseDetails = yield course_1.default.findOne({
+            where: { id },
+            include: [
+                { model: user_1.default, as: 'creator' },
+                // Adjust alias to match your associations
+            ],
+        });
+        return res.status(200).json({
+            message: 'Course details retrieved successfully.',
+            data: courseDetails,
+        });
+    }
+    catch (error) {
+        logger_1.default.error('Error fetching single course details:', error);
+        res.status(500).json({
+            message: 'An error occurred while fetching single course details.',
+        });
+    }
+});
+exports.getSingleCourse = getSingleCourse;
 //# sourceMappingURL=generalController.js.map

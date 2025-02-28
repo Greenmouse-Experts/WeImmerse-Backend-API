@@ -56,5 +56,6 @@ generalRoutes.post('/apply/job', authMiddleware_1.default, (0, validations_1.val
 generalRoutes.get('/fetch/savedJob', authMiddleware_1.default, generalController.getSavedJobs);
 generalRoutes.get('/fetch/appliedJob', authMiddleware_1.default, generalController.getAppliedJobs);
 generalRoutes.get('/courses', generalController.getCourses);
+generalRoutes.get('/course/:id', generalController.getSingleCourse);
 exports.default = generalRoutes;
 //# sourceMappingURL=generalRoute.js.map
