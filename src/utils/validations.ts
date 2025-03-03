@@ -450,6 +450,33 @@ export const uploadKycDocumentValidationRules = () => {
   ];
 };
 
+export const withdrawalAccountValidationRules = () => {
+  return [
+    check('accountNumber')
+      .isString()
+      .notEmpty()
+      .withMessage('Account number is required'),
+    check('accountType')
+      .isString()
+      .notEmpty()
+      .withMessage('Account type is required'),
+    check('bankName')
+      .isString()
+      .notEmpty()
+      .withMessage('Bank name is required'),
+    check('routingNumber')
+      .optional()
+      .isString()
+      .withMessage('Routing number must be a string'),
+    check('country').isString().notEmpty().withMessage('Country is required'),
+    check('countryCode')
+      .isString()
+      .isLength({ min: 2, max: 2 })
+      .withMessage('Country code must be 2 characters'),
+    check('currency').isString().notEmpty().withMessage('Currency is required'),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
+exports.validate = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
 // User registration validation rules
@@ -400,6 +400,33 @@ const uploadKycDocumentValidationRules = () => {
     ];
 };
 exports.uploadKycDocumentValidationRules = uploadKycDocumentValidationRules;
+const withdrawalAccountValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('accountNumber')
+            .isString()
+            .notEmpty()
+            .withMessage('Account number is required'),
+        (0, express_validator_1.check)('accountType')
+            .isString()
+            .notEmpty()
+            .withMessage('Account type is required'),
+        (0, express_validator_1.check)('bankName')
+            .isString()
+            .notEmpty()
+            .withMessage('Bank name is required'),
+        (0, express_validator_1.check)('routingNumber')
+            .optional()
+            .isString()
+            .withMessage('Routing number must be a string'),
+        (0, express_validator_1.check)('country').isString().notEmpty().withMessage('Country is required'),
+        (0, express_validator_1.check)('countryCode')
+            .isString()
+            .isLength({ min: 2, max: 2 })
+            .withMessage('Country code must be 2 characters'),
+        (0, express_validator_1.check)('currency').isString().notEmpty().withMessage('Currency is required'),
+    ];
+};
+exports.withdrawalAccountValidationRules = withdrawalAccountValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

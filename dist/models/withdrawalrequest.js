@@ -1,0 +1,83 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.initModel = exports.PayoutStatus = exports.PaymentProvider = void 0;
+const sequelize_1 = require("sequelize");
+const user_1 = __importDefault(require("./user"));
+const admin_1 = __importDefault(require("./admin"));
+var PaymentProvider;
+(function (PaymentProvider) {
+    PaymentProvider["PAYSTACK"] = "paystack";
+    PaymentProvider["STRIPE"] = "stripe";
+    PaymentProvider["MANUAL_TRANSFER"] = "manual_transfer";
+})(PaymentProvider || (exports.PaymentProvider = PaymentProvider = {}));
+var PayoutStatus;
+(function (PayoutStatus) {
+    PayoutStatus["PENDING"] = "pending";
+    PayoutStatus["APPROVED"] = "approved";
+    PayoutStatus["REJECTED"] = "rejected";
+    PayoutStatus["PROCESSING"] = "processing";
+    PayoutStatus["COMPLETED"] = "completed";
+})(PayoutStatus || (exports.PayoutStatus = PayoutStatus = {}));
+class PayoutRequest extends sequelize_1.Model {
+}
+const initModel = (sequelize) => {
+    PayoutRequest.init({
+        id: {
+            type: sequelize_1.DataTypes.UUID,
+            defaultValue: sequelize_1.DataTypes.UUIDV4,
+            primaryKey: true,
+        },
+        userId: {
+            type: sequelize_1.DataTypes.UUID,
+            allowNull: false,
+            references: {
+                model: user_1.default,
+                key: 'id',
+            },
+            onDelete: 'CASCADE',
+        },
+        amount: {
+            type: sequelize_1.DataTypes.DECIMAL(15, 2),
+            allowNull: false,
+        },
+        currency: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
+        paymentProvider: {
+            type: sequelize_1.DataTypes.ENUM('paystack', 'stripe', 'manual_transfer'),
+            allowNull: false,
+        },
+        recipientCode: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
+        status: {
+            type: sequelize_1.DataTypes.ENUM('pending', 'approved', 'rejected', 'processing', 'completed'),
+            defaultValue: 'pending',
+        },
+        adminReviewedBy: {
+            type: sequelize_1.DataTypes.UUID,
+            references: {
+                model: admin_1.default,
+                key: 'id',
+            },
+            allowNull: true,
+        },
+        adminReviewedAt: {
+            type: sequelize_1.DataTypes.DATE,
+            allowNull: true,
+        },
+    }, {
+        sequelize,
+        modelName: 'PayoutRequest',
+        tableName: 'payout_requests',
+        timestamps: true,
+    });
+};
+exports.initModel = initModel;
+exports.default = PayoutRequest;
+//# sourceMappingURL=withdrawalrequest.js.map

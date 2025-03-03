@@ -38,10 +38,10 @@ const initModel = (sequelize) => {
         },
     }, {
         sequelize,
-        modelName: "UserNotificationSetting",
+        modelName: 'UserNotificationSetting',
         timestamps: true,
         paranoid: false,
-        tableName: "user_notification_settings"
+        tableName: 'user_notification_settings',
     });
 };
 exports.initModel = initModel;
