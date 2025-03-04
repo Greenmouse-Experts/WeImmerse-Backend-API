@@ -8,7 +8,7 @@ export enum PaymentProvider {
   MANUAL_TRANSFER = 'manual_transfer',
 }
 
-export enum PayoutStatus {
+export enum WithdrawalStatus {
   PENDING = 'pending',
   APPROVED = 'approved',
   REJECTED = 'rejected',
@@ -16,14 +16,14 @@ export enum PayoutStatus {
   COMPLETED = 'completed',
 }
 
-class PayoutRequest extends Model {
+class WithdrawalRequest extends Model {
   public id!: string;
   public userId!: string;
   public amount!: number;
   public currency!: string;
   public paymentProvider!: PaymentProvider;
   public recipientCode!: string;
-  public status!: PayoutStatus;
+  public status!: WithdrawalStatus;
   public adminReviewedBy?: string;
   public adminReviewedAt?: Date;
   public readonly createdAt!: Date;
@@ -31,7 +31,7 @@ class PayoutRequest extends Model {
 }
 
 const initModel = (sequelize: Sequelize) => {
-  PayoutRequest.init(
+  WithdrawalRequest.init(
     {
       id: {
         type: DataTypes.UUID,
@@ -88,12 +88,12 @@ const initModel = (sequelize: Sequelize) => {
     },
     {
       sequelize,
-      modelName: 'PayoutRequest',
-      tableName: 'payout_requests',
+      modelName: 'WithdrawalRequest',
+      tableName: 'withdrawal_requests',
       timestamps: true,
     }
   );
 };
 
-export default PayoutRequest;
+export default WithdrawalRequest;
 export { initModel };

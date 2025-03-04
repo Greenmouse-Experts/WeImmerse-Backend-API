@@ -45,7 +45,6 @@ const generalRoutes = (0, express_1.Router)();
 // User routes
 generalRoutes.post('/logout', authMiddleware_1.default, generalController.logout);
 generalRoutes.get('/profile', authMiddleware_1.default, generalController.profile);
-generalRoutes.get('/profile', authMiddleware_1.default, generalController.profile);
 generalRoutes.put('/profile/update', authMiddleware_1.default, generalController.updateProfile);
 generalRoutes.patch('/profile/photo/update', authMiddleware_1.default, generalController.updateProfilePhoto);
 generalRoutes.put('/profile/update/password', authMiddleware_1.default, (0, validations_1.updatePasswordValidationRules)(), validations_1.validate, generalController.updatePassword);

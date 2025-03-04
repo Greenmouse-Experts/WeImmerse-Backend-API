@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.generateOTP = void 0;
+exports.formatMoney = exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.generateOTP = void 0;
 exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.generateReferralCode = generateReferralCode;
 // utils/helpers.ts
@@ -265,4 +265,12 @@ const uploadToS3 = (fileBuffer, originalFileName, bucketName) => __awaiter(void 
     }
 });
 exports.uploadToS3 = uploadToS3;
+const formatMoney = (amount, currency = 'NGN') => {
+    return new Intl.NumberFormat('en-NG', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2,
+    }).format(amount);
+};
+exports.formatMoney = formatMoney;
 //# sourceMappingURL=helpers.js.map

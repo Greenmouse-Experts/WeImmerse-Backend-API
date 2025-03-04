@@ -23,6 +23,7 @@ import SavedJob from '../models/savedjob';
 import Applicant from '../models/applicant';
 import sequelizeService from '../services/sequelize.service';
 import Course, { CourseStatus } from '../models/course';
+import Wallet from '../models/wallet';
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -52,9 +53,14 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 
 export const profile = async (req: Request, res: Response) => {
   try {
-    const userId = (req as AuthenticatedRequest).user?.id; // Assuming the user ID is passed in the URL params
+    const { id: userId, accountType } = (req as AuthenticatedRequest).user!; // Assuming the user ID is passed in the URL params
 
-    const user = await User.findByPk(userId);
+    const user = await User.findOne({
+      where: { id: userId },
+      ...((accountType === 'creator' || accountType === 'institution') && {
+        include: [{ model: Wallet, as: 'wallet' }],
+      }),
+    });
     if (!user) {
       res.status(404).json({ message: 'Account not found.' });
       return;

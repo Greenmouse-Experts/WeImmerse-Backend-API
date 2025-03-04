@@ -292,6 +292,14 @@ const uploadToS3 = async (
   }
 };
 
+const formatMoney = (amount: number, currency = 'NGN'): string => {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+  }).format(amount);
+};
+
 // Export functions
 export {
   generateOTP,
@@ -306,4 +314,5 @@ export {
   getPaginationFields,
   getTotalPages,
   uploadToS3,
+  formatMoney,
 };

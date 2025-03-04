@@ -13,7 +13,6 @@ const generalRoutes = Router();
 // User routes
 generalRoutes.post('/logout', authMiddleware, generalController.logout);
 generalRoutes.get('/profile', authMiddleware, generalController.profile);
-generalRoutes.get('/profile', authMiddleware, generalController.profile);
 generalRoutes.put(
   '/profile/update',
   authMiddleware,

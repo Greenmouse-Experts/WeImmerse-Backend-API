@@ -52,6 +52,14 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.STRING(255),
             defaultValue: 'NGN',
         },
+        accountName: {
+            type: sequelize_1.DataTypes.STRING(255),
+            allowNull: true,
+        },
+        bankCode: {
+            type: sequelize_1.DataTypes.STRING(255),
+            allowNull: true,
+        },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             defaultValue: sequelize_1.DataTypes.NOW,

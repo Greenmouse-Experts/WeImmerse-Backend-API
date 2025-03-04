@@ -464,6 +464,11 @@ export const withdrawalAccountValidationRules = () => {
       .isString()
       .notEmpty()
       .withMessage('Bank name is required'),
+    check('bankCode')
+      .not()
+      .isEmpty()
+      .isNumeric()
+      .withMessage('Bank code is required'),
     check('routingNumber')
       .optional()
       .isString()
@@ -477,6 +482,17 @@ export const withdrawalAccountValidationRules = () => {
   ];
 };
 
+export const withdrawalRequestValidationRules = () => {
+  return [
+    check('amount').isNumeric().notEmpty().withMessage('Amount is required'),
+    check('currency').isString().notEmpty().withMessage('Currency is required'),
+    check('paymentProvider')
+      .isString()
+      .notEmpty()
+      .withMessage('Payment provider is required'),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,
@@ -484,10 +500,13 @@ export const validate = (
   next: NextFunction
 ): void | Promise<void> => {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
     // Return only the first error
     const firstError = errors.array()[0];
-    res.status(400).json({ message: firstError.msg });
+    res
+      .status(400)
+      .json({ status: false, message: firstError.msg, full: errors.array() });
     return;
   }
   next();

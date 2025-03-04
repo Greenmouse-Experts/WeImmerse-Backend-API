@@ -2,14 +2,14 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('payout_requests', {
+    await queryInterface.createTable('withdrawal_requests', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true,
       },
-      user_id: {
+      userId: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -21,11 +21,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      payment_provider: {
+      paymentProvider: {
         type: Sequelize.ENUM('paystack', 'stripe', 'manual_transfer'),
         allowNull: false,
       },
-      recipient_code: {
+      recipientCode: {
         type: Sequelize.STRING,
         allowNull: true,
       },
@@ -40,34 +40,34 @@ module.exports = {
         allowNull: false,
         defaultValue: 'pending',
       },
-      admin_reviewed_by: {
+      adminReviewedBy: {
         type: Sequelize.STRING,
         allowNull: true,
       },
-      admin_reviewed_at: {
+      adminReviewedAt: {
         type: Sequelize.DATE,
         allowNull: true,
       },
-      created_at: {
+      createdAt: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
         allowNull: false,
       },
-      updated_at: {
+      updatedAt: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
         allowNull: false,
       },
     });
 
-    await queryInterface.createTable('payout_history', {
+    await queryInterface.createTable('withdrawal_history', {
       id: {
         type: Sequelize.UUID,
         defaultValue: Sequelize.UUIDV4,
         allowNull: false,
         primaryKey: true,
       },
-      user_id: {
+      userId: {
         type: Sequelize.STRING,
         allowNull: false,
       },
@@ -79,11 +79,11 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      payment_provider: {
+      paymentProvider: {
         type: Sequelize.ENUM('paystack', 'stripe', 'manual_transfer'),
         allowNull: false,
       },
-      payout_reference: {
+      payoutReference: {
         type: Sequelize.STRING,
         allowNull: true,
       },
@@ -92,11 +92,16 @@ module.exports = {
         allowNull: false,
         defaultValue: 'pending',
       },
-      transaction_date: {
+      transactionDate: {
         type: Sequelize.DATE,
         allowNull: false,
       },
-      created_at: {
+      createdAt: {
+        type: Sequelize.DATE,
+        defaultValue: Sequelize.NOW,
+        allowNull: false,
+      },
+      updatedAt: {
         type: Sequelize.DATE,
         defaultValue: Sequelize.NOW,
         allowNull: false,
@@ -105,7 +110,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('payout_requests');
-    await queryInterface.dropTable('payout_history');
+    await queryInterface.dropTable('withdrawal_requests');
+    await queryInterface.dropTable('withdrawal_history');
   },
 };

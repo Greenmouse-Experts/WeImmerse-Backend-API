@@ -6,6 +6,8 @@ class WithdrawalAccount extends Model {
   public accountNumber!: string;
   public accountType!: string;
   public bankName!: string;
+  public accountName!: string;
+  public bankCode!: string;
   public routingNumber!: string | null;
   public country!: string;
   public countryCode!: string;
@@ -64,6 +66,14 @@ const initModel = (sequelize: Sequelize) => {
       currency: {
         type: DataTypes.STRING(255),
         defaultValue: 'NGN',
+      },
+      accountName: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+      bankCode: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
       },
       createdAt: {
         type: DataTypes.DATE,

@@ -20,7 +20,7 @@ const studentRoute_1 = __importDefault(require("../routes/studentRoute"));
 const creatorRoute_1 = __importDefault(require("../routes/creatorRoute"));
 const institutionRoute_1 = __importDefault(require("../routes/institutionRoute"));
 const kycRoute_1 = __importDefault(require("../routes/kycRoute"));
-const withdrawalAccountRoute_1 = __importDefault(require("../routes/withdrawalAccountRoute"));
+const withdrawalRoute_1 = __importDefault(require("../routes/withdrawalRoute"));
 dotenv_1.default.config();
 const createExpressApp = () => {
     const app = (0, express_1.default)();
@@ -50,7 +50,7 @@ const createExpressApp = () => {
     app.use('/v1/api/creator', creatorRoute_1.default);
     app.use('/v1/api/admin', adminRoute_1.default);
     app.use('/v1/api/kyc', kycRoute_1.default);
-    app.use('/v1/api/withdrawal-account', withdrawalAccountRoute_1.default);
+    app.use('/v1/api/withdrawal', withdrawalRoute_1.default);
     // 404 handler (this should come after routes)
     app.use((req, res) => {
         console.log(`404 error for path: ${req.path}`);

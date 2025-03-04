@@ -2,7 +2,7 @@ import { Model, DataTypes, Sequelize } from 'sequelize';
 import { PaymentProvider } from './withdrawalrequest';
 import User from './user';
 
-class PayoutHistory extends Model {
+class WithdrawalHistory extends Model {
   public id!: string;
   public userId!: string;
   public amount!: number;
@@ -15,7 +15,7 @@ class PayoutHistory extends Model {
 }
 
 const initModel = (sequelize: Sequelize) => {
-  PayoutHistory.init(
+  WithdrawalHistory.init(
     {
       id: {
         type: DataTypes.UUID,
@@ -58,12 +58,12 @@ const initModel = (sequelize: Sequelize) => {
     },
     {
       sequelize,
-      modelName: 'PayoutHistory',
-      tableName: 'payout_history',
+      modelName: 'WithdrawalHistory',
+      tableName: 'withdrawal_history',
       timestamps: true,
     }
   );
 };
 
-export default PayoutHistory;
+export default WithdrawalHistory;
 export { initModel };

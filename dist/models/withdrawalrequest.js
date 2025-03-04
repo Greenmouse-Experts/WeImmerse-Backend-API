@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = exports.PayoutStatus = exports.PaymentProvider = void 0;
+exports.initModel = exports.WithdrawalStatus = exports.PaymentProvider = void 0;
 const sequelize_1 = require("sequelize");
 const user_1 = __importDefault(require("./user"));
 const admin_1 = __importDefault(require("./admin"));
@@ -13,18 +13,18 @@ var PaymentProvider;
     PaymentProvider["STRIPE"] = "stripe";
     PaymentProvider["MANUAL_TRANSFER"] = "manual_transfer";
 })(PaymentProvider || (exports.PaymentProvider = PaymentProvider = {}));
-var PayoutStatus;
-(function (PayoutStatus) {
-    PayoutStatus["PENDING"] = "pending";
-    PayoutStatus["APPROVED"] = "approved";
-    PayoutStatus["REJECTED"] = "rejected";
-    PayoutStatus["PROCESSING"] = "processing";
-    PayoutStatus["COMPLETED"] = "completed";
-})(PayoutStatus || (exports.PayoutStatus = PayoutStatus = {}));
-class PayoutRequest extends sequelize_1.Model {
+var WithdrawalStatus;
+(function (WithdrawalStatus) {
+    WithdrawalStatus["PENDING"] = "pending";
+    WithdrawalStatus["APPROVED"] = "approved";
+    WithdrawalStatus["REJECTED"] = "rejected";
+    WithdrawalStatus["PROCESSING"] = "processing";
+    WithdrawalStatus["COMPLETED"] = "completed";
+})(WithdrawalStatus || (exports.WithdrawalStatus = WithdrawalStatus = {}));
+class WithdrawalRequest extends sequelize_1.Model {
 }
 const initModel = (sequelize) => {
-    PayoutRequest.init({
+    WithdrawalRequest.init({
         id: {
             type: sequelize_1.DataTypes.UUID,
             defaultValue: sequelize_1.DataTypes.UUIDV4,
@@ -73,11 +73,11 @@ const initModel = (sequelize) => {
         },
     }, {
         sequelize,
-        modelName: 'PayoutRequest',
-        tableName: 'payout_requests',
+        modelName: 'WithdrawalRequest',
+        tableName: 'withdrawal_requests',
         timestamps: true,
     });
 };
 exports.initModel = initModel;
-exports.default = PayoutRequest;
+exports.default = WithdrawalRequest;
 //# sourceMappingURL=withdrawalrequest.js.map

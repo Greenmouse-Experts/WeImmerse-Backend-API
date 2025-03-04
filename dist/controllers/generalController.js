@@ -59,6 +59,7 @@ const savedjob_1 = __importDefault(require("../models/savedjob"));
 const applicant_1 = __importDefault(require("../models/applicant"));
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const course_1 = __importStar(require("../models/course"));
+const wallet_1 = __importDefault(require("../models/wallet"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -84,10 +85,11 @@ const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 });
 exports.logout = logout;
 const profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
     try {
-        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
-        const user = yield user_1.default.findByPk(userId);
+        const { id: userId, accountType } = req.user; // Assuming the user ID is passed in the URL params
+        const user = yield user_1.default.findOne(Object.assign({ where: { id: userId } }, ((accountType === 'creator' || accountType === 'institution') && {
+            include: [{ model: wallet_1.default, as: 'wallet' }],
+        })));
         if (!user) {
             res.status(404).json({ message: 'Account not found.' });
             return;

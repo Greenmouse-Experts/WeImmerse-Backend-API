@@ -46,6 +46,14 @@ class User extends sequelize_1.Model {
             as: 'kyc_verification',
             foreignKey: 'user_id',
         });
+        this.hasOne(models.Wallet, {
+            as: 'wallet',
+            foreignKey: 'userId',
+        });
+        this.hasOne(models.WithdrawalAccount, {
+            as: 'withdrawalAccount',
+            foreignKey: 'userId',
+        });
     }
 }
 const initModel = (sequelize) => {
