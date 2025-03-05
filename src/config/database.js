@@ -1,6 +1,6 @@
 require('dotenv/config');
 
-export const sequelize = {
+module.exports = {
   dialect: process.env.DB_DIALECT,
   host: process.env.DB_HOST,
   username: process.env.DB_USER,

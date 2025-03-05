@@ -65,6 +65,8 @@ export const createWithdrawalAccount = async (
     // Create a wallet for user if not existent
     await WalletService.createWallet(userId);
 
+    transaction?.commit();
+
     res.status(201).json({
       status: true,
       message: 'Withdrawal account created successfully.',
@@ -278,6 +280,9 @@ export const approveWithdrawal = async (
 
   if (!result.success)
     return res.status(400).json({ status: false, message: result.message });
+
+  transaction.commit();
+
   res.json(result);
 };
 

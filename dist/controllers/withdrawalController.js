@@ -49,6 +49,7 @@ const createWithdrawalAccount = (req, res) => __awaiter(void 0, void 0, void 0, 
         const account = JSON.parse(JSON.stringify(yield withdrawalaccount_1.default.create(Object.assign(Object.assign({}, req.body), { userId, accountName: verifiedAccount.account_name }), { transaction })));
         // Create a wallet for user if not existent
         yield wallet_service_1.default.createWallet(userId);
+        transaction === null || transaction === void 0 ? void 0 : transaction.commit();
         res.status(201).json({
             status: true,
             message: 'Withdrawal account created successfully.',
@@ -222,6 +223,7 @@ const approveWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, functi
     const result = yield withdrawal_service_1.default.approveWithdrawal(adminId, requestId, approve, transaction);
     if (!result.success)
         return res.status(400).json({ status: false, message: result.message });
+    transaction.commit();
     res.json(result);
 });
 exports.approveWithdrawal = approveWithdrawal;

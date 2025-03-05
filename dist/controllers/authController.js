@@ -39,7 +39,7 @@ const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         // Check if email already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
-            res.status(400).json({ message: "Email already in use" });
+            res.status(400).json({ message: 'Email already in use' });
             return;
         }
         // Check if the referral code exists (if provided)
@@ -47,7 +47,7 @@ const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         if (referralCode) {
             referrer = yield user_1.default.findOne({ where: { referralCode } });
             if (!referrer) {
-                res.status(400).json({ message: "Invalid referral code" });
+                res.status(400).json({ message: 'Invalid referral code' });
                 return;
             }
         }
@@ -60,10 +60,10 @@ const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             email,
             password,
             referralCode: (0, helpers_2.generateReferralCode)(name),
-            accountType: "user",
+            accountType: 'user',
         });
         if (!newUser)
-            throw new Error("Failed to create new user");
+            throw new Error('Failed to create new user');
         // Generate OTP for email verification
         const otpCode = (0, helpers_1.generateOTP)();
         yield otp_1.default.create({
@@ -77,26 +77,28 @@ const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError);
+            logger_1.default.error('Error sending email:', emailError);
         }
         // Send success response
         res.status(200).json({
-            message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+            message: 'Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.',
         });
     }
     catch (error) {
-        logger_1.default.error("Error during registration:", error);
-        res.status(500).json({ message: error.message || "Error during registration." });
+        logger_1.default.error('Error during registration:', error);
+        res
+            .status(500)
+            .json({ message: error.message || 'Error during registration.' });
     }
 });
 exports.userRegister = userRegister;
 const studentRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, phoneNumber, referralCode, email, password, educationalLevel, schoolId } = req.body;
+    const { name, phoneNumber, referralCode, email, password, educationalLevel, schoolId, } = req.body;
     try {
         // Check if email already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
-            res.status(400).json({ message: "Email already in use" });
+            res.status(400).json({ message: 'Email already in use' });
             return;
         }
         // Check if the referral code exists (if provided)
@@ -104,7 +106,7 @@ const studentRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
         if (referralCode) {
             referrer = yield user_1.default.findOne({ where: { referralCode } });
             if (!referrer) {
-                res.status(400).json({ message: "Invalid referral code" });
+                res.status(400).json({ message: 'Invalid referral code' });
                 return;
             }
         }
@@ -119,10 +121,10 @@ const studentRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
             educationalLevel,
             schoolId,
             referralCode: newReferralCode,
-            accountType: "student",
+            accountType: 'student',
         });
         if (!newUser)
-            throw new Error("Failed to create new user");
+            throw new Error('Failed to create new user');
         // Generate OTP for email verification
         const otpCode = (0, helpers_1.generateOTP)();
         yield otp_1.default.create({
@@ -136,26 +138,28 @@ const studentRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError);
+            logger_1.default.error('Error sending email:', emailError);
         }
         // Send success response
         res.status(200).json({
-            message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+            message: 'Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.',
         });
     }
     catch (error) {
-        logger_1.default.error("Error during registration:", error);
-        res.status(500).json({ message: error.message || "Error during registration." });
+        logger_1.default.error('Error during registration:', error);
+        res
+            .status(500)
+            .json({ message: error.message || 'Error during registration.' });
     }
 });
 exports.studentRegister = studentRegister;
 const creatorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, phoneNumber, referralCode, email, password, industry, professionalSkill } = req.body;
+    const { name, phoneNumber, referralCode, email, password, industry, professionalSkill, } = req.body;
     try {
         // Check if email already exists
         const existingUser = yield user_1.default.findOne({ where: { email } });
         if (existingUser) {
-            res.status(400).json({ message: "Email already in use" });
+            res.status(400).json({ message: 'Email already in use' });
             return;
         }
         // Check if the referral code exists (if provided)
@@ -163,7 +167,7 @@ const creatorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
         if (referralCode) {
             referrer = yield user_1.default.findOne({ where: { referralCode } });
             if (!referrer) {
-                res.status(400).json({ message: "Invalid referral code" });
+                res.status(400).json({ message: 'Invalid referral code' });
                 return;
             }
         }
@@ -178,10 +182,10 @@ const creatorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
             industry,
             professionalSkill,
             referralCode: newReferralCode,
-            accountType: "creator",
+            accountType: 'creator',
         });
         if (!newUser)
-            throw new Error("Failed to create new user");
+            throw new Error('Failed to create new user');
         // Generate OTP for email verification
         const otpCode = (0, helpers_1.generateOTP)();
         yield otp_1.default.create({
@@ -195,21 +199,24 @@ const creatorRegister = (req, res) => __awaiter(void 0, void 0, void 0, function
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError);
+            logger_1.default.error('Error sending email:', emailError);
         }
         // Send success response
         res.status(200).json({
-            message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+            message: 'Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.',
         });
     }
     catch (error) {
-        logger_1.default.error("Error during registration:", error);
-        res.status(500).json({ message: error.message || "Error during registration." });
+        console.log(error);
+        logger_1.default.error('Error during registration:', error);
+        res
+            .status(500)
+            .json({ message: error.message || 'Error during registration.' });
     }
 });
 exports.creatorRegister = creatorRegister;
 const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
+    const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation, } = req.body;
     // Start transaction
     const transaction = yield sequelize_service_1.default.connection.transaction();
     try {
@@ -219,7 +226,7 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
             transaction, // Pass transaction in options
         });
         if (existingUser) {
-            res.status(400).json({ message: "Email already in use" });
+            res.status(400).json({ message: 'Email already in use' });
             return;
         }
         // Check if the referral code exists (if provided)
@@ -230,7 +237,7 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
                 transaction, // Pass transaction in options
             });
             if (!referrer) {
-                res.status(400).json({ message: "Invalid referral code" });
+                res.status(400).json({ message: 'Invalid referral code' });
                 return;
             }
         }
@@ -243,10 +250,10 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
             password,
             jobTitle,
             referralCode: newReferralCode,
-            accountType: "institution",
+            accountType: 'institution',
         }, { transaction });
         if (!newUser)
-            throw new Error("Failed to create new user");
+            throw new Error('Failed to create new user');
         // Create institution information
         yield institutioninformation_1.default.create({
             userId: newUser.id,
@@ -255,7 +262,7 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
             institutionIndustry,
             institutionPhoneNumber,
             institutionType,
-            institutionLocation
+            institutionLocation,
         }, { transaction });
         // Generate OTP for email verification
         const otpCode = (0, helpers_1.generateOTP)();
@@ -270,20 +277,22 @@ const institutionRegister = (req, res) => __awaiter(void 0, void 0, void 0, func
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError);
+            logger_1.default.error('Error sending email:', emailError);
         }
         // Commit transaction
         yield transaction.commit();
         // Send success response
         res.status(200).json({
-            message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+            message: 'Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.',
         });
     }
     catch (error) {
         // Rollback transaction in case of error
         yield transaction.rollback();
-        logger_1.default.error("Error during registration:", error);
-        res.status(500).json({ message: error.message || "Error during registration." });
+        logger_1.default.error('Error during registration:', error);
+        res
+            .status(500)
+            .json({ message: error.message || 'Error during registration.' });
     }
 });
 exports.institutionRegister = institutionRegister;
@@ -293,7 +302,7 @@ const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         // Check if the user exists
         const user = yield user_1.default.findOne({ where: { email } });
         if (!user) {
-            res.status(404).json({ message: "User not found." });
+            res.status(404).json({ message: 'User not found.' });
             return;
         }
         if (!user.email_verified_at) {
@@ -302,12 +311,12 @@ const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                 where: { userId: user.id, otpCode },
             });
             if (!otpRecord) {
-                res.status(400).json({ message: "Invalid OTP code." });
+                res.status(400).json({ message: 'Invalid OTP code.' });
                 return;
             }
             // Check if the OTP has expired
             if (!otpRecord.expiresAt || new Date() > otpRecord.expiresAt) {
-                res.status(400).json({ message: "OTP has expired." });
+                res.status(400).json({ message: 'OTP has expired.' });
                 return;
             }
             // Update the user's email verification status
@@ -317,19 +326,19 @@ const verifyEmail = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             yield otp_1.default.destroy({ where: { userId: user.id } });
             // Return a success response
             res.status(200).json({
-                message: "Email verified successfully.",
+                message: 'Email verified successfully.',
             });
         }
         else {
             // If the email is already verified
             res.status(200).json({
-                message: "Your account has already been verified. You can now log in.",
+                message: 'Your account has already been verified. You can now log in.',
             });
         }
     }
     catch (error) {
-        logger_1.default.error("Error verifying email:", error);
-        res.status(500).json({ message: "Internal server error" });
+        logger_1.default.error('Error verifying email:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.verifyEmail = verifyEmail;
@@ -337,17 +346,17 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { email, password } = req.body;
     try {
         // Find user by email
-        const user = yield user_1.default.scope("auth").findOne({ where: { email } });
+        const user = yield user_1.default.scope('auth').findOne({ where: { email } });
         // Check if user exists
         if (!user) {
             res.status(400).json({ message: "Email doesn't exist" });
             return;
         }
         // Check if user is inactive
-        if (user.status === "inactive") {
+        if (user.status === 'inactive') {
             res
                 .status(403)
-                .json({ message: "Your account is inactive. Please contact support." });
+                .json({ message: 'Your account is inactive. Please contact support.' });
             return;
         }
         // Check if email is verified
@@ -366,31 +375,31 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
             }
             catch (emailError) {
-                logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+                logger_1.default.error('Error sending email:', emailError); // Log error for internal use
             }
             res.status(403).json({
-                message: "Your email is not verified. A verification email has been sent to your email address.",
+                message: 'Your email is not verified. A verification email has been sent to your email address.',
             });
             return;
         }
         // Check if the password is correct
         const isPasswordValid = yield user.checkPassword(password);
         if (!isPasswordValid) {
-            res.status(400).json({ message: "Incorrect password" });
+            res.status(400).json({ message: 'Incorrect password' });
             return;
         }
         // Generate token
         const token = jwt_service_1.default.jwtSign(user.id);
         // Successful login
         res.status(200).json({
-            message: "Login successful",
-            data: Object.assign(Object.assign({}, user.toJSON()), { token })
+            message: 'Login successful',
+            data: Object.assign(Object.assign({}, user.toJSON()), { token }),
         });
     }
     catch (error) {
-        logger_1.default.error("Error in login:", error);
+        logger_1.default.error('Error in login:', error);
         // Handle server errors
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.login = login;
@@ -400,13 +409,13 @@ const resendVerificationEmail = (req, res) => __awaiter(void 0, void 0, void 0, 
         // Check if the user exists
         const user = yield user_1.default.findOne({ where: { email } });
         if (!user) {
-            res.status(404).json({ message: "User not found." });
+            res.status(404).json({ message: 'User not found.' });
             return;
         }
         if (user.email_verified_at) {
             // If the email is already verified
             res.status(200).json({
-                message: "Your account has already been verified. You can now log in.",
+                message: 'Your account has already been verified. You can now log in.',
             });
         }
         // Generate a new OTP
@@ -423,16 +432,16 @@ const resendVerificationEmail = (req, res) => __awaiter(void 0, void 0, void 0, 
             yield (0, mail_service_1.sendMail)(email, `${process.env.APP_NAME} - Verify Your Account`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
         }
         // Return success response
         res.status(200).json({
-            message: "Verification email has been resent successfully.",
+            message: 'Verification email has been resent successfully.',
         });
     }
     catch (error) {
-        logger_1.default.error("Error resending verification email:", error);
-        res.status(500).json({ code: 500, message: "Internal server error" });
+        logger_1.default.error('Error resending verification email:', error);
+        res.status(500).json({ code: 500, message: 'Internal server error' });
     }
 });
 exports.resendVerificationEmail = resendVerificationEmail;
@@ -442,7 +451,7 @@ const forgetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
         // Check if user exists
         const user = yield user_1.default.findOne({ where: { email } });
         if (!user) {
-            res.status(404).json({ message: "User with this email does not exist" });
+            res.status(404).json({ message: 'User with this email does not exist' });
             return;
         }
         // Generate OTP
@@ -459,15 +468,15 @@ const forgetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function*
             yield (0, mail_service_1.sendMail)(user.email, `${process.env.APP_NAME} - Reset Password`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
         }
         res.status(200).json({
-            message: "Password reset OTP has been sent to your email",
+            message: 'Password reset OTP has been sent to your email',
         });
     }
     catch (error) {
-        logger_1.default.error("Error in forgetPassword:", error);
-        res.status(500).json({ message: "Internal server error" });
+        logger_1.default.error('Error in forgetPassword:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.forgetPassword = forgetPassword;
@@ -481,22 +490,24 @@ const codeCheck = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             },
             include: {
                 model: user_1.default, // Assuming OTP is linked to User model
-                as: "user",
+                as: 'user',
                 where: { email },
             },
         });
         // Check if OTP is valid
-        if (!otpRecord || !otpRecord.expiresAt || otpRecord.expiresAt < new Date()) {
-            res.status(400).json({ message: "Invalid or expired OTP" });
+        if (!otpRecord ||
+            !otpRecord.expiresAt ||
+            otpRecord.expiresAt < new Date()) {
+            res.status(400).json({ message: 'Invalid or expired OTP' });
             return;
         }
         res.status(200).json({
-            message: "OTP is valid",
+            message: 'OTP is valid',
         });
     }
     catch (error) {
-        logger_1.default.error("Error in checkResetCode:", error);
-        res.status(500).json({ message: "Internal server error" });
+        logger_1.default.error('Error in checkResetCode:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.codeCheck = codeCheck;
@@ -508,13 +519,13 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             where: { otpCode },
             include: {
                 model: user_1.default,
-                as: "user",
+                as: 'user',
                 where: { email },
             },
         });
         // Ensure OTP and User are valid
         if (!otpRecord || !otpRecord.user || otpRecord.expiresAt < new Date()) {
-            res.status(400).json({ message: "Invalid or expired OTP" });
+            res.status(400).json({ message: 'Invalid or expired OTP' });
             return;
         }
         // Hash the new password
@@ -529,15 +540,15 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             yield (0, mail_service_1.sendMail)(otpRecord.user.email, `${process.env.APP_NAME} - Password Reset Notification`, message);
         }
         catch (emailError) {
-            logger_1.default.error("Error sending email:", emailError); // Log error for internal use
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
         }
         res.status(200).json({
-            message: "Password has been reset successfully",
+            message: 'Password has been reset successfully',
         });
     }
     catch (error) {
-        logger_1.default.error("Error in resetPassword:", error);
-        res.status(500).json({ message: "Internal server error" });
+        logger_1.default.error('Error in resetPassword:', error);
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.resetPassword = resetPassword;
@@ -546,46 +557,46 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     const { email, password } = req.body;
     try {
         // Find admin by email
-        const admin = yield admin_1.default.scope("auth").findOne({
+        const admin = yield admin_1.default.scope('auth').findOne({
             where: { email },
             include: [
                 {
                     model: role_1.default, // Assuming you've imported the Role model
-                    as: "role", // Make sure this alias matches the one you used in the association
+                    as: 'role', // Make sure this alias matches the one you used in the association
                 },
             ],
         });
         // Check if admin exists
         if (!admin) {
-            res.status(400).json({ message: "Invalid email" });
+            res.status(400).json({ message: 'Invalid email' });
             return;
         }
         // Check if user is inactive
-        if (admin.status === "inactive") {
+        if (admin.status === 'inactive') {
             res
                 .status(403)
-                .json({ message: "Your account is inactive. Please contact support." });
+                .json({ message: 'Your account is inactive. Please contact support.' });
             return;
         }
         // Check if the password is correct
         const isPasswordValid = yield admin.checkPassword(password);
         if (!isPasswordValid) {
-            res.status(400).json({ message: "Incorrect password" });
+            res.status(400).json({ message: 'Incorrect password' });
             return;
         }
         // Generate token
         const token = jwt_service_1.default.jwtSign(admin.id);
         // Successful login
         res.status(200).json({
-            message: "Admin login successful",
+            message: 'Admin login successful',
             data: admin,
             token,
         });
     }
     catch (error) {
-        logger_1.default.error("Error in login:", error);
+        logger_1.default.error('Error in login:', error);
         // Handle server errors
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 exports.adminLogin = adminLogin;

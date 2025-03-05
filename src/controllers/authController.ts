@@ -1,20 +1,20 @@
 // src/controllers/authController.ts
-import { Request, Response, NextFunction } from "express";
-import User from "../models/user";
-import bcrypt from "bcrypt";
-import { generateOTP } from "../utils/helpers";
-import OTP from "../models/otp";
-import { sendMail } from "../services/mail.service";
-import { emailTemplates } from "../utils/messages";
-import JwtService from "../services/jwt.service";
-import logger from "../middlewares/logger"; // Adjust the path to your logger.js
-import { generateReferralCode } from "../utils/helpers";
-import Admin from "../models/admin";
-import Role from "../models/role";
-import SubscriptionPlan from "../models/subscriptionplan";
-import UserNotificationSetting from "../models/usernotificationsetting";
-import InstitutionInformation from "../models/institutioninformation";
-import sequelizeService from "../services/sequelize.service";
+import { Request, Response, NextFunction } from 'express';
+import User from '../models/user';
+import bcrypt from 'bcrypt';
+import { generateOTP } from '../utils/helpers';
+import OTP from '../models/otp';
+import { sendMail } from '../services/mail.service';
+import { emailTemplates } from '../utils/messages';
+import JwtService from '../services/jwt.service';
+import logger from '../middlewares/logger'; // Adjust the path to your logger.js
+import { generateReferralCode } from '../utils/helpers';
+import Admin from '../models/admin';
+import Role from '../models/role';
+import SubscriptionPlan from '../models/subscriptionplan';
+import UserNotificationSetting from '../models/usernotificationsetting';
+import InstitutionInformation from '../models/institutioninformation';
+import sequelizeService from '../services/sequelize.service';
 
 export const index = async (req: Request, res: Response) => {
   res.status(200).json({
@@ -23,14 +23,17 @@ export const index = async (req: Request, res: Response) => {
   });
 };
 
-export const userRegister = async (req: Request, res: Response): Promise<void> => {
+export const userRegister = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const { name, phoneNumber, referralCode, email, password } = req.body;
 
   try {
     // Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      res.status(400).json({ message: "Email already in use" });
+      res.status(400).json({ message: 'Email already in use' });
       return;
     }
 
@@ -39,7 +42,7 @@ export const userRegister = async (req: Request, res: Response): Promise<void> =
     if (referralCode) {
       referrer = await User.findOne({ where: { referralCode } });
       if (!referrer) {
-        res.status(400).json({ message: "Invalid referral code" });
+        res.status(400).json({ message: 'Invalid referral code' });
         return;
       }
     }
@@ -54,10 +57,10 @@ export const userRegister = async (req: Request, res: Response): Promise<void> =
       email,
       password,
       referralCode: generateReferralCode(name),
-      accountType: "user",
+      accountType: 'user',
     });
 
-    if (!newUser) throw new Error("Failed to create new user");
+    if (!newUser) throw new Error('Failed to create new user');
 
     // Generate OTP for email verification
     const otpCode = generateOTP();
@@ -70,30 +73,47 @@ export const userRegister = async (req: Request, res: Response): Promise<void> =
     // Send verification email
     const message = emailTemplates.verifyEmail(newUser, otpCode);
     try {
-      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+      await sendMail(
+        email,
+        `${process.env.APP_NAME} - Verify Your Account`,
+        message
+      );
     } catch (emailError) {
-      logger.error("Error sending email:", emailError);
+      logger.error('Error sending email:', emailError);
     }
 
     // Send success response
     res.status(200).json({
       message:
-        "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+        'Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.',
     });
   } catch (error: any) {
-    logger.error("Error during registration:", error);
-    res.status(500).json({ message: error.message || "Error during registration." });
+    logger.error('Error during registration:', error);
+    res
+      .status(500)
+      .json({ message: error.message || 'Error during registration.' });
   }
 };
 
-export const studentRegister = async (req: Request, res: Response): Promise<void> => {
-  const { name, phoneNumber, referralCode, email, password, educationalLevel, schoolId } = req.body;
+export const studentRegister = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const {
+    name,
+    phoneNumber,
+    referralCode,
+    email,
+    password,
+    educationalLevel,
+    schoolId,
+  } = req.body;
 
   try {
     // Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      res.status(400).json({ message: "Email already in use" });
+      res.status(400).json({ message: 'Email already in use' });
       return;
     }
 
@@ -102,7 +122,7 @@ export const studentRegister = async (req: Request, res: Response): Promise<void
     if (referralCode) {
       referrer = await User.findOne({ where: { referralCode } });
       if (!referrer) {
-        res.status(400).json({ message: "Invalid referral code" });
+        res.status(400).json({ message: 'Invalid referral code' });
         return;
       }
     }
@@ -119,10 +139,10 @@ export const studentRegister = async (req: Request, res: Response): Promise<void
       educationalLevel,
       schoolId,
       referralCode: newReferralCode,
-      accountType: "student",
+      accountType: 'student',
     });
 
-    if (!newUser) throw new Error("Failed to create new user");
+    if (!newUser) throw new Error('Failed to create new user');
 
     // Generate OTP for email verification
     const otpCode = generateOTP();
@@ -135,30 +155,47 @@ export const studentRegister = async (req: Request, res: Response): Promise<void
     // Send verification email
     const message = emailTemplates.verifyEmail(newUser, otpCode);
     try {
-      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+      await sendMail(
+        email,
+        `${process.env.APP_NAME} - Verify Your Account`,
+        message
+      );
     } catch (emailError) {
-      logger.error("Error sending email:", emailError);
+      logger.error('Error sending email:', emailError);
     }
 
     // Send success response
     res.status(200).json({
       message:
-        "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+        'Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.',
     });
   } catch (error: any) {
-    logger.error("Error during registration:", error);
-    res.status(500).json({ message: error.message || "Error during registration." });
+    logger.error('Error during registration:', error);
+    res
+      .status(500)
+      .json({ message: error.message || 'Error during registration.' });
   }
 };
 
-export const creatorRegister = async (req: Request, res: Response): Promise<void> => {
-  const { name, phoneNumber, referralCode, email, password, industry, professionalSkill } = req.body;
+export const creatorRegister = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const {
+    name,
+    phoneNumber,
+    referralCode,
+    email,
+    password,
+    industry,
+    professionalSkill,
+  } = req.body;
 
   try {
     // Check if email already exists
     const existingUser = await User.findOne({ where: { email } });
     if (existingUser) {
-      res.status(400).json({ message: "Email already in use" });
+      res.status(400).json({ message: 'Email already in use' });
       return;
     }
 
@@ -167,7 +204,7 @@ export const creatorRegister = async (req: Request, res: Response): Promise<void
     if (referralCode) {
       referrer = await User.findOne({ where: { referralCode } });
       if (!referrer) {
-        res.status(400).json({ message: "Invalid referral code" });
+        res.status(400).json({ message: 'Invalid referral code' });
         return;
       }
     }
@@ -184,10 +221,10 @@ export const creatorRegister = async (req: Request, res: Response): Promise<void
       industry,
       professionalSkill,
       referralCode: newReferralCode,
-      accountType: "creator",
+      accountType: 'creator',
     });
 
-    if (!newUser) throw new Error("Failed to create new user");
+    if (!newUser) throw new Error('Failed to create new user');
 
     // Generate OTP for email verification
     const otpCode = generateOTP();
@@ -200,23 +237,47 @@ export const creatorRegister = async (req: Request, res: Response): Promise<void
     // Send verification email
     const message = emailTemplates.verifyEmail(newUser, otpCode);
     try {
-      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+      await sendMail(
+        email,
+        `${process.env.APP_NAME} - Verify Your Account`,
+        message
+      );
     } catch (emailError) {
-      logger.error("Error sending email:", emailError);
+      logger.error('Error sending email:', emailError);
     }
 
     // Send success response
     res.status(200).json({
-      message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+      message:
+        'Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.',
     });
   } catch (error: any) {
-    logger.error("Error during registration:", error);
-    res.status(500).json({ message: error.message || "Error during registration." });
+    console.log(error);
+
+    logger.error('Error during registration:', error);
+    res
+      .status(500)
+      .json({ message: error.message || 'Error during registration.' });
   }
 };
 
-export const institutionRegister = async (req: Request, res: Response): Promise<void> => {
-  const { name, referralCode, email, password, jobTitle, institutionName, institutionEmail, institutionIndustry, institutionPhoneNumber, institutionType, institutionLocation } = req.body;
+export const institutionRegister = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const {
+    name,
+    referralCode,
+    email,
+    password,
+    jobTitle,
+    institutionName,
+    institutionEmail,
+    institutionIndustry,
+    institutionPhoneNumber,
+    institutionType,
+    institutionLocation,
+  } = req.body;
 
   // Start transaction
   const transaction = await sequelizeService.connection!.transaction();
@@ -228,7 +289,7 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
       transaction, // Pass transaction in options
     });
     if (existingUser) {
-      res.status(400).json({ message: "Email already in use" });
+      res.status(400).json({ message: 'Email already in use' });
       return;
     }
 
@@ -240,7 +301,7 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
         transaction, // Pass transaction in options
       });
       if (!referrer) {
-        res.status(400).json({ message: "Invalid referral code" });
+        res.status(400).json({ message: 'Invalid referral code' });
         return;
       }
     }
@@ -249,42 +310,55 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
     const newReferralCode = generateReferralCode(name);
 
     // Create new user
-    const newUser = await User.create({
-      name,
-      email,
-      password,
-      jobTitle,
-      referralCode: newReferralCode,
-      accountType: "institution",
-    }, { transaction });
+    const newUser = await User.create(
+      {
+        name,
+        email,
+        password,
+        jobTitle,
+        referralCode: newReferralCode,
+        accountType: 'institution',
+      },
+      { transaction }
+    );
 
-    if (!newUser) throw new Error("Failed to create new user");
+    if (!newUser) throw new Error('Failed to create new user');
 
     // Create institution information
-    await InstitutionInformation.create({
-      userId: newUser.id,
-      institutionName,
-      institutionEmail,
-      institutionIndustry,
-      institutionPhoneNumber,
-      institutionType,
-      institutionLocation
-    }, { transaction });
+    await InstitutionInformation.create(
+      {
+        userId: newUser.id,
+        institutionName,
+        institutionEmail,
+        institutionIndustry,
+        institutionPhoneNumber,
+        institutionType,
+        institutionLocation,
+      },
+      { transaction }
+    );
 
     // Generate OTP for email verification
     const otpCode = generateOTP();
-    await OTP.create({
-      userId: newUser.id,
-      otpCode,
-      expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
-    }, { transaction });
+    await OTP.create(
+      {
+        userId: newUser.id,
+        otpCode,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000), // Expires in 1 hour
+      },
+      { transaction }
+    );
 
     // Send verification email
     const message = emailTemplates.verifyEmail(newUser, otpCode);
     try {
-      await sendMail(email, `${process.env.APP_NAME} - Verify Your Account`, message);
+      await sendMail(
+        email,
+        `${process.env.APP_NAME} - Verify Your Account`,
+        message
+      );
     } catch (emailError) {
-      logger.error("Error sending email:", emailError);
+      logger.error('Error sending email:', emailError);
     }
 
     // Commit transaction
@@ -292,14 +366,17 @@ export const institutionRegister = async (req: Request, res: Response): Promise<
 
     // Send success response
     res.status(200).json({
-      message: "Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.",
+      message:
+        'Registration successful. A verification email has been sent to your email address. Please check your inbox to verify your account.',
     });
   } catch (error: any) {
     // Rollback transaction in case of error
     await transaction.rollback();
 
-    logger.error("Error during registration:", error);
-    res.status(500).json({ message: error.message || "Error during registration." });
+    logger.error('Error during registration:', error);
+    res
+      .status(500)
+      .json({ message: error.message || 'Error during registration.' });
   }
 };
 
@@ -313,7 +390,7 @@ export const verifyEmail = async (
     // Check if the user exists
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      res.status(404).json({ message: "User not found." });
+      res.status(404).json({ message: 'User not found.' });
       return;
     }
 
@@ -323,13 +400,13 @@ export const verifyEmail = async (
         where: { userId: user.id, otpCode },
       });
       if (!otpRecord) {
-        res.status(400).json({ message: "Invalid OTP code." });
+        res.status(400).json({ message: 'Invalid OTP code.' });
         return;
       }
 
       // Check if the OTP has expired
       if (!otpRecord.expiresAt || new Date() > otpRecord.expiresAt) {
-        res.status(400).json({ message: "OTP has expired." });
+        res.status(400).json({ message: 'OTP has expired.' });
         return;
       }
 
@@ -342,18 +419,18 @@ export const verifyEmail = async (
 
       // Return a success response
       res.status(200).json({
-        message: "Email verified successfully.",
+        message: 'Email verified successfully.',
       });
     } else {
       // If the email is already verified
       res.status(200).json({
-        message: "Your account has already been verified. You can now log in.",
+        message: 'Your account has already been verified. You can now log in.',
       });
     }
   } catch (error: any) {
-    logger.error("Error verifying email:", error);
+    logger.error('Error verifying email:', error);
 
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -362,7 +439,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
   try {
     // Find user by email
-    const user = await User.scope("auth").findOne({ where: { email } });
+    const user = await User.scope('auth').findOne({ where: { email } });
 
     // Check if user exists
     if (!user) {
@@ -371,10 +448,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Check if user is inactive
-    if (user.status === "inactive") {
+    if (user.status === 'inactive') {
       res
         .status(403)
-        .json({ message: "Your account is inactive. Please contact support." });
+        .json({ message: 'Your account is inactive. Please contact support.' });
       return;
     }
 
@@ -399,12 +476,12 @@ export const login = async (req: Request, res: Response): Promise<void> => {
           message
         );
       } catch (emailError) {
-        logger.error("Error sending email:", emailError); // Log error for internal use
+        logger.error('Error sending email:', emailError); // Log error for internal use
       }
 
       res.status(403).json({
         message:
-          "Your email is not verified. A verification email has been sent to your email address.",
+          'Your email is not verified. A verification email has been sent to your email address.',
       });
       return;
     }
@@ -412,7 +489,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Check if the password is correct
     const isPasswordValid = await user.checkPassword(password);
     if (!isPasswordValid) {
-      res.status(400).json({ message: "Incorrect password" });
+      res.status(400).json({ message: 'Incorrect password' });
       return;
     }
 
@@ -421,17 +498,17 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
     // Successful login
     res.status(200).json({
-      message: "Login successful",
+      message: 'Login successful',
       data: {
         ...user.toJSON(),
-        token
-      }
+        token,
+      },
     });
   } catch (error) {
-    logger.error("Error in login:", error);
+    logger.error('Error in login:', error);
 
     // Handle server errors
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -445,14 +522,14 @@ export const resendVerificationEmail = async (
     // Check if the user exists
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      res.status(404).json({ message: "User not found." });
+      res.status(404).json({ message: 'User not found.' });
       return;
     }
 
-    if(user.email_verified_at) {
+    if (user.email_verified_at) {
       // If the email is already verified
       res.status(200).json({
-        message: "Your account has already been verified. You can now log in.",
+        message: 'Your account has already been verified. You can now log in.',
       });
     }
 
@@ -475,17 +552,17 @@ export const resendVerificationEmail = async (
         message
       );
     } catch (emailError) {
-      logger.error("Error sending email:", emailError); // Log error for internal use
+      logger.error('Error sending email:', emailError); // Log error for internal use
     }
 
     // Return success response
     res.status(200).json({
-      message: "Verification email has been resent successfully.",
+      message: 'Verification email has been resent successfully.',
     });
   } catch (error) {
-    logger.error("Error resending verification email:", error);
+    logger.error('Error resending verification email:', error);
 
-    res.status(500).json({ code: 500, message: "Internal server error" });
+    res.status(500).json({ code: 500, message: 'Internal server error' });
   }
 };
 
@@ -499,7 +576,7 @@ export const forgetPassword = async (
     // Check if user exists
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      res.status(404).json({ message: "User with this email does not exist" });
+      res.status(404).json({ message: 'User with this email does not exist' });
       return;
     }
 
@@ -522,15 +599,15 @@ export const forgetPassword = async (
         message
       );
     } catch (emailError) {
-      logger.error("Error sending email:", emailError); // Log error for internal use
+      logger.error('Error sending email:', emailError); // Log error for internal use
     }
 
     res.status(200).json({
-      message: "Password reset OTP has been sent to your email",
+      message: 'Password reset OTP has been sent to your email',
     });
   } catch (error) {
-    logger.error("Error in forgetPassword:", error);
-    res.status(500).json({ message: "Internal server error" });
+    logger.error('Error in forgetPassword:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -545,24 +622,28 @@ export const codeCheck = async (req: Request, res: Response): Promise<void> => {
       },
       include: {
         model: User, // Assuming OTP is linked to User model
-        as: "user",
+        as: 'user',
         where: { email },
       },
     });
 
     // Check if OTP is valid
-    if (!otpRecord || !otpRecord.expiresAt || otpRecord.expiresAt < new Date()) {
-      res.status(400).json({ message: "Invalid or expired OTP" });
+    if (
+      !otpRecord ||
+      !otpRecord.expiresAt ||
+      otpRecord.expiresAt < new Date()
+    ) {
+      res.status(400).json({ message: 'Invalid or expired OTP' });
       return;
     }
 
     res.status(200).json({
-      message: "OTP is valid",
+      message: 'OTP is valid',
     });
   } catch (error) {
-    logger.error("Error in checkResetCode:", error);
+    logger.error('Error in checkResetCode:', error);
 
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -578,14 +659,14 @@ export const resetPassword = async (
       where: { otpCode },
       include: {
         model: User,
-        as: "user",
+        as: 'user',
         where: { email },
       },
     });
 
     // Ensure OTP and User are valid
     if (!otpRecord || !otpRecord.user || otpRecord.expiresAt! < new Date()) {
-      res.status(400).json({ message: "Invalid or expired OTP" });
+      res.status(400).json({ message: 'Invalid or expired OTP' });
       return;
     }
 
@@ -607,15 +688,15 @@ export const resetPassword = async (
         message
       );
     } catch (emailError) {
-      logger.error("Error sending email:", emailError); // Log error for internal use
+      logger.error('Error sending email:', emailError); // Log error for internal use
     }
 
     res.status(200).json({
-      message: "Password has been reset successfully",
+      message: 'Password has been reset successfully',
     });
   } catch (error) {
-    logger.error("Error in resetPassword:", error);
-    res.status(500).json({ message: "Internal server error" });
+    logger.error('Error in resetPassword:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
 
@@ -628,34 +709,34 @@ export const adminLogin = async (
 
   try {
     // Find admin by email
-    const admin = await Admin.scope("auth").findOne({
+    const admin = await Admin.scope('auth').findOne({
       where: { email },
       include: [
         {
           model: Role, // Assuming you've imported the Role model
-          as: "role", // Make sure this alias matches the one you used in the association
+          as: 'role', // Make sure this alias matches the one you used in the association
         },
       ],
     });
 
     // Check if admin exists
     if (!admin) {
-      res.status(400).json({ message: "Invalid email" });
+      res.status(400).json({ message: 'Invalid email' });
       return;
     }
 
     // Check if user is inactive
-    if (admin.status === "inactive") {
+    if (admin.status === 'inactive') {
       res
         .status(403)
-        .json({ message: "Your account is inactive. Please contact support." });
+        .json({ message: 'Your account is inactive. Please contact support.' });
       return;
     }
 
     // Check if the password is correct
     const isPasswordValid = await admin.checkPassword(password);
     if (!isPasswordValid) {
-      res.status(400).json({ message: "Incorrect password" });
+      res.status(400).json({ message: 'Incorrect password' });
       return;
     }
 
@@ -664,14 +745,14 @@ export const adminLogin = async (
 
     // Successful login
     res.status(200).json({
-      message: "Admin login successful",
+      message: 'Admin login successful',
       data: admin,
       token,
     });
   } catch (error) {
-    logger.error("Error in login:", error);
+    logger.error('Error in login:', error);
 
     // Handle server errors
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
