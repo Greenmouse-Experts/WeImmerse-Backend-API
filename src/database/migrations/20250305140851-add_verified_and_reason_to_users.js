@@ -6,6 +6,7 @@ module.exports = {
     await queryInterface.addColumn('users', 'verified', {
       type: Sequelize.BOOLEAN,
       allowNull: true,
+      defaultValue: false,
     });
     await queryInterface.addColumn('users', 'reason', {
       type: Sequelize.TEXT,

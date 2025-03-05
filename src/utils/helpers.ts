@@ -300,6 +300,11 @@ const formatMoney = (amount: number, currency = 'NGN'): string => {
   }).format(amount);
 };
 
+enum AccountVettingStatus {
+  APPROVED = 'approved',
+  DISAPPROVED = 'disapproved',
+}
+
 // Export functions
 export {
   generateOTP,
@@ -315,4 +320,5 @@ export {
   getTotalPages,
   uploadToS3,
   formatMoney,
+  AccountVettingStatus,
 };

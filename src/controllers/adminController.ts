@@ -2,7 +2,7 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import { Op, Sequelize, ForeignKeyConstraintError } from 'sequelize';
-import { generateOTP } from '../utils/helpers';
+import { AccountVettingStatus, generateOTP } from '../utils/helpers';
 import { sendMail } from '../services/mail.service';
 import { emailTemplates } from '../utils/messages';
 import JwtService from '../services/jwt.service';
@@ -21,6 +21,7 @@ import PhysicalAsset from '../models/physicalasset';
 import DigitalAsset from '../models/digitalasset';
 import Course from '../models/course';
 import Job from '../models/job';
+import sequelizeService from '../services/sequelize.service';
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -1984,5 +1985,64 @@ export const reviewJobPost = async (
     res.status(500).json({
       message: error.message || 'An error occurred while review the job post.',
     });
+  }
+};
+
+/**
+ * Creator/Institution account vetting
+ * @param req
+ * @param res
+ */
+export const vetAccount = async (req: Request, res: Response): Promise<any> => {
+  const { reason, status } = req.body;
+
+  const { userId } = req.params;
+
+  // Start transaction
+  const transaction = await sequelizeService.connection!.transaction();
+
+  try {
+    // Check if email already exists
+    const existingUser = await User.findOne({
+      where: { id: userId },
+      transaction, // Pass transaction in options
+    });
+    if (!existingUser) {
+      return res.status(404).json({ message: 'Account not found' });
+    }
+
+    // Determine if approved or not
+    const verified = status == AccountVettingStatus.APPROVED ? true : false;
+
+    // Update
+    await User.update(
+      { verified, ...(!verified && { reason }) },
+      { where: { id: userId } }
+    );
+
+    // Prepare and send notify account owner about verification
+    const message = emailTemplates.vettedAccount(
+      existingUser,
+      status,
+      reason,
+      ''
+    );
+    try {
+      await sendMail(
+        existingUser.email,
+        `${process.env.APP_NAME} - Update on Your Account Verification`,
+        message
+      );
+    } catch (emailError) {
+      logger.error('Error sending email:', emailError); // Log error for internal use
+    }
+
+    return res.json({
+      status: true,
+      message: `Account ${status} successfully.`,
+    });
+  } catch (error: any) {
+    console.log(error);
+    return res.status(400).json({ status: false, message: error.message });
   }
 };

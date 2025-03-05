@@ -16,6 +16,7 @@ import {
 import {
   digitalAssetValidationRules,
   physicalAssetValidationRules,
+  vetAccountValidationRules,
 } from '../utils/validations/adminValidations';
 import checkPermission from '../middlewares/checkPermissionMiddleware';
 
@@ -352,6 +353,15 @@ adminRoutes.patch(
   reviewJobValidationRules(),
   validate,
   adminController.reviewJobPost
+);
+
+// Creator/Institution account vetting
+adminRoutes.post(
+  '/account/:userId/vet/',
+  adminAuthMiddleware,
+  vetAccountValidationRules(),
+  validate,
+  adminController.vetAccount
 );
 
 export default adminRoutes; // Export the router

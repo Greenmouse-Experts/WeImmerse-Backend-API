@@ -1,4 +1,4 @@
-import { check, validationResult } from 'express-validator';
+import { body, check, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 
 // Validation rules for different functionalities
@@ -168,6 +168,28 @@ export const physicalAssetValidationRules = () => {
       .withMessage('Amount is required')
       .isFloat({ gt: 0 })
       .withMessage('Amount must be a positive number'),
+  ];
+};
+
+// Account vet
+export const vetAccountValidationRules = () => {
+  return [
+    check('status')
+      .not()
+      .isEmpty()
+      .withMessage('Status is required')
+      .isString()
+      .withMessage('Status must be a valid string')
+      .isIn(['approved', 'disapproved'])
+      .withMessage('Status must be either "approved" or "disapproved"'),
+
+    check('reason')
+      .if(body('status').equals('disapproved')) // Only required if status is "disapproved"
+      .not()
+      .isEmpty()
+      .withMessage('Reason is required when status is "disapproved"')
+      .isString()
+      .withMessage('Reason must be a string,sentence'),
   ];
 };
 

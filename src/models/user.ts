@@ -21,6 +21,8 @@ class User extends Model {
   public evToken?: number;
   public accountType?: string;
   public status?: 'active' | 'inactive';
+  public verified?: boolean;
+  public reason?: string;
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -183,6 +185,15 @@ const initModel = (sequelize: Sequelize) => {
         type: DataTypes.ENUM('active', 'inactive'),
         allowNull: false,
         defaultValue: 'active',
+      },
+      verified: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: false,
+      },
+      reason: {
+        type: DataTypes.TEXT,
+        allowNull: true,
       },
     },
     {
