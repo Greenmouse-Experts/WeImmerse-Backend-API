@@ -21,7 +21,6 @@ const withdrawal_service_1 = __importDefault(require("../services/withdrawal.ser
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const user_1 = __importDefault(require("../models/user"));
 const helpers_1 = require("../utils/helpers");
-const { sequelize } = require('../config/database.js');
 /**
  * Create withdrawal account
  * @param req
@@ -29,11 +28,11 @@ const { sequelize } = require('../config/database.js');
  * @returns
  */
 const createWithdrawalAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a, _b, _c;
     // Retrieve the authenticated user's ID
     const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
     const { accountNumber, bankCode } = req.body;
-    const transaction = yield sequelize.transaction();
+    const transaction = yield ((_b = sequelize_service_1.default.connection) === null || _b === void 0 ? void 0 : _b.transaction());
     try {
         // Check if account exists
         const accountExists = yield withdrawalaccount_1.default.findOne({
@@ -57,7 +56,7 @@ const createWithdrawalAccount = (req, res) => __awaiter(void 0, void 0, void 0, 
         });
     }
     catch (error) {
-        res.status(((_b = error === null || error === void 0 ? void 0 : error.response) === null || _b === void 0 ? void 0 : _b.status) || 500).json({
+        res.status(((_c = error === null || error === void 0 ? void 0 : error.response) === null || _c === void 0 ? void 0 : _c.status) || 500).json({
             status: false,
             message: error.message,
             error,

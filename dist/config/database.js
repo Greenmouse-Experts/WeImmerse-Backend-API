@@ -1,6 +1,8 @@
 "use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.sequelize = void 0;
 require('dotenv/config');
-module.exports = {
+exports.sequelize = {
     dialect: process.env.DB_DIALECT,
     host: process.env.DB_HOST,
     username: process.env.DB_USER,

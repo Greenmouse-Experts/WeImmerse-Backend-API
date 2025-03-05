@@ -11,7 +11,6 @@ import sequelizeService from '../services/sequelize.service';
 import User from '../models/user';
 import { formatMoney } from '../utils/helpers';
 import { Transaction } from 'sequelize';
-const { sequelize } = require('../config/database.js');
 
 interface AuthRequest extends Request {
   user?: any;
@@ -32,7 +31,7 @@ export const createWithdrawalAccount = async (
   const userId = (req as AuthRequest).user?.id;
   const { accountNumber, bankCode } = req.body;
 
-  const transaction = await sequelize.transaction();
+  const transaction = await sequelizeService.connection?.transaction();
 
   try {
     // Check if account exists

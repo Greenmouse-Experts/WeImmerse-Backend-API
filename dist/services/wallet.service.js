@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const wallet_1 = __importDefault(require("../models/wallet"));
-const { sequelize } = require('../config/database.js'); // Ensure this points to your Sequelize instance
 const sequelize_service_1 = __importDefault(require("./sequelize.service"));
 class WalletService {
     /**
@@ -42,24 +41,22 @@ class WalletService {
      * @param amount - The amount to top up
      * @returns The updated wallet
      */
-    static topUpWallet(userId, amount) {
+    static topUpWallet(userId, amount, t) {
         return __awaiter(this, void 0, void 0, function* () {
             if (amount <= 0) {
                 throw new Error('Top-up amount must be greater than zero.');
             }
-            return yield sequelize.transaction((t) => __awaiter(this, void 0, void 0, function* () {
-                const wallet = yield wallet_1.default.findOne({
-                    where: { userId },
-                    transaction: t,
-                });
-                if (!wallet) {
-                    throw new Error('Wallet not found.');
-                }
-                wallet.previousBalance = wallet.balance;
-                wallet.balance = wallet.balance + amount;
-                yield wallet.save({ transaction: t });
-                return wallet;
-            }));
+            const wallet = yield wallet_1.default.findOne({
+                where: { userId },
+                transaction: t,
+            });
+            if (!wallet) {
+                throw new Error('Wallet not found.');
+            }
+            wallet.previousBalance = wallet.balance;
+            wallet.balance = wallet.balance + amount;
+            yield wallet.save({ transaction: t });
+            return wallet;
         });
     }
     /**

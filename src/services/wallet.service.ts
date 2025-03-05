@@ -1,6 +1,5 @@
 import { Transaction } from 'sequelize';
 import Wallet from '../models/wallet';
-const { sequelize } = require('../config/database.js'); // Ensure this points to your Sequelize instance
 import { Sequelize, Op } from 'sequelize';
 import sequelizeService from './sequelize.service';
 
@@ -31,27 +30,25 @@ class WalletService {
    * @param amount - The amount to top up
    * @returns The updated wallet
    */
-  static async topUpWallet(userId: string, amount: number) {
+  static async topUpWallet(userId: string, amount: number, t?: any) {
     if (amount <= 0) {
       throw new Error('Top-up amount must be greater than zero.');
     }
 
-    return await sequelize.transaction(async (t: Transaction) => {
-      const wallet = await Wallet.findOne({
-        where: { userId },
-        transaction: t,
-      });
-
-      if (!wallet) {
-        throw new Error('Wallet not found.');
-      }
-
-      wallet.previousBalance = wallet.balance;
-      wallet.balance = wallet.balance + amount;
-
-      await wallet.save({ transaction: t });
-      return wallet;
+    const wallet = await Wallet.findOne({
+      where: { userId },
+      transaction: t,
     });
+
+    if (!wallet) {
+      throw new Error('Wallet not found.');
+    }
+
+    wallet.previousBalance = wallet.balance;
+    wallet.balance = wallet.balance + amount;
+
+    await wallet.save({ transaction: t });
+    return wallet;
   }
 
   /**
