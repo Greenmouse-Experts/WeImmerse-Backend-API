@@ -37,6 +37,12 @@ export const userRegister = async (
       return;
     }
 
+    const _existingUser = await User.findOne({ where: { phoneNumber } });
+    if (_existingUser) {
+      res.status(400).json({ message: 'Phone number already in use' });
+      return;
+    }
+
     // Check if the referral code exists (if provided)
     let referrer = null;
     if (referralCode) {

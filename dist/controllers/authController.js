@@ -42,6 +42,11 @@ const userRegister = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             res.status(400).json({ message: 'Email already in use' });
             return;
         }
+        const _existingUser = yield user_1.default.findOne({ where: { phoneNumber } });
+        if (_existingUser) {
+            res.status(400).json({ message: 'Phone number already in use' });
+            return;
+        }
         // Check if the referral code exists (if provided)
         let referrer = null;
         if (referralCode) {

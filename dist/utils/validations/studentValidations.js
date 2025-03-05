@@ -21,7 +21,7 @@ const validate = (req, res, next) => {
     if (!errors.isEmpty()) {
         // Return only the first error
         const firstError = errors.array()[0];
-        res.status(400).json({ message: firstError.msg });
+        res.status(400).json({ message: firstError.msg, full: errors.array() });
         return;
     }
     next();
