@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.formatMoney = exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.generateOTP = void 0;
+exports.AccountVettingStatus = exports.formatMoney = exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.generateOTP = void 0;
 exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.generateReferralCode = generateReferralCode;
 // utils/helpers.ts
@@ -273,4 +273,9 @@ const formatMoney = (amount, currency = 'NGN') => {
     }).format(amount);
 };
 exports.formatMoney = formatMoney;
+var AccountVettingStatus;
+(function (AccountVettingStatus) {
+    AccountVettingStatus["APPROVED"] = "approved";
+    AccountVettingStatus["DISAPPROVED"] = "disapproved";
+})(AccountVettingStatus || (exports.AccountVettingStatus = AccountVettingStatus = {}));
 //# sourceMappingURL=helpers.js.map

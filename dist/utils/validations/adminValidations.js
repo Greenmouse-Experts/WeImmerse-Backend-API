@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.physicalAssetValidationRules = exports.digitalAssetValidationRules = void 0;
+exports.validate = exports.vetAccountValidationRules = exports.physicalAssetValidationRules = exports.digitalAssetValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 // Validation rules for different functionalities
 // Digital Assets
@@ -149,6 +149,27 @@ const physicalAssetValidationRules = () => {
     ];
 };
 exports.physicalAssetValidationRules = physicalAssetValidationRules;
+// Account vet
+const vetAccountValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('status')
+            .not()
+            .isEmpty()
+            .withMessage('Status is required')
+            .isString()
+            .withMessage('Status must be a valid string')
+            .isIn(['approved', 'disapproved'])
+            .withMessage('Status must be either "approved" or "disapproved"'),
+        (0, express_validator_1.check)('reason')
+            .if((0, express_validator_1.body)('status').equals('disapproved')) // Only required if status is "disapproved"
+            .not()
+            .isEmpty()
+            .withMessage('Reason is required when status is "disapproved"')
+            .isString()
+            .withMessage('Reason must be a string,sentence'),
+    ];
+};
+exports.vetAccountValidationRules = vetAccountValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

@@ -112,5 +112,7 @@ adminRoutes.patch('/physical/asset/update/status', adminAuthMiddleware_1.default
 adminRoutes.post('/course/:id/publish', adminAuthMiddleware_1.default, adminController.publishCourse);
 // Job post
 adminRoutes.patch('/job/:id/review', adminAuthMiddleware_1.default, (0, validations_1.reviewJobValidationRules)(), validations_1.validate, adminController.reviewJobPost);
+// Creator/Institution account vetting
+adminRoutes.post('/account/:userId/vet/', adminAuthMiddleware_1.default, (0, adminValidations_1.vetAccountValidationRules)(), validations_1.validate, adminController.vetAccount);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map

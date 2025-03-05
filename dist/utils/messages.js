@@ -2,6 +2,7 @@
 // utils/emailTemplates.ts
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.emailTemplates = void 0;
+const helpers_1 = require("./helpers");
 exports.emailTemplates = {
     verifyEmail: (user, code) => {
         const logoUrl = process.env.LOGO_URL;
@@ -2017,8 +2018,11 @@ exports.emailTemplates = {
                                 <h2>KYC Status Update</h2>
                                 <p>Hi ${user.name},</p>
                                 <p>Your KYC submission has been reviewed.</p>
-                                <p>Status: <strong>${isApproved ? "Approved" : "Rejected"}</strong></p>
-                                ${!isApproved ? `<p>Note: ${adminNote || "No additional notes provided."}</p>` : ''}
+                                <p>Status: <strong>${isApproved ? 'Approved' : 'Rejected'}</strong></p>
+                                ${!isApproved
+            ? `<p>Note: ${adminNote ||
+                'No additional notes provided.'}</p>`
+            : ''}
                                 <p>Thank you for your cooperation!</p>
                                 <p>If you have any questions, feel free to reach out to our support team.</p>
                                 <p>Best regards,<br> The ${process.env.APP_NAME} Support Team.</p>
@@ -2999,6 +3003,283 @@ exports.emailTemplates = {
     
     </body>
     </html>
+    `;
+    },
+    vettedAccount: (user, status, reason, verification_url) => {
+        const logoUrl = process.env.LOGO_URL;
+        const details = status === helpers_1.AccountVettingStatus.APPROVED
+            ? `
+    <p>Congratulations! Your account is now verified, and you have full access to all features.</p>
+    `
+            : `<p>It looks like we couldn’t approve your verification because:</p>
+    <p>Reason:<br/><b>${reason}</b></p>
+    <p>You can update your details and try again here: <a href="${verification_url}">👉🏼 Click here</a></p>`;
+        return `
+<!DOCTYPE html
+    PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>${process.env.APP_NAME}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            font-family: "Helvetica Neue", "Helvetica", Helvetica, Arial, sans-serif;
+            font-size: 100%;
+            line-height: 1.6;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        body {
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: none;
+            width: 100% !important;
+            height: 100%;
+        }
+
+        a {
+            color: #348eda;
+        }
+
+        .btn-primary {
+            text-decoration: none;
+            color: #FFF;
+            background-color: #348eda;
+            border: solid #348eda;
+            border-width: 10px 20px;
+            line-height: 2;
+            font-weight: bold;
+            margin-right: 10px;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 25px;
+        }
+
+        .btn-secondary {
+            text-decoration: none;
+            color: #FFF;
+            background-color: #aaa;
+            border: solid #aaa;
+            border-width: 10px 20px;
+            line-height: 2;
+            font-weight: bold;
+            margin-right: 10px;
+            text-align: center;
+            cursor: pointer;
+            display: inline-block;
+            border-radius: 25px;
+        }
+
+        .last {
+            margin-bottom: 0;
+        }
+
+        .first {
+            margin-top: 0;
+        }
+
+        .padding {
+            padding: 10px 0;
+        }
+
+        table.body-wrap {
+            width: 100%;
+            padding: 20px;
+        }
+
+        table.body-wrap .container {
+            border: 1px solid #f0f0f0;
+        }
+
+        table.footer-wrap {
+            width: 100%;
+            clear: both !important;
+        }
+
+        .footer-wrap .container p {
+            font-size: 12px;
+            color: #666;
+        }
+
+        table.footer-wrap a {
+            color: #999;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+            line-height: 1.1;
+            margin-bottom: 15px;
+            color: #000;
+            margin: 40px 0 10px;
+            line-height: 1.2;
+            font-weight: 200;
+        }
+
+        h1 {
+            font-size: 36px;
+        }
+
+        h2 {
+            font-size: 28px;
+            text-align: center;
+            color: #7008fa;
+        }
+
+        h3 {
+            font-size: 22px;
+        }
+
+        p,
+        ul,
+        ol {
+            margin-bottom: 10px;
+            font-weight: normal;
+            font-size: 15px;
+        }
+
+        ul li,
+        ol li {
+            margin-left: 5px;
+            list-style-position: inside;
+        }
+
+        strong {
+            font-size: 18px;
+            font-weight: normal;
+        }
+
+        .container {
+            display: block !important;
+            max-width: 600px !important;
+            margin: 0 auto !important;
+            clear: both !important;
+        }
+
+        .body-wrap .container {
+            padding: 20px;
+        }
+
+        .content {
+            max-width: 600px;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .content table {
+            width: 100%;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .left {
+            text-align: left;
+        }
+
+        .logo {
+            display: inline-block;
+            width: 399px;
+            height: 85px;
+            max-width: 90%;
+        }
+
+        .footnote {
+            font-size: 14px;
+            color: #444;
+        }
+
+        @media all and (min-resolution: 192dpi),
+        (-webkit-min-device-pixel-ratio: 2),
+        (min--moz-device-pixel-ratio: 2),
+        (-o-min-device-pixel-ratio: 2/1),
+        (min-device-pixel-ratio: 2),
+        (min-resolution: 2dppx) {
+            .logo {
+                background-image: url(chartblocks@2x.png);
+                background-size: 100% auto;
+                background-repeat: no-repeat;
+            }
+
+            .logo img {
+                visibility: hidden;
+            }
+        }
+    </style>
+</head>
+
+<body bgcolor="#f6f6f6">
+
+    <!-- body -->
+    <table class="body-wrap">
+        <tr>
+            <td></td>
+            <td class="container" bgcolor="#FFFFFF">
+                <div class="content">
+                    <table>
+                        <tr>
+                            <td>
+                                <div class="logo" style="margin-bottom: 30px;">
+                                    <img src="${logoUrl}" alt="Logo of ${process.env.APP_NAME}" width="150px">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p>Dear ${user.name},</p>
+
+                                <p>${details}</p>
+
+                                <p>Best regards,<br> The ${process.env.APP_NAME} Support Team.</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <p class="footnote">If you encounter any issues, please contact our support team at <a
+                                        href="mailto:${process.env.SUPPORT_EMAIL}">${process.env.SUPPORT_EMAIL}</a> and
+                                    we will assist you as soon as possible.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+
+    <!-- footer -->
+    <table class="footer-wrap">
+        <tr>
+            <td></td>
+            <td class="container">
+                <div class="content">
+                    <table>
+                        <tr>
+                            <td align="center">
+                                <script>
+                                    document.write(new Date().getFullYear())
+                                </script> © <a href="#">${process.env.APP_NAME}</a>.
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+
+</body>
+
+</html>
     `;
     },
     // Add more templates as needed

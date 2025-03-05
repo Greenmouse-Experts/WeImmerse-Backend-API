@@ -137,6 +137,15 @@ const initModel = (sequelize) => {
             allowNull: false,
             defaultValue: 'active',
         },
+        verified: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: false,
+        },
+        reason: {
+            type: sequelize_1.DataTypes.TEXT,
+            allowNull: true,
+        },
     }, {
         sequelize,
         modelName: 'User',

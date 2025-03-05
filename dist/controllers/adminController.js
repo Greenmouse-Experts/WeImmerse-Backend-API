@@ -13,13 +13,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
-exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
+exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
 const sequelize_1 = require("sequelize");
+const helpers_1 = require("../utils/helpers");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
 const jwt_service_1 = __importDefault(require("../services/jwt.service"));
 const logger_1 = __importDefault(require("../middlewares/logger")); // Adjust the path to your logger.js
-const helpers_1 = require("../utils/helpers");
+const helpers_2 = require("../utils/helpers");
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
 const permission_1 = __importDefault(require("../models/permission"));
@@ -33,6 +34,7 @@ const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const course_1 = __importDefault(require("../models/course"));
 const job_1 = __importDefault(require("../models/job"));
+const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -80,7 +82,7 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             }
         }
         // Update admin profile information
-        admin.name = name ? (0, helpers_1.capitalizeFirstLetter)(name) : admin.name;
+        admin.name = name ? (0, helpers_2.capitalizeFirstLetter)(name) : admin.name;
         admin.photo = photo || admin.photo;
         admin.email = email || admin.email;
         yield admin.save();
@@ -1642,4 +1644,46 @@ const reviewJobPost = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.reviewJobPost = reviewJobPost;
+/**
+ * Creator/Institution account vetting
+ * @param req
+ * @param res
+ */
+const vetAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { reason, status } = req.body;
+    const { userId } = req.params;
+    // Start transaction
+    const transaction = yield sequelize_service_1.default.connection.transaction();
+    try {
+        // Check if email already exists
+        const existingUser = yield user_1.default.findOne({
+            where: { id: userId },
+            transaction, // Pass transaction in options
+        });
+        if (!existingUser) {
+            return res.status(404).json({ message: 'Account not found' });
+        }
+        // Determine if approved or not
+        const verified = status == helpers_1.AccountVettingStatus.APPROVED ? true : false;
+        // Update
+        yield user_1.default.update(Object.assign({ verified }, (!verified && { reason })), { where: { id: userId } });
+        // Prepare and send notify account owner about verification
+        const message = messages_1.emailTemplates.vettedAccount(existingUser, status, reason, '');
+        try {
+            yield (0, mail_service_1.sendMail)(existingUser.email, `${process.env.APP_NAME} - Update on Your Account Verification`, message);
+        }
+        catch (emailError) {
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
+        }
+        return res.json({
+            status: true,
+            message: `Account ${status} successfully.`,
+        });
+    }
+    catch (error) {
+        console.log(error);
+        return res.status(400).json({ status: false, message: error.message });
+    }
+});
+exports.vetAccount = vetAccount;
 //# sourceMappingURL=adminController.js.map
