@@ -41,10 +41,17 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reviewKYC = exports.uploadKYCDocument = void 0;
 const kycverification_1 = require("../models/kycverification");
 const kycdocument_1 = __importStar(require("../models/kycdocument"));
+const user_1 = __importDefault(require("../models/user"));
+const messages_1 = require("../utils/messages");
+const mail_service_1 = require("../services/mail.service");
+const logger_1 = __importDefault(require("../middlewares/logger"));
 // Upload KYC Document
 const uploadKYCDocument = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -129,7 +136,7 @@ const reviewKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
-        const { kycId, status } = req.body;
+        const { kycId, status, reason } = req.body;
         if (!kycId || !status) {
             return res
                 .status(400)
@@ -141,7 +148,10 @@ const reviewKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         ].includes(status)) {
             return res.status(400).json({ status: false, message: 'Invalid status' });
         }
-        const kycDoc = yield kycdocument_1.default.findByPk(kycId);
+        let kycDoc = (yield kycdocument_1.default.findOne({
+            where: { id: kycId },
+            include: [{ model: user_1.default, as: 'user' }],
+        }));
         if (!kycDoc) {
             return res
                 .status(404)
@@ -150,13 +160,30 @@ const reviewKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         kycDoc.vettingStatus = status;
         kycDoc.vettedBy = adminId;
         kycDoc.vettedAt = new Date();
+        kycDoc.reason = reason || kycDoc.reason;
         yield kycDoc.save();
+        if (status === kycverification_1.KYCVerificationStatus.REJECTED) {
+            // Deactivate account due to the kyc document that was rejected
+            yield user_1.default.update({ verified: false, reason }, { where: { id: kycDoc.user.id } });
+        }
+        kycDoc = JSON.parse(JSON.stringify(kycDoc));
         // Send email notification to creator/instructor regarding kyc document review
-        return res
-            .status(200)
-            .json({ status: true, message: `KYC ${status}`, kycDoc });
+        // Prepare and send the verification email
+        const message = messages_1.emailTemplates.kycStatusEmail(kycDoc.user, kycDoc); // Ensure verifyEmailMessage generates the correct email message
+        try {
+            yield (0, mail_service_1.sendMail)(kycDoc.user.email, `${process.env.APP_NAME} - 📢 Update on Your KYC Document Status`, message);
+        }
+        catch (emailError) {
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
+        }
+        return res.status(200).json({
+            status: true,
+            message: `KYC ${status}`,
+            kycDoc: Object.assign(Object.assign({}, kycDoc), { user: Object.assign(Object.assign({}, kycDoc.user), { verified: false, reason }) }),
+        });
     }
     catch (error) {
+        console.log(error);
         return res
             .status(500)
             .json({ status: false, message: 'Server error', error });

@@ -6,6 +6,9 @@ import KYCVerification, {
 import KYCDocuments, { KYCDocumentType } from '../models/kycdocument';
 import User from '../models/user';
 import Admin from '../models/admin';
+import { emailTemplates } from '../utils/messages';
+import { sendMail } from '../services/mail.service';
+import logger from '../middlewares/logger';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -107,7 +110,7 @@ export const reviewKYC = async (req: Request, res: Response): Promise<any> => {
   try {
     const adminId = (req as AuthRequest).user?.id; // Assuming the user ID is passed in the URL params
 
-    const { kycId, status } = req.body;
+    const { kycId, status, reason } = req.body;
 
     if (!kycId || !status) {
       return res
@@ -124,7 +127,11 @@ export const reviewKYC = async (req: Request, res: Response): Promise<any> => {
       return res.status(400).json({ status: false, message: 'Invalid status' });
     }
 
-    const kycDoc = await KYCDocuments.findByPk(kycId);
+    let kycDoc = (await KYCDocuments.findOne({
+      where: { id: kycId },
+      include: [{ model: User, as: 'user' }],
+    })) as KYCDocuments & { user: User };
+
     if (!kycDoc) {
       return res
         .status(404)
@@ -134,14 +141,43 @@ export const reviewKYC = async (req: Request, res: Response): Promise<any> => {
     kycDoc.vettingStatus = status;
     kycDoc.vettedBy = adminId;
     kycDoc.vettedAt = new Date();
+    kycDoc.reason = reason || kycDoc.reason;
     await kycDoc.save();
 
-    // Send email notification to creator/instructor regarding kyc document review
+    if (status === KYCVerificationStatus.REJECTED) {
+      // Deactivate account due to the kyc document that was rejected
+      await User.update(
+        { verified: false, reason },
+        { where: { id: kycDoc.user.id } }
+      );
+    }
 
-    return res
-      .status(200)
-      .json({ status: true, message: `KYC ${status}`, kycDoc });
+    kycDoc = JSON.parse(JSON.stringify(kycDoc));
+
+    // Send email notification to creator/instructor regarding kyc document review
+    // Prepare and send the verification email
+    const message = emailTemplates.kycStatusEmail(kycDoc.user, kycDoc); // Ensure verifyEmailMessage generates the correct email message
+    try {
+      await sendMail(
+        kycDoc.user.email,
+        `${process.env.APP_NAME} - 📢 Update on Your KYC Document Status`,
+        message
+      );
+    } catch (emailError) {
+      logger.error('Error sending email:', emailError); // Log error for internal use
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: `KYC ${status}`,
+      kycDoc: {
+        ...kycDoc,
+        user: { ...kycDoc.user, verified: false, reason },
+      },
+    });
   } catch (error) {
+    console.log(error);
+
     return res
       .status(500)
       .json({ status: false, message: 'Server error', error });

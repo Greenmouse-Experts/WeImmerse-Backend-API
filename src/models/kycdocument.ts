@@ -26,6 +26,7 @@ class KYCDocuments extends Model {
   public documentUrl!: string;
   public uploadedAt!: Date;
   public vettingStatus!: 'pending' | 'approved' | 'rejected';
+  public reason?: string;
   public vettedBy!: string | null; // Admin who vetted the document
   public vettedAt!: Date | null; // Date when vetting was done
   public readonly createdAt!: Date;
@@ -78,6 +79,10 @@ const initModel = (sequelize: Sequelize) => {
         type: DataTypes.ENUM('pending', 'approved', 'rejected'),
         allowNull: false,
         defaultValue: 'pending',
+      },
+      reason: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
       vettedBy: {
         type: DataTypes.UUID, // Ensure it matches the `id` type in Admins table

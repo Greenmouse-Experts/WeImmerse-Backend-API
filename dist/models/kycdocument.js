@@ -58,6 +58,10 @@ const initModel = (sequelize) => {
             allowNull: false,
             defaultValue: 'pending',
         },
+        reason: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
+        },
         vettedBy: {
             type: sequelize_1.DataTypes.UUID, // Ensure it matches the `id` type in Admins table
             allowNull: true,
