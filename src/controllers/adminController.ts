@@ -2,7 +2,12 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import { Op, Sequelize, ForeignKeyConstraintError } from 'sequelize';
-import { AccountVettingStatus, generateOTP } from '../utils/helpers';
+import {
+  AccountVettingStatus,
+  generateOTP,
+  getPaginationFields,
+  getTotalPages,
+} from '../utils/helpers';
 import { sendMail } from '../services/mail.service';
 import { emailTemplates } from '../utils/messages';
 import JwtService from '../services/jwt.service';
@@ -22,6 +27,7 @@ import DigitalAsset from '../models/digitalasset';
 import Course from '../models/course';
 import Job from '../models/job';
 import sequelizeService from '../services/sequelize.service';
+import jobService from '../services/job.service';
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -2044,5 +2050,101 @@ export const vetAccount = async (req: Request, res: Response): Promise<any> => {
   } catch (error: any) {
     console.log(error);
     return res.status(400).json({ status: false, message: error.message });
+  }
+};
+
+// Get all jobs with filters (categoryId)
+export const fetchJobs = async (req: Request, res: Response): Promise<any> => {
+  try {
+    // Retrieve the authenticated user's ID
+    // const userId = (req as AuthenticatedRequest).user?.id;
+
+    const { userId } = req.params;
+
+    // Ensure userId is defined
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized: User ID is missing.' });
+      return;
+    }
+
+    // Extract pagination query parameters
+    const { page, limit, offset } = getPaginationFields(
+      req.query.page as string,
+      req.query.limit as string
+    );
+
+    let whereCondition: any = {
+      creatorId: userId,
+    };
+
+    const { rows: jobs, count: totalItems } = await Job.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: User,
+          as: 'user',
+        },
+        // Adjust alias to match your associations
+      ],
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset,
+    });
+
+    // Calculate pagination metadata
+    const totalPages = getTotalPages(totalItems, limit);
+
+    // Respond with the paginated jobs and metadata
+    return res.status(200).json({
+      message: 'Jobs retrieved successfully.',
+      data: jobs,
+      meta: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ status: false, message: 'Error fetching jobs' });
+  }
+};
+
+// Vet job post
+export const vetJobPost = async (req: Request, res: Response): Promise<any> => {
+  try {
+    const { id: jobId } = req.params;
+    const { status } = req.body;
+
+    if (!['active', 'closed'].includes(status)) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid status value' });
+    }
+
+    const updatedJob = await jobService.vetJobPost(jobId, status);
+
+    // Send email to creator
+    // Prepare and send the notification email to creator about vetting
+    const message = emailTemplates.vettedJob(updatedJob.user, updatedJob); // Ensure verifyEmailMessage generates the correct email message
+    try {
+      await sendMail(
+        updatedJob.user.email,
+        `${process.env.APP_NAME} - Your Job Post Status Update`,
+        message
+      );
+    } catch (emailError) {
+      logger.error('Error sending email:', emailError); // Log error for internal use
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Job vetted successfully.',
+      data: updatedJob,
+    });
+  } catch (error: any) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };

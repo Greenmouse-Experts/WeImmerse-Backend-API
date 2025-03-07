@@ -346,13 +346,23 @@ adminRoutes.post(
   adminController.publishCourse
 );
 
-// Job post
+// Job
+adminRoutes.get(
+  '/job/fetch/:userId',
+  adminAuthMiddleware,
+  adminController.fetchJobs
+);
 adminRoutes.patch(
   '/job/:id/review',
   adminAuthMiddleware,
   reviewJobValidationRules(),
   validate,
   adminController.reviewJobPost
+);
+adminRoutes.patch(
+  '/job/:id/vet',
+  adminAuthMiddleware,
+  adminController.vetJobPost
 );
 
 // Creator/Institution account vetting
