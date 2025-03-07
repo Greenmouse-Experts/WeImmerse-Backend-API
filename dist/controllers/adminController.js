@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
-exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
+exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
 const sequelize_1 = require("sequelize");
 const helpers_1 = require("../utils/helpers");
 const mail_service_1 = require("../services/mail.service");
@@ -35,6 +35,7 @@ const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const course_1 = __importDefault(require("../models/course"));
 const job_1 = __importDefault(require("../models/job"));
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
+const job_service_1 = __importDefault(require("../services/job.service"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -1686,4 +1687,84 @@ const vetAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.vetAccount = vetAccount;
+// Get all jobs with filters (categoryId)
+const fetchJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Retrieve the authenticated user's ID
+        // const userId = (req as AuthenticatedRequest).user?.id;
+        const { userId } = req.params;
+        // Ensure userId is defined
+        if (!userId) {
+            res.status(401).json({ message: 'Unauthorized: User ID is missing.' });
+            return;
+        }
+        // Extract pagination query parameters
+        const { page, limit, offset } = (0, helpers_1.getPaginationFields)(req.query.page, req.query.limit);
+        let whereCondition = {
+            creatorId: userId,
+        };
+        const { rows: jobs, count: totalItems } = yield job_1.default.findAndCountAll({
+            where: whereCondition,
+            include: [
+                {
+                    model: user_1.default,
+                    as: 'user',
+                },
+                // Adjust alias to match your associations
+            ],
+            order: [['createdAt', 'DESC']],
+            limit,
+            offset,
+        });
+        // Calculate pagination metadata
+        const totalPages = (0, helpers_1.getTotalPages)(totalItems, limit);
+        // Respond with the paginated jobs and metadata
+        return res.status(200).json({
+            message: 'Jobs retrieved successfully.',
+            data: jobs,
+            meta: {
+                totalItems,
+                totalPages,
+                currentPage: page,
+                itemsPerPage: limit,
+            },
+        });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({ status: false, message: 'Error fetching jobs' });
+    }
+});
+exports.fetchJobs = fetchJobs;
+// Vet job post
+const vetJobPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id: jobId } = req.params;
+        const { status } = req.body;
+        if (!['active', 'closed'].includes(status)) {
+            return res
+                .status(400)
+                .json({ success: false, message: 'Invalid status value' });
+        }
+        const updatedJob = yield job_service_1.default.vetJobPost(jobId, status);
+        // Send email to creator
+        // Prepare and send the notification email to creator about vetting
+        const message = messages_1.emailTemplates.vettedJob(updatedJob.user, updatedJob); // Ensure verifyEmailMessage generates the correct email message
+        try {
+            yield (0, mail_service_1.sendMail)(updatedJob.user.email, `${process.env.APP_NAME} - Your Job Post Status Update`, message);
+        }
+        catch (emailError) {
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
+        }
+        res.status(200).json({
+            success: true,
+            message: 'Job vetted successfully.',
+            data: updatedJob,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+exports.vetJobPost = vetJobPost;
 //# sourceMappingURL=adminController.js.map
