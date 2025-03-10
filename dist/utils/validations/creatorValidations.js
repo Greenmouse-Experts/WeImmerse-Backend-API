@@ -585,6 +585,12 @@ const addJobValidationRules = () => {
             .withMessage('Title is required')
             .isString()
             .withMessage('Title must be a valid string'),
+        (0, express_validator_1.check)('description')
+            .not()
+            .isEmpty()
+            .withMessage('Description is required')
+            .isString()
+            .withMessage('Description must be a valid string'),
         (0, express_validator_1.check)('company')
             .not()
             .isEmpty()

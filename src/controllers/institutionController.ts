@@ -40,6 +40,7 @@ export const addJob = async (req: Request, res: Response): Promise<void> => {
     const {
       categoryId,
       title,
+      description,
       company,
       logo,
       workplaceType,
@@ -65,6 +66,7 @@ export const addJob = async (req: Request, res: Response): Promise<void> => {
       creatorId: userId,
       categoryId,
       title,
+      description,
       slug: `${title.toLowerCase().replace(/ /g, '-')}-${uuidv4()}`,
       company,
       logo, // Assuming a URL for the logo is provided

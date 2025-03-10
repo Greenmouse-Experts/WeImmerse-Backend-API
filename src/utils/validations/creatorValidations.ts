@@ -671,6 +671,13 @@ export const addJobValidationRules = () => {
       .isString()
       .withMessage('Title must be a valid string'),
 
+    check('description')
+      .not()
+      .isEmpty()
+      .withMessage('Description is required')
+      .isString()
+      .withMessage('Description must be a valid string'),
+
     check('company')
       .not()
       .isEmpty()

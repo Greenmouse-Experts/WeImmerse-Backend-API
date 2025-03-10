@@ -43,7 +43,7 @@ exports.jobCategories = jobCategories;
 const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const { categoryId, title, company, logo, workplaceType, location, jobType, applyLink, } = req.body;
+        const { categoryId, title, description, company, logo, workplaceType, location, jobType, applyLink, } = req.body;
         // Extract user ID from authenticated request
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         // Validate category
@@ -59,6 +59,7 @@ const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             creatorId: userId,
             categoryId,
             title,
+            description,
             slug: `${title.toLowerCase().replace(/ /g, '-')}-${(0, uuid_1.v4)()}`,
             company,
             logo, // Assuming a URL for the logo is provided
