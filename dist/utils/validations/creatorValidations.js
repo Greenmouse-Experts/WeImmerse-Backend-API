@@ -615,6 +615,12 @@ const addJobValidationRules = () => {
             .withMessage('Job type is required')
             .isString()
             .withMessage('Job type must be a valid string'),
+        (0, express_validator_1.check)('applyLink')
+            .not()
+            .isEmpty()
+            .withMessage('Apply link is required')
+            .isString()
+            .withMessage('Apply link must be a valid string'),
     ];
 };
 exports.addJobValidationRules = addJobValidationRules;

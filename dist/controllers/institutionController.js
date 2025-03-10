@@ -43,7 +43,7 @@ exports.jobCategories = jobCategories;
 const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const { categoryId, title, company, logo, workplaceType, location, jobType, } = req.body;
+        const { categoryId, title, company, logo, workplaceType, location, jobType, applyLink, } = req.body;
         // Extract user ID from authenticated request
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         // Validate category
@@ -65,6 +65,7 @@ const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             workplaceType,
             location,
             jobType,
+            applyLink,
             status: 'draft', // Default status
         });
         res.status(200).json({

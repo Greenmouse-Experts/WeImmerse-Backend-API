@@ -705,6 +705,13 @@ export const addJobValidationRules = () => {
       .withMessage('Job type is required')
       .isString()
       .withMessage('Job type must be a valid string'),
+
+    check('applyLink')
+      .not()
+      .isEmpty()
+      .withMessage('Apply link is required')
+      .isString()
+      .withMessage('Apply link must be a valid string'),
   ];
 };
 

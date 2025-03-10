@@ -45,6 +45,7 @@ export const addJob = async (req: Request, res: Response): Promise<void> => {
       workplaceType,
       location,
       jobType,
+      applyLink,
     } = req.body;
 
     // Extract user ID from authenticated request
@@ -70,6 +71,7 @@ export const addJob = async (req: Request, res: Response): Promise<void> => {
       workplaceType,
       location,
       jobType,
+      applyLink,
       status: 'draft', // Default status
     });
 
