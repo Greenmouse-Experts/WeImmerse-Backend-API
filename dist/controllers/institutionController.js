@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.downloadApplicantResume = exports.rejectApplicant = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = void 0;
+exports.downloadApplicantResume = exports.rejectApplicant = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = void 0;
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
 const logger_1 = __importDefault(require("../middlewares/logger"));
@@ -151,6 +151,36 @@ const getJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getJobs = getJobs;
+/**
+ * Get job details
+ * @param req
+ * @param res
+ */
+const getJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
+        const job = yield job_1.default.findOne({
+            where: {
+                id,
+                creatorId: userId,
+            },
+            order: [['createdAt', 'DESC']],
+        });
+        res.status(200).json({
+            message: 'Job retrieved successfully.',
+            data: job, // Include a JobResource equivalent if needed
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.message || 'An error occurred while retrieving jobs.',
+        });
+    }
+});
+exports.getJob = getJob;
 // CLOSE Job
 const closeJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

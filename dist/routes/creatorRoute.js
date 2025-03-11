@@ -96,6 +96,7 @@ creatorRoutes.get('/job/categories', authMiddleware_1.default, authorizeCreator_
 creatorRoutes.post('/job/add', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.addJobValidationRules)(), creatorValidations_1.validate, creatorController.addJob);
 creatorRoutes.put('/job/post', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.postJobValidationRules)(), creatorValidations_1.validate, creatorController.postJob);
 creatorRoutes.get('/jobs', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getJobs);
+creatorRoutes.get('/job/:id/details', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getJob);
 creatorRoutes.patch('/job/close', authMiddleware_1.default, authorizeCreator_1.default, creatorController.closeJob);
 creatorRoutes.delete('/job/delete', authMiddleware_1.default, authorizeCreator_1.default, creatorController.deleteJob);
 creatorRoutes.post('/job/repost', authMiddleware_1.default, authorizeCreator_1.default, creatorController.repostJob);

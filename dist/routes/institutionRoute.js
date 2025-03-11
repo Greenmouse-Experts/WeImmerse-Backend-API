@@ -49,6 +49,7 @@ institutionRoutes.get('/job/categories', authMiddleware_1.default, authorizeInst
 institutionRoutes.post('/job/add', authMiddleware_1.default, authorizeInstitution_1.default, (0, creatorValidations_1.addJobValidationRules)(), validations_1.validate, institutionController.addJob);
 institutionRoutes.put('/job/post', authMiddleware_1.default, authorizeInstitution_1.default, (0, creatorValidations_1.postJobValidationRules)(), validations_1.validate, institutionController.postJob);
 institutionRoutes.get('/jobs', authMiddleware_1.default, authorizeInstitution_1.default, institutionController.getJobs);
+institutionRoutes.get('/job/:id/details', authMiddleware_1.default, authorizeInstitution_1.default, institutionController.getJob);
 institutionRoutes.patch('/job/close', authMiddleware_1.default, authorizeInstitution_1.default, institutionController.closeJob);
 institutionRoutes.delete('/job/delete', authMiddleware_1.default, authorizeInstitution_1.default, institutionController.deleteJob);
 institutionRoutes.post('/job/repost', authMiddleware_1.default, authorizeInstitution_1.default, institutionController.repostJob);

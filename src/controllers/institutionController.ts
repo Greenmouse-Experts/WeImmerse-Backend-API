@@ -179,6 +179,37 @@ export const getJobs = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+/**
+ * Get job details
+ * @param req
+ * @param res
+ */
+export const getJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const userId = (req as AuthenticatedRequest).user?.id; // Extract user ID from authenticated request
+
+    const job = await Job.findOne({
+      where: {
+        id,
+        creatorId: userId,
+      },
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.status(200).json({
+      message: 'Job retrieved successfully.',
+      data: job, // Include a JobResource equivalent if needed
+    });
+  } catch (error: any) {
+    logger.error(error);
+    res.status(500).json({
+      message: error.message || 'An error occurred while retrieving jobs.',
+    });
+  }
+};
+
 // CLOSE Job
 export const closeJob = async (req: Request, res: Response): Promise<void> => {
   try {

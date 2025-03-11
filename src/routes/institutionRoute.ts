@@ -41,6 +41,12 @@ institutionRoutes.get(
   authorizeInstitution,
   institutionController.getJobs
 );
+institutionRoutes.get(
+  '/job/:id/details',
+  authMiddleware,
+  authorizeInstitution,
+  institutionController.getJob
+);
 institutionRoutes.patch(
   '/job/close',
   authMiddleware,

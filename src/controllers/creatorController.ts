@@ -1838,6 +1838,7 @@ export const addJob = async (req: Request, res: Response): Promise<void> => {
     const {
       categoryId,
       title,
+      description,
       company,
       logo,
       workplaceType,
@@ -1862,6 +1863,7 @@ export const addJob = async (req: Request, res: Response): Promise<void> => {
       creatorId: userId,
       categoryId,
       title,
+      description,
       slug: `${title.toLowerCase().replace(/ /g, '-')}-${uuidv4()}`,
       company,
       logo, // Assuming a URL for the logo is provided
@@ -1964,6 +1966,37 @@ export const getJobs = async (req: Request, res: Response): Promise<void> => {
     res.status(200).json({
       message: 'Jobs retrieved successfully.',
       data: jobs, // Include a JobResource equivalent if needed
+    });
+  } catch (error: any) {
+    logger.error(error);
+    res.status(500).json({
+      message: error.message || 'An error occurred while retrieving jobs.',
+    });
+  }
+};
+
+/**
+ * Get job details
+ * @param req
+ * @param res
+ */
+export const getJob = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+
+    const userId = (req as AuthenticatedRequest).user?.id; // Extract user ID from authenticated request
+
+    const job = await Job.findOne({
+      where: {
+        id,
+        creatorId: userId,
+      },
+      order: [['createdAt', 'DESC']],
+    });
+
+    res.status(200).json({
+      message: 'Job retrieved successfully.',
+      data: job, // Include a JobResource equivalent if needed
     });
   } catch (error: any) {
     logger.error(error);

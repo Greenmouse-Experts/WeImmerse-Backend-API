@@ -358,6 +358,12 @@ creatorRoutes.get(
   authorizeCreator,
   creatorController.getJobs
 );
+creatorRoutes.get(
+  '/job/:id/details',
+  authMiddleware,
+  authorizeCreator,
+  creatorController.getJob
+);
 creatorRoutes.patch(
   '/job/close',
   authMiddleware,

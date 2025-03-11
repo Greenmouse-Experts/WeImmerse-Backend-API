@@ -12,8 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
-exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = void 0;
+exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = void 0;
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
 const logger_1 = __importDefault(require("../middlewares/logger"));
@@ -1503,7 +1503,7 @@ exports.jobCategories = jobCategories;
 const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const { categoryId, title, company, logo, workplaceType, location, jobType, } = req.body;
+        const { categoryId, title, description, company, logo, workplaceType, location, jobType, } = req.body;
         // Extract user ID from authenticated request
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         // Validate category
@@ -1519,6 +1519,7 @@ const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             creatorId: userId,
             categoryId,
             title,
+            description,
             slug: `${title.toLowerCase().replace(/ /g, '-')}-${(0, uuid_1.v4)()}`,
             company,
             logo, // Assuming a URL for the logo is provided
@@ -1609,6 +1610,36 @@ const getJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getJobs = getJobs;
+/**
+ * Get job details
+ * @param req
+ * @param res
+ */
+const getJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
+        const job = yield job_1.default.findOne({
+            where: {
+                id,
+                creatorId: userId,
+            },
+            order: [['createdAt', 'DESC']],
+        });
+        res.status(200).json({
+            message: 'Job retrieved successfully.',
+            data: job, // Include a JobResource equivalent if needed
+        });
+    }
+    catch (error) {
+        logger_1.default.error(error);
+        res.status(500).json({
+            message: error.message || 'An error occurred while retrieving jobs.',
+        });
+    }
+});
+exports.getJob = getJob;
 // CLOSE Job
 const closeJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
