@@ -267,34 +267,23 @@ const createSubscriptionPlanValidationRules = () => {
         (0, express_validator_1.check)('name')
             .not()
             .isEmpty()
-            .withMessage('Plan name is required')
             .isLength({ min: 2, max: 50 })
-            .withMessage('Plan name must be between 2 and 50 characters'),
-        (0, express_validator_1.check)('duration')
-            .not()
-            .isEmpty()
-            .withMessage('Duration is required')
-            .isInt({ min: 1 })
-            .withMessage('Duration must be a positive integer representing months'),
+            .withMessage('Plan name must be between 2 and 50 characters.'),
         (0, express_validator_1.check)('price')
             .not()
             .isEmpty()
-            .withMessage('Price is required')
             .isFloat({ min: 0 })
-            .withMessage('Price must be a non-negative number'),
-        (0, express_validator_1.check)('productLimit')
+            .withMessage('Price must be a non-negative number.'),
+        (0, express_validator_1.check)('duration')
             .not()
             .isEmpty()
-            .withMessage('Product limit is required')
-            .isInt({ min: 0 })
-            .withMessage('Product limit must be a non-negative integer'),
-        (0, express_validator_1.check)('allowsAuction')
-            .isBoolean()
-            .withMessage('Allows auction must be a boolean value'),
-        (0, express_validator_1.check)('auctionProductLimit')
-            .optional()
-            .isInt({ min: 0 })
-            .withMessage('Auction product limit must be a non-negative integer'),
+            .isFloat({ min: 1 })
+            .withMessage('Duration must be a non-negative number.'),
+        (0, express_validator_1.check)('period')
+            .not()
+            .isEmpty()
+            .isIn(['Quarterly', 'Monthly', 'Yearly'])
+            .withMessage('Plan validity period must be of the following: Quarterly, Monthly, Yearly.'),
     ];
 };
 exports.createSubscriptionPlanValidationRules = createSubscriptionPlanValidationRules;
@@ -311,26 +300,18 @@ const updateSubscriptionPlanValidationRules = () => {
             .optional()
             .isLength({ min: 2, max: 50 })
             .withMessage('Plan name must be between 2 and 50 characters'),
-        (0, express_validator_1.check)('duration')
-            .optional()
-            .isInt({ min: 1 })
-            .withMessage('Duration must be a positive integer representing months'),
         (0, express_validator_1.check)('price')
             .optional()
             .isFloat({ min: 0 })
             .withMessage('Price must be a non-negative number'),
-        (0, express_validator_1.check)('productLimit')
+        (0, express_validator_1.check)('duration')
             .optional()
-            .isInt({ min: 0 })
-            .withMessage('Product limit must be a non-negative integer'),
-        (0, express_validator_1.check)('allowsAuction')
+            .isFloat({ min: 1 })
+            .withMessage('Duration must be a non-negative number.'),
+        (0, express_validator_1.check)('period')
             .optional()
-            .isBoolean()
-            .withMessage('Allows auction must be a boolean value'),
-        (0, express_validator_1.check)('auctionProductLimit')
-            .optional()
-            .isInt({ min: 0 })
-            .withMessage('Auction product limit must be a non-negative integer'),
+            .isIn(['Quarterly', 'Monthly', 'Yearly'])
+            .withMessage('Plan validity period must be of the following: Quarterly, Monthly, Yearly.'),
     ];
 };
 exports.updateSubscriptionPlanValidationRules = updateSubscriptionPlanValidationRules;

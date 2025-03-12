@@ -4,8 +4,7 @@ exports.initModel = void 0;
 // models/subscriptionplan.ts
 const sequelize_1 = require("sequelize");
 class SubscriptionPlan extends sequelize_1.Model {
-    static associate(models) {
-    }
+    static associate(models) { }
 }
 const initModel = (sequelize) => {
     SubscriptionPlan.init({
@@ -27,25 +26,21 @@ const initModel = (sequelize) => {
             allowNull: false,
             defaultValue: 0, // Free plan has price 0
         },
-        productLimit: {
-            type: sequelize_1.DataTypes.INTEGER,
+        currency: {
+            type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            defaultValue: 'NGN',
         },
-        allowsAuction: {
-            type: sequelize_1.DataTypes.BOOLEAN,
+        period: {
+            type: sequelize_1.DataTypes.ENUM('Quarterly', 'Monthly', 'Yearly'),
             allowNull: false,
-            defaultValue: false, // Free plan may not allow auctions
-        },
-        auctionProductLimit: {
-            type: sequelize_1.DataTypes.INTEGER,
-            allowNull: true, // Null if auctions are not allowed
         },
     }, {
         sequelize,
-        modelName: "SubscriptionPlan",
+        modelName: 'SubscriptionPlan',
         timestamps: true,
         paranoid: false,
-        tableName: "subscription_plans"
+        tableName: 'subscription_plans',
     });
 };
 exports.initModel = initModel;

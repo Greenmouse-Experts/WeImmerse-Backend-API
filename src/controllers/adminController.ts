@@ -960,23 +960,17 @@ export const createSubscriptionPlan = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const {
-    name,
-    duration,
-    price,
-    productLimit,
-    allowsAuction,
-    auctionProductLimit,
-  } = req.body;
+  const { name, duration, price, currency, period } = req.body;
 
   try {
     // Check if the subscription plan name already exists
     const existingPlan = await SubscriptionPlan.findOne({ where: { name } });
 
     if (existingPlan) {
-      res
-        .status(400)
-        .json({ message: 'A plan with this name already exists.' });
+      res.status(400).json({
+        status: false,
+        message: 'A plan with this name already exists.',
+      });
       return;
     }
 
@@ -985,17 +979,20 @@ export const createSubscriptionPlan = async (
       name,
       duration,
       price,
-      productLimit,
-      allowsAuction,
-      auctionProductLimit,
+      currency,
+      period,
     });
 
     res.status(200).json({
+      status: true,
       message: 'Subscription plan created successfully.',
     });
   } catch (error: any) {
     logger.error('Error creating subscription plan:', error);
-    res.status(500).json({ message: error.message || 'Internal server error' });
+    res.status(500).json({
+      status: false,
+      message: error.message || 'Internal server error',
+    });
   }
 };
 
@@ -1003,29 +1000,24 @@ export const updateSubscriptionPlan = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const {
-    planId,
-    name,
-    duration,
-    price,
-    productLimit,
-    allowsAuction,
-    auctionProductLimit,
-  } = req.body;
+  const { planId, name, price, period, currency } = req.body;
 
   try {
     // Fetch the subscription plan to update
     const plan = await SubscriptionPlan.findByPk(planId);
     if (!plan) {
-      res.status(404).json({ message: 'Subscription plan not found.' });
+      res
+        .status(404)
+        .json({ status: false, message: 'Subscription plan not found.' });
       return;
     }
 
     // Prevent name change for Free Plan
     if (plan.name === 'Free Plan' && name !== 'Free Plan') {
-      res
-        .status(400)
-        .json({ message: 'The Free Plan name cannot be changed.' });
+      res.status(400).json({
+        status: false,
+        message: 'The Free Plan name cannot be changed.',
+      });
       return;
     }
 
@@ -1035,25 +1027,38 @@ export const updateSubscriptionPlan = async (
     });
 
     if (existingPlan) {
-      res
-        .status(400)
-        .json({ message: 'A different plan with this name already exists.' });
+      res.status(400).json({
+        status: false,
+        message: 'A different plan with this name already exists.',
+      });
       return;
     }
 
     // Update fields
-    plan.name = name;
-    plan.duration = duration;
-    plan.price = price;
-    plan.productLimit = productLimit;
-    plan.allowsAuction = allowsAuction;
-    plan.auctionProductLimit = auctionProductLimit;
+    if (name) {
+      plan.name = name;
+    }
+    if (period) {
+      plan.period = period;
+    }
+    if (currency) {
+      plan.currency = currency;
+    }
+    if (price) {
+      plan.price = price;
+    }
     await plan.save();
 
-    res.status(200).json({ message: 'Subscription plan updated successfully' });
+    res.status(200).json({
+      status: true,
+      message: 'Subscription plan updated successfully',
+    });
   } catch (error: any) {
     logger.error('Error updating subscription plan:', error);
-    res.status(500).json({ message: error.message || 'Internal server error' });
+    res.status(500).json({
+      status: false,
+      message: error.message || 'Internal server error',
+    });
   }
 };
 
@@ -1067,32 +1072,41 @@ export const deleteSubscriptionPlan = async (
     // Fetch the subscription plan
     const plan = await SubscriptionPlan.findByPk(planId);
     if (!plan) {
-      res.status(404).json({ message: 'Subscription plan not found.' });
+      res
+        .status(404)
+        .json({ status: false, message: 'Subscription plan not found.' });
       return;
     }
 
     // Prevent deletion of the Free Plan
     if (plan.name === 'Free Plan') {
-      res.status(400).json({ message: 'The Free Plan cannot be deleted.' });
+      res
+        .status(400)
+        .json({ status: false, message: 'The Free Plan cannot be deleted.' });
       return;
     }
 
+    // Check if plan has been subscribed for (TODO)
+
     // Attempt to delete the plan
     await plan.destroy();
-    res
-      .status(200)
-      .json({ message: 'Subscription plan deleted successfully.' });
+    res.status(200).json({
+      status: true,
+      message: 'Subscription plan deleted successfully.',
+    });
   } catch (error: any) {
     if (error instanceof ForeignKeyConstraintError) {
       res.status(400).json({
+        status: false,
         message:
           'Cannot delete subscription plan because it is currently assigned to one or more vendors. Please reassign or delete these associations before proceeding.',
       });
     } else {
       logger.error('Error deleting subscription plan:', error);
-      res
-        .status(500)
-        .json({ message: error.message || 'Error deleting subscription plan' });
+      res.status(500).json({
+        status: false,
+        message: error.message || 'Error deleting subscription plan',
+      });
     }
   }
 };

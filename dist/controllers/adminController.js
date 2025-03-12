@@ -795,14 +795,15 @@ const getAllSubscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, 
 });
 exports.getAllSubscriptionPlans = getAllSubscriptionPlans;
 const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, duration, price, productLimit, allowsAuction, auctionProductLimit, } = req.body;
+    const { name, duration, price, currency, period } = req.body;
     try {
         // Check if the subscription plan name already exists
         const existingPlan = yield subscriptionplan_1.default.findOne({ where: { name } });
         if (existingPlan) {
-            res
-                .status(400)
-                .json({ message: 'A plan with this name already exists.' });
+            res.status(400).json({
+                status: false,
+                message: 'A plan with this name already exists.',
+            });
             return;
         }
         // Create the subscription plan
@@ -810,34 +811,40 @@ const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
             name,
             duration,
             price,
-            productLimit,
-            allowsAuction,
-            auctionProductLimit,
+            currency,
+            period,
         });
         res.status(200).json({
+            status: true,
             message: 'Subscription plan created successfully.',
         });
     }
     catch (error) {
         logger_1.default.error('Error creating subscription plan:', error);
-        res.status(500).json({ message: error.message || 'Internal server error' });
+        res.status(500).json({
+            status: false,
+            message: error.message || 'Internal server error',
+        });
     }
 });
 exports.createSubscriptionPlan = createSubscriptionPlan;
 const updateSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { planId, name, duration, price, productLimit, allowsAuction, auctionProductLimit, } = req.body;
+    const { planId, name, price, period, currency } = req.body;
     try {
         // Fetch the subscription plan to update
         const plan = yield subscriptionplan_1.default.findByPk(planId);
         if (!plan) {
-            res.status(404).json({ message: 'Subscription plan not found.' });
+            res
+                .status(404)
+                .json({ status: false, message: 'Subscription plan not found.' });
             return;
         }
         // Prevent name change for Free Plan
         if (plan.name === 'Free Plan' && name !== 'Free Plan') {
-            res
-                .status(400)
-                .json({ message: 'The Free Plan name cannot be changed.' });
+            res.status(400).json({
+                status: false,
+                message: 'The Free Plan name cannot be changed.',
+            });
             return;
         }
         // Check if the new name already exists (ignoring the current plan)
@@ -845,24 +852,37 @@ const updateSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
             where: { name, id: { [sequelize_1.Op.ne]: planId } },
         });
         if (existingPlan) {
-            res
-                .status(400)
-                .json({ message: 'A different plan with this name already exists.' });
+            res.status(400).json({
+                status: false,
+                message: 'A different plan with this name already exists.',
+            });
             return;
         }
         // Update fields
-        plan.name = name;
-        plan.duration = duration;
-        plan.price = price;
-        plan.productLimit = productLimit;
-        plan.allowsAuction = allowsAuction;
-        plan.auctionProductLimit = auctionProductLimit;
+        if (name) {
+            plan.name = name;
+        }
+        if (period) {
+            plan.period = period;
+        }
+        if (currency) {
+            plan.currency = currency;
+        }
+        if (price) {
+            plan.price = price;
+        }
         yield plan.save();
-        res.status(200).json({ message: 'Subscription plan updated successfully' });
+        res.status(200).json({
+            status: true,
+            message: 'Subscription plan updated successfully',
+        });
     }
     catch (error) {
         logger_1.default.error('Error updating subscription plan:', error);
-        res.status(500).json({ message: error.message || 'Internal server error' });
+        res.status(500).json({
+            status: false,
+            message: error.message || 'Internal server error',
+        });
     }
 });
 exports.updateSubscriptionPlan = updateSubscriptionPlan;
@@ -872,31 +892,39 @@ const deleteSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
         // Fetch the subscription plan
         const plan = yield subscriptionplan_1.default.findByPk(planId);
         if (!plan) {
-            res.status(404).json({ message: 'Subscription plan not found.' });
+            res
+                .status(404)
+                .json({ status: false, message: 'Subscription plan not found.' });
             return;
         }
         // Prevent deletion of the Free Plan
         if (plan.name === 'Free Plan') {
-            res.status(400).json({ message: 'The Free Plan cannot be deleted.' });
+            res
+                .status(400)
+                .json({ status: false, message: 'The Free Plan cannot be deleted.' });
             return;
         }
+        // Check if plan has been subscribed for (TODO)
         // Attempt to delete the plan
         yield plan.destroy();
-        res
-            .status(200)
-            .json({ message: 'Subscription plan deleted successfully.' });
+        res.status(200).json({
+            status: true,
+            message: 'Subscription plan deleted successfully.',
+        });
     }
     catch (error) {
         if (error instanceof sequelize_1.ForeignKeyConstraintError) {
             res.status(400).json({
+                status: false,
                 message: 'Cannot delete subscription plan because it is currently assigned to one or more vendors. Please reassign or delete these associations before proceeding.',
             });
         }
         else {
             logger_1.default.error('Error deleting subscription plan:', error);
-            res
-                .status(500)
-                .json({ message: error.message || 'Error deleting subscription plan' });
+            res.status(500).json({
+                status: false,
+                message: error.message || 'Error deleting subscription plan',
+            });
         }
     }
 });
