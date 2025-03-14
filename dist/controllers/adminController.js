@@ -12,8 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
-exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = void 0;
+exports.getPhysicalAssets = exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = void 0;
 const sequelize_1 = require("sequelize");
 const helpers_1 = require("../utils/helpers");
 const mail_service_1 = require("../services/mail.service");
@@ -794,6 +794,24 @@ const getAllSubscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.getAllSubscriptionPlans = getAllSubscriptionPlans;
+// Subscription Plan
+const getSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params; // Get the name from query parameters
+        const plan = yield subscriptionplan_1.default.findOne({ where: { id } }); // Use query options
+        res.status(200).json({ status: true, data: plan });
+    }
+    catch (error) {
+        logger_1.default.error('Error fetching subscription plan details:', error);
+        res
+            .status(500)
+            .json({
+            status: false,
+            message: error.message || 'Internal server error',
+        });
+    }
+});
+exports.getSubscriptionPlan = getSubscriptionPlan;
 const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { name, duration, price, currency, period } = req.body;
     try {

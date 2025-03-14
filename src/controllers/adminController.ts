@@ -956,6 +956,27 @@ export const getAllSubscriptionPlans = async (
   }
 };
 
+// Subscription Plan
+export const getSubscriptionPlan = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { id } = req.params; // Get the name from query parameters
+
+    const plan = await SubscriptionPlan.findOne({ where: { id } }); // Use query options
+    res.status(200).json({ status: true, data: plan });
+  } catch (error: any) {
+    logger.error('Error fetching subscription plan details:', error);
+    res
+      .status(500)
+      .json({
+        status: false,
+        message: error.message || 'Internal server error',
+      });
+  }
+};
+
 export const createSubscriptionPlan = async (
   req: Request,
   res: Response

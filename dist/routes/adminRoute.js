@@ -84,6 +84,7 @@ adminRoutes.put('/job/category/update', adminAuthMiddleware_1.default, adminCont
 adminRoutes.delete('/job/category/delete', adminAuthMiddleware_1.default, adminController.deleteJobCategory);
 // Subscription Plan
 adminRoutes.get('/subscription/plans', adminAuthMiddleware_1.default, adminController.getAllSubscriptionPlans);
+adminRoutes.get('/subscription/plan/:id', adminAuthMiddleware_1.default, adminController.getSubscriptionPlan);
 adminRoutes.post('/subscription/plan/create', adminAuthMiddleware_1.default, (0, validations_1.createSubscriptionPlanValidationRules)(), validations_1.validate, adminController.createSubscriptionPlan);
 adminRoutes.put('/subscription/plan/update', adminAuthMiddleware_1.default, (0, validations_1.updateSubscriptionPlanValidationRules)(), validations_1.validate, adminController.updateSubscriptionPlan);
 adminRoutes.delete('/subscription/plan/delete', adminAuthMiddleware_1.default, adminController.deleteSubscriptionPlan);

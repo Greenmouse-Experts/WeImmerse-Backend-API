@@ -219,6 +219,11 @@ adminRoutes.get(
   adminAuthMiddleware,
   adminController.getAllSubscriptionPlans
 );
+adminRoutes.get(
+  '/subscription/plan/:id',
+  adminAuthMiddleware,
+  adminController.getSubscriptionPlan
+);
 adminRoutes.post(
   '/subscription/plan/create',
   adminAuthMiddleware,
