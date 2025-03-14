@@ -121,10 +121,10 @@ export const updateProfile = async (req: Request, res: Response) => {
 
     // Update user profile information
     user.name = name || user.name;
-    user.email = email || user.email;
+    // user.email = email || user.email;
     user.dateOfBirth = dateOfBirth || user.dateOfBirth;
     user.gender = gender || user.gender;
-    user.phoneNumber = phoneNumber || user.phoneNumber;
+    // user.phoneNumber = phoneNumber || user.phoneNumber;
     user.educationalLevel = educationalLevel || user.educationalLevel;
     user.schoolId = schoolId ? schoolId : user.schoolId;
     user.professionalSkill = professionalSkill || user.professionalSkill;
@@ -162,6 +162,8 @@ export const updateProfile = async (req: Request, res: Response) => {
       data: user,
     });
   } catch (error: any) {
+    console.log(error);
+
     logger.error('Error updating user profile:', error);
 
     res.status(500).json({

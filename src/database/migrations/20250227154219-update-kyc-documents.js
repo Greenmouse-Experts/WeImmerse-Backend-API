@@ -2,11 +2,11 @@
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    // await queryInterface.addColumn('kyc_documents', 'vettingStatus', {
-    //   type: Sequelize.ENUM('pending', 'approved', 'rejected'),
-    //   allowNull: false,
-    //   defaultValue: 'pending',
-    // });
+    await queryInterface.addColumn('kyc_documents', 'vettingStatus', {
+      type: Sequelize.ENUM('pending', 'approved', 'rejected'),
+      allowNull: false,
+      defaultValue: 'pending',
+    });
 
     await queryInterface.addColumn('kyc_documents', 'vettedBy', {
       type: Sequelize.UUID,
@@ -26,7 +26,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    // await queryInterface.removeColumn('kyc_documents', 'vettingStatus');
+    await queryInterface.removeColumn('kyc_documents', 'vettingStatus');
     await queryInterface.removeColumn('kyc_documents', 'vettedBy');
     await queryInterface.removeColumn('kyc_documents', 'vettedAt');
   },
