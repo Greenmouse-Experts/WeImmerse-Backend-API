@@ -129,10 +129,10 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         // Update user profile information
         user.name = name || user.name;
-        user.email = email || user.email;
+        // user.email = email || user.email;
         user.dateOfBirth = dateOfBirth || user.dateOfBirth;
         user.gender = gender || user.gender;
-        user.phoneNumber = phoneNumber || user.phoneNumber;
+        // user.phoneNumber = phoneNumber || user.phoneNumber;
         user.educationalLevel = educationalLevel || user.educationalLevel;
         user.schoolId = schoolId ? schoolId : user.schoolId;
         user.professionalSkill = professionalSkill || user.professionalSkill;
@@ -166,6 +166,7 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
     catch (error) {
+        console.log(error);
         logger_1.default.error('Error updating user profile:', error);
         res.status(500).json({
             message: 'Server error during profile update.',
