@@ -261,6 +261,11 @@ adminRoutes.get(
   adminAuthMiddleware,
   adminController.getAllInstitution
 );
+adminRoutes.get(
+  '/user-details/:id',
+  adminAuthMiddleware,
+  adminController.getSingleUser
+);
 
 // Digital Asset
 adminRoutes.get(

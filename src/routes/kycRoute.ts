@@ -15,7 +15,11 @@ import {
   uploadKycDocumentValidationRules,
 } from '../utils/validations'; // Import the service
 import authMiddleware from '../middlewares/authMiddleware';
-import { reviewKYC, uploadKYCDocument } from '../controllers/kycController';
+import {
+  getKYCDocuments,
+  reviewKYC,
+  uploadKYCDocument,
+} from '../controllers/kycController';
 import adminAuthMiddleware from '../middlewares/adminAuthMiddleware';
 
 const kycRouter = Router();
@@ -33,5 +37,6 @@ kycRouter.post(
 //   initiateKYCVerification
 // );
 kycRouter.post('/review', adminAuthMiddleware, reviewKYC);
+kycRouter.get('/fetch/:userId', adminAuthMiddleware, getKYCDocuments);
 
 export default kycRouter;

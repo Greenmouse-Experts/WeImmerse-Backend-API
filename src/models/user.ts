@@ -53,7 +53,7 @@ class User extends Model {
     });
     this.hasMany(models.KYCVerification, {
       as: 'kyc_verification',
-      foreignKey: 'user_id',
+      foreignKey: 'userId',
     });
     this.hasOne(models.Wallet, {
       as: 'wallet',

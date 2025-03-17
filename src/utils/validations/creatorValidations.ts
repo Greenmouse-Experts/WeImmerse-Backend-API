@@ -583,6 +583,11 @@ export const digitalAssetValidationRules = () => {
       .withMessage(
         'Status must be one of: published, unpublished, under_review'
       ),
+
+    check('provider')
+      .optional()
+      .isIn(['meshy-ai', 'system'])
+      .withMessage('Provider must be one of: meshy-ai, system'),
   ];
 };
 

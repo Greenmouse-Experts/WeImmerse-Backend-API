@@ -28,6 +28,10 @@ import Course from '../models/course';
 import Job from '../models/job';
 import sequelizeService from '../services/sequelize.service';
 import jobService from '../services/job.service';
+import KYCDocuments from '../models/kycdocument';
+import KYCVerification from '../models/kycverification';
+import Wallet from '../models/wallet';
+import WithdrawalAccount from '../models/withdrawalaccount';
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -968,12 +972,10 @@ export const getSubscriptionPlan = async (
     res.status(200).json({ status: true, data: plan });
   } catch (error: any) {
     logger.error('Error fetching subscription plan details:', error);
-    res
-      .status(500)
-      .json({
-        status: false,
-        message: error.message || 'Internal server error',
-      });
+    res.status(500).json({
+      status: false,
+      message: error.message || 'Internal server error',
+    });
   }
 };
 
@@ -1228,12 +1230,13 @@ export const getAllStudent = async (
       order: [['createdAt', 'DESC']], // Order by creation date descending
     });
 
-    res.status(200).json({ data: students });
+    res.status(200).json({ status: true, data: students });
   } catch (error: any) {
     logger.error('Error fetching students:', error);
-    res
-      .status(500)
-      .json({ message: error.message || 'Failed to fetch students.' });
+    res.status(500).json({
+      status: false,
+      message: error.message || 'Failed to fetch students.',
+    });
   }
 };
 
@@ -1263,12 +1266,42 @@ export const getAllInstitution = async (
       order: [['createdAt', 'DESC']], // Order by creation date descending
     });
 
-    res.status(200).json({ data: institutions });
+    res.status(200).json({ status: true, data: institutions });
   } catch (error: any) {
     logger.error('Error fetching institutions:', error);
-    res
-      .status(500)
-      .json({ message: error.message || 'Failed to fetch institutions.' });
+    res.status(500).json({
+      status: false,
+      message: error.message || 'Failed to fetch institutions.',
+    });
+  }
+};
+
+export const getSingleUser = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const { id } = req.params;
+
+    const user_details = await User.findOne({
+      where: { id },
+      include: [
+        { model: KYCDocuments, as: 'kyc_docs' },
+        { model: KYCVerification, as: 'kyc_verification' },
+        { model: Wallet, as: 'wallet' },
+        { model: WithdrawalAccount, as: 'withdrawalAccount' },
+      ],
+    });
+
+    return res.json({
+      status: true,
+      data: user_details,
+    });
+  } catch (error: any) {
+    logger.error('Error fetching single user details:', error);
+    res.status(500).json({
+      message: error.message || 'Failed to fetch single user details.',
+    });
   }
 };
 

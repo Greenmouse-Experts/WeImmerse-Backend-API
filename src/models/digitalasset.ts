@@ -15,28 +15,29 @@ class DigitalAsset extends Model {
   public specificationSoftwareUsed!: string;
   public specificationTags!: string[]; // Array of tags
   public specificationVersion?: string; // Optional field
-  public pricingType!: "One-Time-Purchase" | "Free";
+  public pricingType!: 'One-Time-Purchase' | 'Free';
   public currency?: string; // Optional, used when One Time Purchase is selected
   public amount?: number; // Optional, used when One Time Purchase is selected
-  public status!: "published" | "unpublished" | "under_review";
+  public status!: 'published' | 'unpublished' | 'under_review';
   public adminNote?: string;
-  
+  public provider?: 'meshy-ai' | 'system';
+
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
 
   static associate(models: any) {
     // Define associations here if needed
     this.belongsTo(models.AssetCategory, {
-      as: "assetCategory",
-      foreignKey: "categoryId",
+      as: 'assetCategory',
+      foreignKey: 'categoryId',
     });
     this.belongsTo(models.User, {
-      as: "user",
-      foreignKey: "creatorId",
+      as: 'user',
+      foreignKey: 'creatorId',
     });
     this.belongsTo(models.Admin, {
-      as: "admin",
-      foreignKey: "creatorId",
+      as: 'admin',
+      foreignKey: 'creatorId',
     });
   }
 }
@@ -52,7 +53,7 @@ const initModel = (sequelize: Sequelize) => {
       },
       creatorId: {
         type: DataTypes.UUID,
-        allowNull: false
+        allowNull: false,
       },
       categoryId: {
         type: DataTypes.UUID,
@@ -61,7 +62,7 @@ const initModel = (sequelize: Sequelize) => {
           model: 'asset_categories', // Ensure the related table is correct
           key: 'id',
         },
-        onDelete: 'CASCADE', 
+        onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
       assetName: {
@@ -101,7 +102,7 @@ const initModel = (sequelize: Sequelize) => {
         allowNull: true,
       },
       pricingType: {
-        type: DataTypes.ENUM("One-Time-Purchase", "Free"),
+        type: DataTypes.ENUM('One-Time-Purchase', 'Free'),
         allowNull: false,
       },
       currency: {
@@ -118,7 +119,12 @@ const initModel = (sequelize: Sequelize) => {
       },
       adminNote: {
         type: DataTypes.TEXT,
-        allowNull: true
+        allowNull: true,
+      },
+      provider: {
+        type: DataTypes.ENUM('meshy-ai', 'system'),
+        defaultValue: 'system',
+        allowNull: false,
       },
     },
     {

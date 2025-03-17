@@ -183,3 +183,42 @@ export const reviewKYC = async (req: Request, res: Response): Promise<any> => {
       .json({ status: false, message: 'Server error', error });
   }
 };
+
+export const getKYCDocuments = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const adminId = (req as AuthRequest).user?.id; // Assuming the user ID is passed in the URL params
+
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res
+        .status(400)
+        .json({ status: false, message: 'User ID is required' });
+    }
+
+    let kycDoc = await KYCDocuments.findAll({
+      where: { userId },
+    });
+
+    if (!kycDoc) {
+      return res
+        .status(404)
+        .json({ status: false, message: 'KYC document not found' });
+    }
+
+    return res.status(200).json({
+      status: true,
+      message: `KYC Documents retrieved.`,
+      data: kycDoc,
+    });
+  } catch (error) {
+    console.log(error);
+
+    return res
+      .status(500)
+      .json({ status: false, message: 'Server error', error });
+  }
+};
