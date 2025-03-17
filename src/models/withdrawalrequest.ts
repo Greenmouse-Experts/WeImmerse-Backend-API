@@ -28,6 +28,14 @@ class WithdrawalRequest extends Model {
   public adminReviewedAt?: Date;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
+
+  static associate(models: any) {
+    this.belongsTo(models.User, {
+      as: 'user',
+      foreignKey: 'userId',
+      onDelete: 'CASCADE',
+    });
+  }
 }
 
 const initModel = (sequelize: Sequelize) => {

@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reviewKYC = exports.uploadKYCDocument = void 0;
+exports.getKYCDocuments = exports.reviewKYC = exports.uploadKYCDocument = void 0;
 const kycverification_1 = require("../models/kycverification");
 const kycdocument_1 = __importStar(require("../models/kycdocument"));
 const user_1 = __importDefault(require("../models/user"));
@@ -190,4 +190,36 @@ const reviewKYC = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.reviewKYC = reviewKYC;
+const getKYCDocuments = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const adminId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
+        const { userId } = req.params;
+        if (!userId) {
+            return res
+                .status(400)
+                .json({ status: false, message: 'User ID is required' });
+        }
+        let kycDoc = yield kycdocument_1.default.findAll({
+            where: { userId },
+        });
+        if (!kycDoc) {
+            return res
+                .status(404)
+                .json({ status: false, message: 'KYC document not found' });
+        }
+        return res.status(200).json({
+            status: true,
+            message: `KYC Documents retrieved.`,
+            data: kycDoc,
+        });
+    }
+    catch (error) {
+        console.log(error);
+        return res
+            .status(500)
+            .json({ status: false, message: 'Server error', error });
+    }
+});
+exports.getKYCDocuments = getKYCDocuments;
 //# sourceMappingURL=kycController.js.map

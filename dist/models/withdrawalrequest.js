@@ -22,6 +22,13 @@ var WithdrawalStatus;
     WithdrawalStatus["COMPLETED"] = "completed";
 })(WithdrawalStatus || (exports.WithdrawalStatus = WithdrawalStatus = {}));
 class WithdrawalRequest extends sequelize_1.Model {
+    static associate(models) {
+        this.belongsTo(models.User, {
+            as: 'user',
+            foreignKey: 'userId',
+            onDelete: 'CASCADE',
+        });
+    }
 }
 const initModel = (sequelize) => {
     WithdrawalRequest.init({

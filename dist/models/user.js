@@ -44,7 +44,7 @@ class User extends sequelize_1.Model {
         });
         this.hasMany(models.KYCVerification, {
             as: 'kyc_verification',
-            foreignKey: 'user_id',
+            foreignKey: 'userId',
         });
         this.hasOne(models.Wallet, {
             as: 'wallet',
@@ -52,6 +52,10 @@ class User extends sequelize_1.Model {
         });
         this.hasOne(models.WithdrawalAccount, {
             as: 'withdrawalAccount',
+            foreignKey: 'userId',
+        });
+        this.hasMany(models.WithdrawalRequest, {
+            as: 'withdrawalRequests',
             foreignKey: 'userId',
         });
     }

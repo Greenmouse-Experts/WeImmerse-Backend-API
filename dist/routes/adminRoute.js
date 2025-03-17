@@ -93,6 +93,7 @@ adminRoutes.get('/creators', adminAuthMiddleware_1.default, adminController.getA
 adminRoutes.get('/users', adminAuthMiddleware_1.default, adminController.getAllUser);
 adminRoutes.get('/students', adminAuthMiddleware_1.default, adminController.getAllStudent);
 adminRoutes.get('/institutions', adminAuthMiddleware_1.default, adminController.getAllInstitution);
+adminRoutes.get('/user-details/:id', adminAuthMiddleware_1.default, adminController.getSingleUser);
 // Digital Asset
 adminRoutes.get('/all/digital/assets', adminAuthMiddleware_1.default, adminController.getAllDigitalAssets);
 adminRoutes.get('/digital/assets', adminAuthMiddleware_1.default, adminController.getDigitalAssets);

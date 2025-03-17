@@ -8,6 +8,7 @@ import {
   requestWithdrawal,
   approveWithdrawal,
   finalizeWithdrawal,
+  fetchWithdrawalRequests,
 } from '../controllers/withdrawalController';
 import {
   validate,
@@ -63,6 +64,9 @@ withdrawalRoutes.post(
   validate,
   requestWithdrawal
 );
+
+// Request
+withdrawalRoutes.get('/requests', adminAuthMiddleware, fetchWithdrawalRequests);
 
 // Approve request
 withdrawalRoutes.post(

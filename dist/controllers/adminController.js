@@ -12,8 +12,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPhysicalAssets = exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
-exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = void 0;
+exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getSingleUser = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
+exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = void 0;
 const sequelize_1 = require("sequelize");
 const helpers_1 = require("../utils/helpers");
 const mail_service_1 = require("../services/mail.service");
@@ -36,6 +36,10 @@ const course_1 = __importDefault(require("../models/course"));
 const job_1 = __importDefault(require("../models/job"));
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const job_service_1 = __importDefault(require("../services/job.service"));
+const kycdocument_1 = __importDefault(require("../models/kycdocument"));
+const kycverification_1 = __importDefault(require("../models/kycverification"));
+const wallet_1 = __importDefault(require("../models/wallet"));
+const withdrawalaccount_1 = __importDefault(require("../models/withdrawalaccount"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -803,9 +807,7 @@ const getSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
     catch (error) {
         logger_1.default.error('Error fetching subscription plan details:', error);
-        res
-            .status(500)
-            .json({
+        res.status(500).json({
             status: false,
             message: error.message || 'Internal server error',
         });
@@ -1024,13 +1026,14 @@ const getAllStudent = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             where: searchConditions,
             order: [['createdAt', 'DESC']], // Order by creation date descending
         });
-        res.status(200).json({ data: students });
+        res.status(200).json({ status: true, data: students });
     }
     catch (error) {
         logger_1.default.error('Error fetching students:', error);
-        res
-            .status(500)
-            .json({ message: error.message || 'Failed to fetch students.' });
+        res.status(500).json({
+            status: false,
+            message: error.message || 'Failed to fetch students.',
+        });
     }
 });
 exports.getAllStudent = getAllStudent;
@@ -1053,16 +1056,42 @@ const getAllInstitution = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: searchConditions,
             order: [['createdAt', 'DESC']], // Order by creation date descending
         });
-        res.status(200).json({ data: institutions });
+        res.status(200).json({ status: true, data: institutions });
     }
     catch (error) {
         logger_1.default.error('Error fetching institutions:', error);
-        res
-            .status(500)
-            .json({ message: error.message || 'Failed to fetch institutions.' });
+        res.status(500).json({
+            status: false,
+            message: error.message || 'Failed to fetch institutions.',
+        });
     }
 });
 exports.getAllInstitution = getAllInstitution;
+const getSingleUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const user_details = yield user_1.default.findOne({
+            where: { id },
+            include: [
+                { model: kycdocument_1.default, as: 'kyc_docs' },
+                { model: kycverification_1.default, as: 'kyc_verification' },
+                { model: wallet_1.default, as: 'wallet' },
+                { model: withdrawalaccount_1.default, as: 'withdrawalAccount' },
+            ],
+        });
+        return res.json({
+            status: true,
+            data: user_details,
+        });
+    }
+    catch (error) {
+        logger_1.default.error('Error fetching single user details:', error);
+        res.status(500).json({
+            message: error.message || 'Failed to fetch single user details.',
+        });
+    }
+});
+exports.getSingleUser = getSingleUser;
 // Job Categories
 const getJobCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

@@ -63,6 +63,10 @@ class User extends Model {
       as: 'withdrawalAccount',
       foreignKey: 'userId',
     });
+    this.hasMany(models.WithdrawalRequest, {
+      as: 'withdrawalRequests',
+      foreignKey: 'userId',
+    });
   }
 
   // async percentCompleted(courseId: string): Promise<number> {

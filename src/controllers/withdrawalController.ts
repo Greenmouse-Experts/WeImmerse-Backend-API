@@ -9,8 +9,13 @@ import WalletService from '../services/wallet.service';
 import WithdrawalService from '../services/withdrawal.service';
 import sequelizeService from '../services/sequelize.service';
 import User from '../models/user';
-import { formatMoney } from '../utils/helpers';
+import {
+  formatMoney,
+  getPaginationFields,
+  getTotalPages,
+} from '../utils/helpers';
 import { Transaction } from 'sequelize';
+import WithdrawalRequest from '../models/withdrawalrequest';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -262,6 +267,56 @@ export const requestWithdrawal = async (
   }
 };
 
+/**
+ * Fetch withdrawal requests
+ * @param req
+ * @param res
+ * @returns
+ */
+export const fetchWithdrawalRequests = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  // const transaction = await sequelizeService.connection!.transaction();
+
+  const whereCondition = {};
+
+  const { page, limit, offset } = getPaginationFields(
+    req.query.page as string,
+    req.query.limit as string
+  );
+
+  const { rows: withdrawalRequest, count: totalItems } =
+    await WithdrawalRequest.findAndCountAll({
+      where: whereCondition,
+      include: [
+        {
+          model: User,
+          as: 'user',
+        },
+        // Adjust alias to match your associations
+      ],
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset,
+    });
+
+  // Calculate pagination metadata
+  const totalPages = getTotalPages(totalItems, limit);
+
+  // Respond with the paginated jobs and metadata
+  return res.status(200).json({
+    message: 'Withdrawal requests retrieved successfully.',
+    data: withdrawalRequest,
+    meta: {
+      totalItems,
+      totalPages,
+      currentPage: page,
+      itemsPerPage: limit,
+    },
+  });
+};
+
 // Approve
 export const approveWithdrawal = async (
   req: Request,
@@ -281,7 +336,7 @@ export const approveWithdrawal = async (
   if (!result.success)
     return res.status(400).json({ status: false, message: result.message });
 
-  transaction.commit();
+  await transaction.commit();
 
   res.json(result);
 };

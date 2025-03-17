@@ -18,6 +18,8 @@ withdrawalRoutes.put('/account/:id', authMiddleware_1.default, authorizeCreatorO
 withdrawalRoutes.delete('/account/:id', authMiddleware_1.default, authorizeCreatorOrInstitution_1.default, withdrawalController_1.deleteWithdrawalAccount);
 // Request
 withdrawalRoutes.post('/request', authMiddleware_1.default, authorizeCreatorOrInstitution_1.default, (0, validations_1.withdrawalRequestValidationRules)(), validations_1.validate, withdrawalController_1.requestWithdrawal);
+// Request
+withdrawalRoutes.get('/requests', adminAuthMiddleware_1.default, withdrawalController_1.fetchWithdrawalRequests);
 // Approve request
 withdrawalRoutes.post('/approve-request', adminAuthMiddleware_1.default, withdrawalController_1.approveWithdrawal);
 withdrawalRoutes.post('/finalize', adminAuthMiddleware_1.default, withdrawalController_1.finalizeWithdrawal);

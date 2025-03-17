@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.finalizeWithdrawal = exports.approveWithdrawal = exports.requestWithdrawal = exports.deleteWithdrawalAccount = exports.updateWithdrawalAccount = exports.getWithdrawalAccountById = exports.getWithdrawalAccounts = exports.createWithdrawalAccount = void 0;
+exports.finalizeWithdrawal = exports.approveWithdrawal = exports.fetchWithdrawalRequests = exports.requestWithdrawal = exports.deleteWithdrawalAccount = exports.updateWithdrawalAccount = exports.getWithdrawalAccountById = exports.getWithdrawalAccounts = exports.createWithdrawalAccount = void 0;
 const withdrawalaccount_1 = __importDefault(require("../models/withdrawalaccount"));
 const paystack_service_1 = require("../services/paystack.service");
 const wallet_1 = __importDefault(require("../models/wallet"));
@@ -21,6 +21,7 @@ const withdrawal_service_1 = __importDefault(require("../services/withdrawal.ser
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const user_1 = __importDefault(require("../models/user"));
 const helpers_1 = require("../utils/helpers");
+const withdrawalrequest_1 = __importDefault(require("../models/withdrawalrequest"));
 /**
  * Create withdrawal account
  * @param req
@@ -215,6 +216,44 @@ const requestWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.requestWithdrawal = requestWithdrawal;
+/**
+ * Fetch withdrawal requests
+ * @param req
+ * @param res
+ * @returns
+ */
+const fetchWithdrawalRequests = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    // const transaction = await sequelizeService.connection!.transaction();
+    const whereCondition = {};
+    const { page, limit, offset } = (0, helpers_1.getPaginationFields)(req.query.page, req.query.limit);
+    const { rows: withdrawalRequest, count: totalItems } = yield withdrawalrequest_1.default.findAndCountAll({
+        where: whereCondition,
+        include: [
+            {
+                model: user_1.default,
+                as: 'user',
+            },
+            // Adjust alias to match your associations
+        ],
+        order: [['createdAt', 'DESC']],
+        limit,
+        offset,
+    });
+    // Calculate pagination metadata
+    const totalPages = (0, helpers_1.getTotalPages)(totalItems, limit);
+    // Respond with the paginated jobs and metadata
+    return res.status(200).json({
+        message: 'Withdrawal requests retrieved successfully.',
+        data: withdrawalRequest,
+        meta: {
+            totalItems,
+            totalPages,
+            currentPage: page,
+            itemsPerPage: limit,
+        },
+    });
+});
+exports.fetchWithdrawalRequests = fetchWithdrawalRequests;
 // Approve
 const approveWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { id: adminId } = req.admin;
@@ -223,7 +262,7 @@ const approveWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, functi
     const result = yield withdrawal_service_1.default.approveWithdrawal(adminId, requestId, approve, transaction);
     if (!result.success)
         return res.status(400).json({ status: false, message: result.message });
-    transaction.commit();
+    yield transaction.commit();
     res.json(result);
 });
 exports.approveWithdrawal = approveWithdrawal;

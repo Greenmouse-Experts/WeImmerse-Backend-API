@@ -16,5 +16,6 @@ kycRouter.post('/upload', authMiddleware_1.default, (0, validations_1.uploadKycD
 //   initiateKYCVerification
 // );
 kycRouter.post('/review', adminAuthMiddleware_1.default, kycController_1.reviewKYC);
+kycRouter.get('/fetch/:userId', adminAuthMiddleware_1.default, kycController_1.getKYCDocuments);
 exports.default = kycRouter;
 //# sourceMappingURL=kycRoute.js.map

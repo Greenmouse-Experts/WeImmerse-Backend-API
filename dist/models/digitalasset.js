@@ -7,16 +7,16 @@ class DigitalAsset extends sequelize_1.Model {
     static associate(models) {
         // Define associations here if needed
         this.belongsTo(models.AssetCategory, {
-            as: "assetCategory",
-            foreignKey: "categoryId",
+            as: 'assetCategory',
+            foreignKey: 'categoryId',
         });
         this.belongsTo(models.User, {
-            as: "user",
-            foreignKey: "creatorId",
+            as: 'user',
+            foreignKey: 'creatorId',
         });
         this.belongsTo(models.Admin, {
-            as: "admin",
-            foreignKey: "creatorId",
+            as: 'admin',
+            foreignKey: 'creatorId',
         });
     }
 }
@@ -30,7 +30,7 @@ const initModel = (sequelize) => {
         },
         creatorId: {
             type: sequelize_1.DataTypes.UUID,
-            allowNull: false
+            allowNull: false,
         },
         categoryId: {
             type: sequelize_1.DataTypes.UUID,
@@ -79,7 +79,7 @@ const initModel = (sequelize) => {
             allowNull: true,
         },
         pricingType: {
-            type: sequelize_1.DataTypes.ENUM("One-Time-Purchase", "Free"),
+            type: sequelize_1.DataTypes.ENUM('One-Time-Purchase', 'Free'),
             allowNull: false,
         },
         currency: {
@@ -96,7 +96,12 @@ const initModel = (sequelize) => {
         },
         adminNote: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: true
+            allowNull: true,
+        },
+        provider: {
+            type: sequelize_1.DataTypes.ENUM('meshy-ai', 'system'),
+            defaultValue: 'system',
+            allowNull: false,
         },
     }, {
         sequelize,
