@@ -58,6 +58,10 @@ class User extends sequelize_1.Model {
             as: 'withdrawalRequests',
             foreignKey: 'userId',
         });
+        this.hasOne(models.WithdrawalHistory, {
+            as: 'withdrawalHistory',
+            foreignKey: 'userId',
+        });
     }
 }
 const initModel = (sequelize) => {

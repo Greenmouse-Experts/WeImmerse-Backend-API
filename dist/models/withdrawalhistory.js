@@ -7,6 +7,12 @@ exports.initModel = void 0;
 const sequelize_1 = require("sequelize");
 const user_1 = __importDefault(require("./user"));
 class WithdrawalHistory extends sequelize_1.Model {
+    static associate(models) {
+        this.belongsTo(models.User, {
+            as: 'user',
+            foreignKey: 'userId',
+        });
+    }
 }
 const initModel = (sequelize) => {
     WithdrawalHistory.init({

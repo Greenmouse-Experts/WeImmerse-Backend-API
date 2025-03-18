@@ -51,6 +51,8 @@ const user_1 = __importDefault(require("../models/user"));
 const admin_1 = __importDefault(require("../models/admin"));
 const withdrawalaccount_1 = __importDefault(require("../models/withdrawalaccount"));
 const paystack_service_1 = require("./paystack.service");
+const wallet_service_1 = __importDefault(require("./wallet.service"));
+const wallet_1 = __importDefault(require("../models/wallet"));
 class WithdrawalService {
     static requestWithdrawal(userId, amount, currency, paymentProvider, recipientCode) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -87,32 +89,38 @@ class WithdrawalService {
                 const admin = yield admin_1.default.findByPk(adminId);
                 if (!admin)
                     throw new Error('Admin not found');
-                const withdrawalRequest = yield withdrawalrequest_1.default.findByPk(requestId);
+                const withdrawalRequest = yield withdrawalrequest_1.default.findOne({
+                    where: { id: requestId },
+                    include: [{ model: user_1.default, as: 'user' }],
+                });
                 if (!withdrawalRequest)
                     throw new Error('Withdrawal request not found');
                 if (withdrawalRequest.status !== withdrawalrequest_1.WithdrawalStatus.PENDING) {
+                    if (withdrawalRequest.status === withdrawalrequest_1.WithdrawalStatus.REJECTED) {
+                        throw new Error('Withdrawal request already rejected.');
+                    }
                     throw new Error('Withdrawal request already processed');
                 }
                 let status = approve
                     ? withdrawalrequest_1.WithdrawalStatus.APPROVED
                     : withdrawalrequest_1.WithdrawalStatus.REJECTED;
-                yield withdrawalRequest.update({
+                const savedWithdrawalRequest = yield withdrawalRequest.update({
                     status,
                     adminReviewedBy: adminId,
                     adminReviewedAt: new Date(),
                 }, { transaction });
+                // Retrieve the withdrawal account record
+                const withdrawalAccount = yield withdrawalaccount_1.default.findOne({
+                    where: { userId: withdrawalRequest.userId },
+                });
+                if (!withdrawalAccount)
+                    throw new Error('Withdrawal account not found');
                 let message = '';
                 let withdrawalHistory = {};
                 if (approve) {
-                    // Retrieve the withdrawal account record
-                    const withdrawalAccount = yield withdrawalaccount_1.default.findOne({
-                        where: { userId: withdrawalRequest.userId },
-                    });
-                    if (!withdrawalAccount)
-                        throw new Error('Withdrawal account not found');
                     const transferResponse = yield (0, paystack_service_1.initiateTransfer)(withdrawalRequest.amount, withdrawalRequest.recipientCode, 'Withdrawal payout');
                     message = transferResponse.message;
-                    withdrawalHistory = yield withdrawalhistory_1.default.create({
+                    withdrawalHistory = JSON.parse(JSON.stringify(yield withdrawalhistory_1.default.create({
                         userId: withdrawalRequest.userId,
                         amount: withdrawalRequest.amount,
                         currency: withdrawalRequest.currency,
@@ -120,13 +128,16 @@ class WithdrawalService {
                         payoutReference: transferResponse.data.transfer_code,
                         status: withdrawalrequest_1.WithdrawalStatus.PENDING,
                         transactionDate: new Date(),
-                    }, { transaction });
+                    }, { transaction })));
                 }
-                yield transaction.commit();
+                else {
+                    // Refund wallet
+                    yield wallet_service_1.default.topUpWallet(withdrawalRequest.userId, withdrawalRequest.amount, withdrawalRequest.currency, transaction);
+                }
                 return {
                     success: true,
                     message,
-                    data: withdrawalHistory,
+                    data: Object.assign({}, Object.assign(Object.assign({}, withdrawalHistory), { withdrawalRequest: savedWithdrawalRequest })),
                 };
             }
             catch (error) {
@@ -152,6 +163,13 @@ class WithdrawalService {
                 // Get withdrawal history details
                 const withdrawalHistory = yield withdrawalhistory_1.default.findOne({
                     where: { id: withdrawalHistoryId },
+                    include: [
+                        {
+                            model: user_1.default,
+                            as: 'user',
+                            include: [{ model: wallet_1.default, as: 'wallet' }],
+                        },
+                    ],
                     transaction,
                 });
                 if (!withdrawalHistory) {
@@ -162,11 +180,16 @@ class WithdrawalService {
                 if (!paymentVerification.status) {
                     throw new Error('Payment verification failed');
                 }
-                return { success: true, message: paymentVerification.message };
+                // Update withdrawal history
+                yield withdrawalHistory.update({ status: 'successful' }, transaction);
+                return {
+                    success: true,
+                    message: paymentVerification.message,
+                    data: withdrawalHistory,
+                };
             }
             catch (error) {
-                yield transaction.rollback();
-                return { success: false, message: error.message };
+                throw error;
             }
         });
     }

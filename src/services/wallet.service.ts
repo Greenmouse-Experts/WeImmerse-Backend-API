@@ -30,13 +30,18 @@ class WalletService {
    * @param amount - The amount to top up
    * @returns The updated wallet
    */
-  static async topUpWallet(userId: string, amount: number, t?: any) {
+  static async topUpWallet(
+    userId: string,
+    amount: number,
+    currency: string,
+    t?: any
+  ) {
     if (amount <= 0) {
       throw new Error('Top-up amount must be greater than zero.');
     }
 
     const wallet = await Wallet.findOne({
-      where: { userId },
+      where: { userId, currency },
       transaction: t,
     });
 
@@ -45,7 +50,7 @@ class WalletService {
     }
 
     wallet.previousBalance = wallet.balance;
-    wallet.balance = wallet.balance + amount;
+    wallet.balance = Number(wallet.balance) + Number(amount);
 
     await wallet.save({ transaction: t });
     return wallet;

@@ -5,7 +5,13 @@ import Applicant from '../models/applicant';
 import Job from '../models/job';
 import KYCDocuments from '../models/kycdocument';
 import User from '../models/user';
-import { AccountVettingStatus } from './helpers';
+import Wallet from '../models/wallet';
+import WithdrawalHistory from '../models/withdrawalhistory';
+import WithdrawalRequest, {
+  WithdrawalStatus,
+} from '../models/withdrawalrequest';
+import { AccountVettingStatus, formatMoney } from './helpers';
+import moment from 'moment';
 
 export const emailTemplates = {
   verifyEmail: (user: User, code: string): string => {
@@ -3945,5 +3951,301 @@ export const emailTemplates = {
 
 </html>
 `;
+  },
+
+  withdrawalRequestEmail: (user: User, withdrawal: WithdrawalRequest) => {
+    const adminPanelUrl = `${process.env.ADMIN_LINK}/admin/`;
+    const logoUrl: string | undefined = process.env.LOGO_URL;
+
+    return `
+    <!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Withdrawal Request Notification</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f6f6f6;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .content {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.6;
+      }
+      .button {
+        display: inline-block;
+        background-color: #000;
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+      .footer {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body >
+    <div class="container" style="background-color: #f6f6f6;">
+      <div class="logo" style="margin-bottom: 40px; text-align: center;">
+        <img
+          src="${logoUrl}"
+          alt="Logo of ${process.env.APP_NAME}"
+          width="150px"
+        />
+      </div>
+      <div class="content">
+        <p>Dear Admin,</p>
+        <p>A new withdrawal request has been submitted.</p>
+        <p>
+          <strong>User:</strong> ${user.name} <br />
+          <strong>Email:</strong> ${user.email} <br />
+          <strong>Amount:</strong> ${formatMoney(
+            withdrawal.amount,
+            withdrawal.currency
+          )} <br />
+          <strong>Payment Method:</strong> ${withdrawal.paymentProvider}
+        </p>
+        <p>Please review and take the necessary actions.</p>
+        <a href="${adminPanelUrl}" class="button">Review Request</a>
+      </div>
+      <div class="footer">
+        &copy;
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+        ${process.env.APP_NAME}. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>
+    `;
+  },
+
+  withdrawalRequestVettingEmail: (
+    user: User,
+    withdrawal: WithdrawalRequest
+  ) => {
+    const logoUrl: string | undefined = process.env.LOGO_URL;
+
+    return `
+    <!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Withdrawal Request Notification</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f6f6f6;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .content {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.6;
+      }
+      .button {
+        display: inline-block;
+        background-color: #000;
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+      .footer {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body >
+    <div class="container" style="background-color: #f6f6f6;">
+      <div class="logo" style="margin-bottom: 40px; text-align: center;">
+        <img
+          src="${logoUrl}"
+          alt="Logo of ${process.env.APP_NAME}"
+          width="150px"
+        />
+      </div>
+      <div class="content">
+        <p>Dear ${user.name},</p>
+        <p>Your withdrawal request of
+          <strong>${formatMoney(
+            withdrawal.amount,
+            withdrawal.currency
+          )}</strong>
+          via <strong>${withdrawal.paymentProvider}</strong> has been
+          <strong>${withdrawal.status}</strong>.</p>
+        <p>
+        ${
+          withdrawal.status === WithdrawalStatus.APPROVED
+            ? `<p>Your funds will be processed shortly.</p>`
+            : ''
+        }
+        </p>
+        <p>If you have any questions, please reach out to our support team.</p>
+      </div>
+      <div class="footer">
+        &copy;
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+        ${process.env.APP_NAME}. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>
+    `;
+  },
+
+  withdrawalSuccessEmail: (
+    withdrawalHistory: WithdrawalHistory & { user: User & { wallet: Wallet } }
+  ) => {
+    const { user } = withdrawalHistory;
+    const { wallet } = user;
+
+    const logoUrl: string | undefined = process.env.LOGO_URL;
+    const walletUrl = `${process.env.CLIENT_URL}/auth/login?redirect_url=/dashboard/transactions`;
+
+    return `
+    <!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>Withdrawal Request Notification</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f6f6f6;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        max-width: 600px;
+        margin: 20px auto;
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      }
+      .header {
+        text-align: center;
+        font-size: 24px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 20px;
+      }
+      .content {
+        font-size: 16px;
+        color: #555;
+        line-height: 1.6;
+      }
+      .button {
+        display: inline-block;
+        background-color: #000;
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        margin-top: 20px;
+      }
+      .footer {
+        margin-top: 20px;
+        font-size: 14px;
+        color: #888;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body >
+    <div class="container" style="background-color: #f6f6f6;">
+      <div class="logo" style="margin-bottom: 40px; text-align: center;">
+        <img
+          src="${logoUrl}"
+          alt="Logo of ${process.env.APP_NAME}"
+          width="150px"
+        />
+      </div>
+      <div class="content">
+        <p>Dear ${user.name},</p>
+        <p>
+        We’re excited to inform you that a transfer has been successfully credited to your wallet. Below are the details:
+        <p>
+        <ul>
+            <li>Amount: ${formatMoney(
+              withdrawalHistory.amount,
+              withdrawalHistory.currency
+            )}</li>
+            <li>Transaction ID: ${withdrawalHistory.id}</li>
+            <li>Date: ${moment(withdrawalHistory.createdAt).format('LLL')}</li>
+        </ul>
+
+        <p>Your updated wallet balance is ${formatMoney(
+          wallet.balance,
+          wallet.currency
+        )}.</p>
+        
+        <p>You can view your transaction history or use your balance for purchases by logging into your account.</p>
+
+        <a href='${walletUrl}'>View your transactions</a>
+        </p>
+        <p>If you have any questions, please reach out to our support team.</p>
+      </div>
+      <div class="footer">
+        &copy;
+        <script>
+          document.write(new Date().getFullYear());
+        </script>
+        ${process.env.APP_NAME}. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>
+    `;
   },
 };

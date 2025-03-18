@@ -6,6 +6,8 @@ import User from '../models/user';
 import Admin from '../models/admin';
 import WithdrawalAccount from '../models/withdrawalaccount';
 import { finalizeTransfer, initiateTransfer } from './paystack.service';
+import WalletService from './wallet.service';
+import Wallet from '../models/wallet';
 
 class WithdrawalService {
   static async requestWithdrawal(
@@ -52,16 +54,22 @@ class WithdrawalService {
       const admin = await Admin.findByPk(adminId);
       if (!admin) throw new Error('Admin not found');
 
-      const withdrawalRequest = await WithdrawalRequest.findByPk(requestId);
+      const withdrawalRequest = await WithdrawalRequest.findOne({
+        where: { id: requestId },
+        include: [{ model: User, as: 'user' }],
+      });
       if (!withdrawalRequest) throw new Error('Withdrawal request not found');
       if (withdrawalRequest.status !== WithdrawalStatus.PENDING) {
+        if (withdrawalRequest.status === WithdrawalStatus.REJECTED) {
+          throw new Error('Withdrawal request already rejected.');
+        }
         throw new Error('Withdrawal request already processed');
       }
 
       let status = approve
         ? WithdrawalStatus.APPROVED
         : WithdrawalStatus.REJECTED;
-      await withdrawalRequest.update(
+      const savedWithdrawalRequest = await withdrawalRequest.update(
         {
           status,
           adminReviewedBy: adminId,
@@ -70,15 +78,15 @@ class WithdrawalService {
         { transaction }
       );
 
+      // Retrieve the withdrawal account record
+      const withdrawalAccount = await WithdrawalAccount.findOne({
+        where: { userId: withdrawalRequest.userId },
+      });
+      if (!withdrawalAccount) throw new Error('Withdrawal account not found');
+
       let message = '';
       let withdrawalHistory = {};
       if (approve) {
-        // Retrieve the withdrawal account record
-        const withdrawalAccount = await WithdrawalAccount.findOne({
-          where: { userId: withdrawalRequest.userId },
-        });
-        if (!withdrawalAccount) throw new Error('Withdrawal account not found');
-
         const transferResponse = await initiateTransfer(
           withdrawalRequest.amount,
           withdrawalRequest.recipientCode,
@@ -87,25 +95,39 @@ class WithdrawalService {
 
         message = transferResponse.message;
 
-        withdrawalHistory = await WithdrawalHistory.create(
-          {
-            userId: withdrawalRequest.userId,
-            amount: withdrawalRequest.amount,
-            currency: withdrawalRequest.currency,
-            paymentProvider: withdrawalRequest.paymentProvider,
-            payoutReference: transferResponse.data.transfer_code,
-            status: WithdrawalStatus.PENDING,
-            transactionDate: new Date(),
-          },
-          { transaction }
+        withdrawalHistory = JSON.parse(
+          JSON.stringify(
+            await WithdrawalHistory.create(
+              {
+                userId: withdrawalRequest.userId,
+                amount: withdrawalRequest.amount,
+                currency: withdrawalRequest.currency,
+                paymentProvider: withdrawalRequest.paymentProvider,
+                payoutReference: transferResponse.data.transfer_code,
+                status: WithdrawalStatus.PENDING,
+                transactionDate: new Date(),
+              },
+              { transaction }
+            )
+          )
+        );
+      } else {
+        // Refund wallet
+        await WalletService.topUpWallet(
+          withdrawalRequest.userId,
+          withdrawalRequest.amount,
+          withdrawalRequest.currency,
+          transaction
         );
       }
 
-      await transaction.commit();
       return {
         success: true,
         message,
-        data: withdrawalHistory,
+        data: Object.assign(
+          {},
+          { ...withdrawalHistory, withdrawalRequest: savedWithdrawalRequest }
+        ),
       };
     } catch (error: any) {
       await transaction.rollback();
@@ -134,6 +156,13 @@ class WithdrawalService {
       // Get withdrawal history details
       const withdrawalHistory = await WithdrawalHistory.findOne({
         where: { id: withdrawalHistoryId },
+        include: [
+          {
+            model: User,
+            as: 'user',
+            include: [{ model: Wallet, as: 'wallet' }],
+          },
+        ],
         transaction,
       });
       if (!withdrawalHistory) {
@@ -150,10 +179,16 @@ class WithdrawalService {
         throw new Error('Payment verification failed');
       }
 
-      return { success: true, message: paymentVerification.message };
+      // Update withdrawal history
+      await withdrawalHistory.update({ status: 'successful' }, transaction);
+
+      return {
+        success: true,
+        message: paymentVerification.message,
+        data: withdrawalHistory,
+      };
     } catch (error: any) {
-      await transaction.rollback();
-      return { success: false, message: error.message };
+      throw error;
     }
   }
 }

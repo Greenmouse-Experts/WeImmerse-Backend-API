@@ -41,20 +41,20 @@ class WalletService {
      * @param amount - The amount to top up
      * @returns The updated wallet
      */
-    static topUpWallet(userId, amount, t) {
+    static topUpWallet(userId, amount, currency, t) {
         return __awaiter(this, void 0, void 0, function* () {
             if (amount <= 0) {
                 throw new Error('Top-up amount must be greater than zero.');
             }
             const wallet = yield wallet_1.default.findOne({
-                where: { userId },
+                where: { userId, currency },
                 transaction: t,
             });
             if (!wallet) {
                 throw new Error('Wallet not found.');
             }
             wallet.previousBalance = wallet.balance;
-            wallet.balance = wallet.balance + amount;
+            wallet.balance = Number(wallet.balance) + Number(amount);
             yield wallet.save({ transaction: t });
             return wallet;
         });

@@ -67,6 +67,10 @@ class User extends Model {
       as: 'withdrawalRequests',
       foreignKey: 'userId',
     });
+    this.hasOne(models.WithdrawalHistory, {
+      as: 'withdrawalHistory',
+      foreignKey: 'userId',
+    });
   }
 
   // async percentCompleted(courseId: string): Promise<number> {

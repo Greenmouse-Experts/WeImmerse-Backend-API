@@ -22,6 +22,9 @@ const sequelize_service_1 = __importDefault(require("../services/sequelize.servi
 const user_1 = __importDefault(require("../models/user"));
 const helpers_1 = require("../utils/helpers");
 const withdrawalrequest_1 = __importDefault(require("../models/withdrawalrequest"));
+const messages_1 = require("../utils/messages");
+const mail_service_1 = require("../services/mail.service");
+const logger_1 = __importDefault(require("../middlewares/logger"));
 /**
  * Create withdrawal account
  * @param req
@@ -168,7 +171,8 @@ exports.deleteWithdrawalAccount = deleteWithdrawalAccount;
 const requestWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     try {
-        const { id: userId, name, email } = req.user;
+        const user = req.user;
+        const { id: userId, name, email } = user;
         const { amount, currency, paymentProvider } = req.body;
         // Check if withdrawal threshold is reached
         if (amount < ((_a = process === null || process === void 0 ? void 0 : process.env) === null || _a === void 0 ? void 0 : _a.WITHDRAWAL_THRESHOLD_NGN)) {
@@ -200,11 +204,18 @@ const requestWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, functi
             return res.status(400).json({ error: result.message });
         // Deduct fund from wallet
         yield wallet_service_1.default.deductWallet(userId, amount, currency);
-        // Send email to admin (TODO)
+        // Send email to admin
+        const message = messages_1.emailTemplates.withdrawalRequestEmail(user, result.withdrawalRequest);
+        try {
+            yield (0, mail_service_1.sendMail)(process.env.ADMIN_EMAIL, `${process.env.APP_NAME} - Withdrawal Request Notification`, message);
+        }
+        catch (emailError) {
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
+        }
         res.json({
             status: true,
             message: 'Withdrawal request created successfully.',
-            data: result,
+            data: result.withdrawalRequest,
         });
     }
     catch (error) {
@@ -256,12 +267,21 @@ const fetchWithdrawalRequests = (req, res) => __awaiter(void 0, void 0, void 0, 
 exports.fetchWithdrawalRequests = fetchWithdrawalRequests;
 // Approve
 const approveWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
     const { id: adminId } = req.admin;
     const { requestId, approve } = req.body;
     const transaction = yield sequelize_service_1.default.connection.transaction();
     const result = yield withdrawal_service_1.default.approveWithdrawal(adminId, requestId, approve, transaction);
     if (!result.success)
         return res.status(400).json({ status: false, message: result.message });
+    // Send email to notify
+    const message = messages_1.emailTemplates.withdrawalRequestVettingEmail(((_a = result.data) === null || _a === void 0 ? void 0 : _a.withdrawalRequest)['user'], (_b = result.data) === null || _b === void 0 ? void 0 : _b.withdrawalRequest);
+    try {
+        yield (0, mail_service_1.sendMail)(((_c = result.data) === null || _c === void 0 ? void 0 : _c.withdrawalRequest)['user'].email, `${process.env.APP_NAME} - Withdrawal Request Notification`, message);
+    }
+    catch (emailError) {
+        logger_1.default.error('Error sending email:', emailError); // Log error for internal use
+    }
     yield transaction.commit();
     res.json(result);
 });
@@ -276,11 +296,30 @@ const finalizeWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, funct
     const { id: adminId } = req.admin;
     const { withdrawalHistoryId, otp } = req.body;
     const transaction = yield sequelize_service_1.default.connection.transaction();
-    const result = yield withdrawal_service_1.default.finalizeWithdrawal(adminId, withdrawalHistoryId, otp, transaction);
-    // Send email to user concerned - creator or instructor
-    if (!result.success)
-        return res.status(400).json({ status: false, message: result.message });
-    res.json(result);
+    try {
+        const result = yield withdrawal_service_1.default.finalizeWithdrawal(adminId, withdrawalHistoryId, otp, transaction);
+        // Send email to user concerned - creator or instructor
+        const withdrawalHistory = result.data;
+        // Send email to notify
+        const message = messages_1.emailTemplates.withdrawalSuccessEmail(withdrawalHistory);
+        try {
+            yield (0, mail_service_1.sendMail)(withdrawalHistory.user.email, `${process.env.APP_NAME} - Your Wallet Has Been Credited!`, message);
+        }
+        catch (emailError) {
+            logger_1.default.error('Error sending email:', emailError); // Log error for internal use
+        }
+        if (!result.success)
+            return res.status(400).json({ status: false, message: result.message });
+        yield transaction.commit();
+        res.json(result);
+    }
+    catch (error) {
+        yield transaction.rollback();
+        return res.status(400).json({
+            status: false,
+            message: error.message,
+        });
+    }
 });
 exports.finalizeWithdrawal = finalizeWithdrawal;
 //# sourceMappingURL=withdrawalController.js.map

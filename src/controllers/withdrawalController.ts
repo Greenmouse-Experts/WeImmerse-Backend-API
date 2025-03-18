@@ -16,6 +16,10 @@ import {
 } from '../utils/helpers';
 import { Transaction } from 'sequelize';
 import WithdrawalRequest from '../models/withdrawalrequest';
+import { emailTemplates } from '../utils/messages';
+import { sendMail } from '../services/mail.service';
+import logger from '../middlewares/logger';
+import WithdrawalHistory from '../models/withdrawalhistory';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -194,7 +198,8 @@ export const requestWithdrawal = async (
   res: Response
 ): Promise<any> => {
   try {
-    const { id: userId, name, email } = (req as AuthRequest).user!;
+    const user = (req as AuthRequest).user!;
+    const { id: userId, name, email } = user;
 
     const { amount, currency, paymentProvider } = req.body;
 
@@ -250,12 +255,26 @@ export const requestWithdrawal = async (
     // Deduct fund from wallet
     await WalletService.deductWallet(userId, amount, currency);
 
-    // Send email to admin (TODO)
+    // Send email to admin
+    const message = emailTemplates.withdrawalRequestEmail(
+      user,
+      result.withdrawalRequest!
+    );
+
+    try {
+      await sendMail(
+        process.env.ADMIN_EMAIL!,
+        `${process.env.APP_NAME} - Withdrawal Request Notification`,
+        message
+      );
+    } catch (emailError) {
+      logger.error('Error sending email:', emailError); // Log error for internal use
+    }
 
     res.json({
       status: true,
       message: 'Withdrawal request created successfully.',
-      data: result,
+      data: result.withdrawalRequest,
     });
   } catch (error: any) {
     console.log(error);
@@ -336,6 +355,22 @@ export const approveWithdrawal = async (
   if (!result.success)
     return res.status(400).json({ status: false, message: result.message });
 
+  // Send email to notify
+  const message = emailTemplates.withdrawalRequestVettingEmail(
+    (result.data?.withdrawalRequest as any)['user'],
+    result.data?.withdrawalRequest!
+  );
+
+  try {
+    await sendMail(
+      (result.data?.withdrawalRequest as any)['user'].email,
+      `${process.env.APP_NAME} - Withdrawal Request Notification`,
+      message
+    );
+  } catch (emailError) {
+    logger.error('Error sending email:', emailError); // Log error for internal use
+  }
+
   await transaction.commit();
 
   res.json(result);
@@ -355,16 +390,42 @@ export const finalizeWithdrawal = async (
   const { withdrawalHistoryId, otp } = req.body;
   const transaction = await sequelizeService.connection!.transaction();
 
-  const result = await WithdrawalService.finalizeWithdrawal(
-    adminId,
-    withdrawalHistoryId,
-    otp,
-    transaction
-  );
+  try {
+    const result = await WithdrawalService.finalizeWithdrawal(
+      adminId,
+      withdrawalHistoryId,
+      otp,
+      transaction
+    );
 
-  // Send email to user concerned - creator or instructor
+    // Send email to user concerned - creator or instructor
+    const withdrawalHistory = result.data as WithdrawalHistory & {
+      user: User & { wallet: Wallet };
+    };
+    // Send email to notify
+    const message = emailTemplates.withdrawalSuccessEmail(withdrawalHistory);
 
-  if (!result.success)
-    return res.status(400).json({ status: false, message: result.message });
-  res.json(result);
+    try {
+      await sendMail(
+        withdrawalHistory.user.email,
+        `${process.env.APP_NAME} - Your Wallet Has Been Credited!`,
+        message
+      );
+    } catch (emailError) {
+      logger.error('Error sending email:', emailError); // Log error for internal use
+    }
+
+    if (!result.success)
+      return res.status(400).json({ status: false, message: result.message });
+
+    await transaction.commit();
+
+    res.json(result);
+  } catch (error: any) {
+    await transaction.rollback();
+    return res.status(400).json({
+      status: false,
+      message: error.message,
+    });
+  }
 };

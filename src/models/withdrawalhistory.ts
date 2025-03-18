@@ -12,6 +12,13 @@ class WithdrawalHistory extends Model {
   public status!: 'successful' | 'failed' | 'pending';
   public transactionDate!: Date;
   public readonly createdAt!: Date;
+
+  static associate(models: any) {
+    this.belongsTo(models.User, {
+      as: 'user',
+      foreignKey: 'userId',
+    });
+  }
 }
 
 const initModel = (sequelize: Sequelize) => {
