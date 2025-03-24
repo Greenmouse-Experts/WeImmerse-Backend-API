@@ -16,6 +16,7 @@ import creatorRouter from '../routes/creatorRoute';
 import institutionRouter from '../routes/institutionRoute';
 import kycRouter from '../routes/kycRoute';
 import withdrawalRouter from '../routes/withdrawalRoute';
+import categoryRouter from '../routes/categoryRoute';
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ const createExpressApp = () => {
   app.use('/v1/api/admin', adminRouter);
   app.use('/v1/api/kyc', kycRouter);
   app.use('/v1/api/withdrawal', withdrawalRouter);
+  app.use('/v1/api/category', categoryRouter);
 
   // 404 handler (this should come after routes)
   app.use((req, res) => {

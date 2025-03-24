@@ -32,6 +32,7 @@ import KYCDocuments from '../models/kycdocument';
 import KYCVerification from '../models/kycverification';
 import Wallet from '../models/wallet';
 import WithdrawalAccount from '../models/withdrawalaccount';
+import Category from '../models/category';
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -1456,7 +1457,7 @@ export const createDigitalAsset = async (
     const adminId = req.admin?.id;
 
     // Category check
-    const category = await AssetCategory.findByPk(categoryId);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',
@@ -1538,7 +1539,7 @@ export const viewDigitalAsset = async (
       where: { id },
       include: [
         {
-          model: AssetCategory, // Including the related AssetCategory model
+          model: Category, // Including the related AssetCategory model
           as: 'assetCategory', // Alias for the relationship (adjust if necessary)
           attributes: ['id', 'name'], // You can specify the fields you want to include
         },
@@ -1579,7 +1580,7 @@ export const updateDigitalAsset = async (
 
   try {
     // Category check
-    const category = await AssetCategory.findByPk(categoryId);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',
@@ -1729,7 +1730,7 @@ export const createPhysicalAsset = async (
     const adminId = req.admin?.id; // Extract user ID from authenticated request
 
     // Category check
-    const category = await AssetCategory.findByPk(categoryId);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',
@@ -1807,7 +1808,7 @@ export const viewPhysicalAsset = async (
       where: { id },
       include: [
         {
-          model: AssetCategory, // Including the related AssetCategory model
+          model: Category, // Including the related AssetCategory model
           as: 'assetCategory', // Alias for the relationship (adjust if necessary)
           attributes: ['id', 'name'], // You can specify the fields you want to include
         },
@@ -1848,7 +1849,7 @@ export const updatePhysicalAsset = async (
 
   try {
     // Category check
-    const category = await AssetCategory.findByPk(categoryId);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',

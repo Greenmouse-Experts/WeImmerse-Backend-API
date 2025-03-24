@@ -1,5 +1,6 @@
 import { check, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
+import { CategoryTypes } from '../models/category';
 
 // Validation rules for different functionalities
 
@@ -471,6 +472,64 @@ export const withdrawalRequestValidationRules = () => {
       .isString()
       .notEmpty()
       .withMessage('Payment provider is required'),
+  ];
+};
+
+export const createCategoryValidationRules = () => {
+  return [
+    check('name')
+      .notEmpty()
+      .withMessage('Category name is required')
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Category name must be between 2 and 100 characters'),
+
+    check('description')
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage('Description must be less than 500 characters'),
+
+    check('parentId')
+      .optional()
+      .isUUID()
+      .withMessage('Parent ID must be a valid UUID'),
+
+    check('isActive')
+      .optional()
+      .isBoolean()
+      .withMessage('isActive must be a boolean value'),
+
+    check('type')
+      .notEmpty()
+      .isIn(Object.values(CategoryTypes))
+      .withMessage(
+        `Type must be of the following: ${Object.values(CategoryTypes).join(
+          ', '
+        )}`
+      ),
+  ];
+};
+
+export const updateCategoryValidationRules = () => {
+  return [
+    check('name')
+      .optional()
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Category name must be between 2 and 100 characters'),
+
+    check('description')
+      .optional()
+      .isLength({ max: 500 })
+      .withMessage('Description must be less than 500 characters'),
+
+    check('parentId')
+      .optional()
+      .isUUID()
+      .withMessage('Parent ID must be a valid UUID'),
+
+    check('isActive')
+      .optional()
+      .isBoolean()
+      .withMessage('isActive must be a boolean value'),
   ];
 };
 
