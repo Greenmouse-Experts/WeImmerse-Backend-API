@@ -40,6 +40,7 @@ const kycdocument_1 = __importDefault(require("../models/kycdocument"));
 const kycverification_1 = __importDefault(require("../models/kycverification"));
 const wallet_1 = __importDefault(require("../models/wallet"));
 const withdrawalaccount_1 = __importDefault(require("../models/withdrawalaccount"));
+const category_1 = __importDefault(require("../models/category"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -1218,7 +1219,7 @@ const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const { categoryId } = req.body;
         const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id;
         // Category check
-        const category = yield assetcategory_1.default.findByPk(categoryId);
+        const category = yield category_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
                 message: 'Category not found in our database.',
@@ -1283,7 +1284,7 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related AssetCategory model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
@@ -1320,7 +1321,7 @@ const updateDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
     const { id, categoryId } = req.body; // ID is passed in the request body
     try {
         // Category check
-        const category = yield assetcategory_1.default.findByPk(categoryId);
+        const category = yield category_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
                 message: 'Category not found in our database.',
@@ -1444,7 +1445,7 @@ const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
         const { categoryId } = req.body;
         const adminId = (_a = req.admin) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
         // Category check
-        const category = yield assetcategory_1.default.findByPk(categoryId);
+        const category = yield category_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
                 message: 'Category not found in our database.',
@@ -1506,7 +1507,7 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related AssetCategory model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
@@ -1543,7 +1544,7 @@ const updatePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
     const { id, categoryId } = req.body; // ID is passed in the request body
     try {
         // Category check
-        const category = yield assetcategory_1.default.findByPk(categoryId);
+        const category = yield category_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
                 message: 'Category not found in our database.',

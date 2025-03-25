@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
+exports.validate = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
+const category_1 = require("../models/category");
 // Validation rules for different functionalities
 // User registration validation rules
 const userRegistrationValidationRules = () => {
@@ -424,6 +425,53 @@ const withdrawalRequestValidationRules = () => {
     ];
 };
 exports.withdrawalRequestValidationRules = withdrawalRequestValidationRules;
+const createCategoryValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('name')
+            .notEmpty()
+            .withMessage('Category name is required')
+            .isLength({ min: 2, max: 100 })
+            .withMessage('Category name must be between 2 and 100 characters'),
+        (0, express_validator_1.check)('description')
+            .optional()
+            .isLength({ max: 500 })
+            .withMessage('Description must be less than 500 characters'),
+        (0, express_validator_1.check)('parentId')
+            .optional()
+            .isUUID()
+            .withMessage('Parent ID must be a valid UUID'),
+        (0, express_validator_1.check)('isActive')
+            .optional()
+            .isBoolean()
+            .withMessage('isActive must be a boolean value'),
+        (0, express_validator_1.check)('type')
+            .notEmpty()
+            .isIn(Object.values(category_1.CategoryTypes))
+            .withMessage(`Type must be of the following: ${Object.values(category_1.CategoryTypes).join(', ')}`),
+    ];
+};
+exports.createCategoryValidationRules = createCategoryValidationRules;
+const updateCategoryValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('name')
+            .optional()
+            .isLength({ min: 2, max: 100 })
+            .withMessage('Category name must be between 2 and 100 characters'),
+        (0, express_validator_1.check)('description')
+            .optional()
+            .isLength({ max: 500 })
+            .withMessage('Description must be less than 500 characters'),
+        (0, express_validator_1.check)('parentId')
+            .optional()
+            .isUUID()
+            .withMessage('Parent ID must be a valid UUID'),
+        (0, express_validator_1.check)('isActive')
+            .optional()
+            .isBoolean()
+            .withMessage('isActive must be a boolean value'),
+    ];
+};
+exports.updateCategoryValidationRules = updateCategoryValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
