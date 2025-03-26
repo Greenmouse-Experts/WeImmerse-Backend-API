@@ -374,6 +374,11 @@ adminRoutes.patch(
   adminAuthMiddleware,
   adminController.vetJobPost
 );
+adminRoutes.get(
+  '/job/fetch',
+  adminAuthMiddleware,
+  adminController.fetchAllJobs
+);
 
 // Creator/Institution account vetting
 adminRoutes.post(

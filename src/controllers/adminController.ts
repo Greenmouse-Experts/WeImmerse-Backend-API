@@ -2217,3 +2217,52 @@ export const vetJobPost = async (req: Request, res: Response): Promise<any> => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Get all jobs with filters
+export const fetchAllJobs = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    // Retrieve the authenticated user's ID
+    // const userId = (req as AuthenticatedRequest).user?.id;
+
+    // Extract pagination query parameters
+    const { page, limit, offset } = getPaginationFields(
+      req.query.page as string,
+      req.query.limit as string
+    );
+
+    const { rows: jobs, count: totalItems } = await Job.findAndCountAll({
+      include: [
+        {
+          model: User,
+          as: 'user',
+        },
+        // Adjust alias to match your associations
+      ],
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset,
+    });
+
+    // Calculate pagination metadata
+    const totalPages = getTotalPages(totalItems, limit);
+
+    // Respond with the paginated jobs and metadata
+    return res.status(200).json({
+      message: 'Jobs retrieved successfully.',
+      data: jobs,
+      meta: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ status: false, message: 'Error fetching jobs' });
+  }
+};
