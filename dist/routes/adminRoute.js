@@ -116,6 +116,7 @@ adminRoutes.post('/course/:id/publish', adminAuthMiddleware_1.default, adminCont
 adminRoutes.get('/job/fetch/:userId', adminAuthMiddleware_1.default, adminController.fetchJobs);
 adminRoutes.patch('/job/:id/review', adminAuthMiddleware_1.default, (0, validations_1.reviewJobValidationRules)(), validations_1.validate, adminController.reviewJobPost);
 adminRoutes.patch('/job/:id/vet', adminAuthMiddleware_1.default, adminController.vetJobPost);
+adminRoutes.get('/job/fetch', adminAuthMiddleware_1.default, adminController.fetchAllJobs);
 // Creator/Institution account vetting
 adminRoutes.post('/account/:userId/vet/', adminAuthMiddleware_1.default, (0, adminValidations_1.vetAccountValidationRules)(), validations_1.validate, adminController.vetAccount);
 exports.default = adminRoutes; // Export the router

@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getSingleUser = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
-exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = void 0;
+exports.fetchAllJobs = exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = void 0;
 const sequelize_1 = require("sequelize");
 const helpers_1 = require("../utils/helpers");
 const mail_service_1 = require("../services/mail.service");
@@ -1843,4 +1843,43 @@ const vetJobPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.vetJobPost = vetJobPost;
+// Get all jobs with filters
+const fetchAllJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        // Retrieve the authenticated user's ID
+        // const userId = (req as AuthenticatedRequest).user?.id;
+        // Extract pagination query parameters
+        const { page, limit, offset } = (0, helpers_1.getPaginationFields)(req.query.page, req.query.limit);
+        const { rows: jobs, count: totalItems } = yield job_1.default.findAndCountAll({
+            include: [
+                {
+                    model: user_1.default,
+                    as: 'user',
+                },
+                // Adjust alias to match your associations
+            ],
+            order: [['createdAt', 'DESC']],
+            limit,
+            offset,
+        });
+        // Calculate pagination metadata
+        const totalPages = (0, helpers_1.getTotalPages)(totalItems, limit);
+        // Respond with the paginated jobs and metadata
+        return res.status(200).json({
+            message: 'Jobs retrieved successfully.',
+            data: jobs,
+            meta: {
+                totalItems,
+                totalPages,
+                currentPage: page,
+                itemsPerPage: limit,
+            },
+        });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({ status: false, message: 'Error fetching jobs' });
+    }
+});
+exports.fetchAllJobs = fetchAllJobs;
 //# sourceMappingURL=adminController.js.map
