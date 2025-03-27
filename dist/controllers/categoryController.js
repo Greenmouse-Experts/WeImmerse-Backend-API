@@ -48,7 +48,8 @@ class CategoryController {
             try {
                 const includeInactive = req.query.includeInactive === 'true';
                 const type = req.query.type;
-                const categories = yield category_service_1.default.getAllCategories(includeInactive, type);
+                const { children = 0 } = req.query;
+                const categories = yield category_service_1.default.getAllCategories(includeInactive, type, children);
                 res.json({ status: true, data: categories });
             }
             catch (error) {

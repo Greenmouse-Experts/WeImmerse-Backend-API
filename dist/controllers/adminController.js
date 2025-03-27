@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -27,9 +60,6 @@ const permission_1 = __importDefault(require("../models/permission"));
 const rolepermission_1 = __importDefault(require("../models/rolepermission"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
 const user_1 = __importDefault(require("../models/user"));
-const coursecategory_1 = __importDefault(require("../models/coursecategory"));
-const assetcategory_1 = __importDefault(require("../models/assetcategory"));
-const jobcategory_1 = __importDefault(require("../models/jobcategory"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const course_1 = __importDefault(require("../models/course"));
@@ -40,7 +70,7 @@ const kycdocument_1 = __importDefault(require("../models/kycdocument"));
 const kycverification_1 = __importDefault(require("../models/kycverification"));
 const wallet_1 = __importDefault(require("../models/wallet"));
 const withdrawalaccount_1 = __importDefault(require("../models/withdrawalaccount"));
-const category_1 = __importDefault(require("../models/category"));
+const category_1 = __importStar(require("../models/category"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -598,7 +628,21 @@ exports.deletePermission = deletePermission;
 // Get all course categories
 const getCourseCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const categories = yield coursecategory_1.default.findAll();
+        const { type, children = 0 } = req.query;
+        const includeChildren = req.query.includeChildren === 'true';
+        const options = {
+            where: Object.assign(Object.assign({}, (type && { type })), { parentId: Boolean(+children) ? { [sequelize_1.Op.ne]: null } : null }),
+        };
+        if (includeChildren) {
+            options.include = [
+                {
+                    association: 'children',
+                    where: { isActive: true },
+                    required: false,
+                },
+            ];
+        }
+        const categories = yield category_1.default.findAll(options);
         res.status(200).json({ data: categories });
     }
     catch (error) {
@@ -609,16 +653,21 @@ exports.getCourseCategories = getCourseCategories;
 // Create a new course category
 const createCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name } = req.body;
+        const { name, description } = req.body;
         // Check if a category with the same name already exists
-        const existingCategory = yield coursecategory_1.default.findOne({ where: { name } });
+        const existingCategory = yield category_1.default.findOne({ where: { name } });
         if (existingCategory) {
             res.status(400).json({
                 message: 'A course category with the same name already exists.',
             });
             return;
         }
-        const category = yield coursecategory_1.default.create({ name });
+        const category = yield category_1.default.create({
+            name,
+            description,
+            type: category_1.CategoryTypes.COURSE,
+            isActive: true,
+        });
         res.status(200).json({
             message: 'Course category created successfully',
             data: category,
@@ -632,14 +681,14 @@ exports.createCourseCategory = createCourseCategory;
 // Update an existing course category
 const updateCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id, name } = req.body;
-        const category = yield coursecategory_1.default.findByPk(id);
+        const { id, name, description } = req.body;
+        const category = yield category_1.default.findByPk(id);
         if (!category) {
             res.status(404).json({ message: 'Course category not found' });
             return;
         }
         // Check if another category with the same name exists (exclude the current category)
-        const existingCategory = yield coursecategory_1.default.findOne({
+        const existingCategory = yield category_1.default.findOne({
             where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
         });
         if (existingCategory) {
@@ -648,7 +697,7 @@ const updateCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, fun
             });
             return;
         }
-        yield category.update({ name });
+        yield category.update({ name, description });
         res.status(200).json({
             message: 'Course category updated successfully',
             data: category,
@@ -663,7 +712,7 @@ exports.updateCourseCategory = updateCourseCategory;
 const deleteCourseCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = req.query.id;
-        const category = yield coursecategory_1.default.findByPk(id);
+        const category = yield category_1.default.findByPk(id);
         if (!category) {
             res.status(404).json({ message: 'Course category not found' });
             return;
@@ -689,7 +738,7 @@ exports.deleteCourseCategory = deleteCourseCategory;
 // Get all asset categories
 const getAssetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const assets = yield assetcategory_1.default.findAll();
+        const assets = yield category_1.default.findAll();
         res.status(200).json({ data: assets });
     }
     catch (error) {
@@ -700,16 +749,21 @@ exports.getAssetCategories = getAssetCategories;
 // Create a new asset category
 const createAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { name } = req.body;
+        const { name, description } = req.body;
         // Check if a category with the same name already exists
-        const existingCategory = yield assetcategory_1.default.findOne({ where: { name } });
+        const existingCategory = yield category_1.default.findOne({ where: { name } });
         if (existingCategory) {
             res.status(400).json({
                 message: 'A asset category with the same name already exists.',
             });
             return;
         }
-        const category = yield assetcategory_1.default.create({ name });
+        const category = yield category_1.default.create({
+            name,
+            description,
+            type: category_1.CategoryTypes.ASSET,
+            isActive: true,
+        });
         res.status(200).json({
             message: 'Asset category created successfully',
             data: category,
@@ -724,13 +778,13 @@ exports.createAssetCategory = createAssetCategory;
 const updateAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id, name } = req.body;
-        const category = yield assetcategory_1.default.findByPk(id);
+        const category = yield category_1.default.findByPk(id);
         if (!category) {
             res.status(404).json({ message: 'Asset category not found' });
             return;
         }
         // Check if another category with the same name exists (exclude the current category)
-        const existingCategory = yield assetcategory_1.default.findOne({
+        const existingCategory = yield category_1.default.findOne({
             where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
         });
         if (existingCategory) {
@@ -754,7 +808,7 @@ exports.updateAssetCategory = updateAssetCategory;
 const deleteAssetCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = req.query.id;
-        const category = yield assetcategory_1.default.findByPk(id);
+        const category = yield category_1.default.findByPk(id);
         if (!category) {
             res.status(404).json({ message: 'Asset category not found' });
             return;
@@ -1096,7 +1150,7 @@ exports.getSingleUser = getSingleUser;
 // Job Categories
 const getJobCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const jobs = yield jobcategory_1.default.findAll();
+        const jobs = yield category_1.default.findAll();
         res.status(200).json({ data: jobs });
     }
     catch (error) {
@@ -1108,14 +1162,18 @@ const createJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
     try {
         const { name } = req.body;
         // Check if a category with the same name already exists
-        const existingCategory = yield jobcategory_1.default.findOne({ where: { name } });
+        const existingCategory = yield category_1.default.findOne({ where: { name } });
         if (existingCategory) {
             res
                 .status(400)
                 .json({ message: 'A job category with the same name already exists.' });
             return;
         }
-        const category = yield jobcategory_1.default.create({ name });
+        const category = yield category_1.default.create({
+            name,
+            type: category_1.CategoryTypes.JOB,
+            isActive: true,
+        });
         res.status(200).json({
             message: 'Job category created successfully',
             data: category,
@@ -1128,14 +1186,14 @@ const createJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.createJobCategory = createJobCategory;
 const updateJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { id, name } = req.body;
-        const category = yield jobcategory_1.default.findByPk(id);
+        const { id, name, description } = req.body;
+        const category = yield category_1.default.findByPk(id);
         if (!category) {
             res.status(404).json({ message: 'Job category not found' });
             return;
         }
         // Check if another category with the same name exists (exclude the current category)
-        const existingCategory = yield jobcategory_1.default.findOne({
+        const existingCategory = yield category_1.default.findOne({
             where: { name, id: { [sequelize_1.Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
         });
         if (existingCategory) {
@@ -1144,7 +1202,7 @@ const updateJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, functi
             });
             return;
         }
-        yield category.update({ name });
+        yield category.update({ name, description });
         res.status(200).json({
             message: 'Job category updated successfully',
             data: category,
@@ -1158,7 +1216,7 @@ exports.updateJobCategory = updateJobCategory;
 const deleteJobCategory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = req.query.id;
-        const category = yield jobcategory_1.default.findByPk(id);
+        const category = yield category_1.default.findByPk(id);
         if (!category) {
             res.status(404).json({ message: 'Job category not found' });
             return;
@@ -1284,7 +1342,7 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id },
             include: [
                 {
-                    model: category_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related Category model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },

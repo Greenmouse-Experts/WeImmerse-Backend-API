@@ -32,7 +32,7 @@ import KYCDocuments from '../models/kycdocument';
 import KYCVerification from '../models/kycverification';
 import Wallet from '../models/wallet';
 import WithdrawalAccount from '../models/withdrawalaccount';
-import Category from '../models/category';
+import Category, { CategoryTypes } from '../models/category';
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -728,7 +728,28 @@ export const getCourseCategories = async (
   res: Response
 ): Promise<void> => {
   try {
-    const categories = await CourseCategory.findAll();
+    const { type, children = 0 } = req.query as any;
+    const includeChildren = req.query.includeChildren === 'true';
+
+    const options: any = {
+      where: {
+        ...(type && { type }),
+        parentId: Boolean(+children) ? { [Op.ne]: null } : null,
+      },
+    };
+
+    if (includeChildren) {
+      options.include = [
+        {
+          association: 'children',
+          where: { isActive: true },
+          required: false,
+        },
+      ];
+    }
+
+    const categories = await Category.findAll(options);
+
     res.status(200).json({ data: categories });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -741,10 +762,10 @@ export const createCourseCategory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name } = req.body;
+    const { name, description } = req.body;
 
     // Check if a category with the same name already exists
-    const existingCategory = await CourseCategory.findOne({ where: { name } });
+    const existingCategory = await Category.findOne({ where: { name } });
     if (existingCategory) {
       res.status(400).json({
         message: 'A course category with the same name already exists.',
@@ -752,7 +773,12 @@ export const createCourseCategory = async (
       return;
     }
 
-    const category = await CourseCategory.create({ name });
+    const category = await Category.create({
+      name,
+      description,
+      type: CategoryTypes.COURSE,
+      isActive: true,
+    });
     res.status(200).json({
       message: 'Course category created successfully',
       data: category,
@@ -768,16 +794,16 @@ export const updateCourseCategory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id, name } = req.body;
+    const { id, name, description } = req.body;
 
-    const category = await CourseCategory.findByPk(id);
+    const category = await Category.findByPk(id);
     if (!category) {
       res.status(404).json({ message: 'Course category not found' });
       return;
     }
 
     // Check if another category with the same name exists (exclude the current category)
-    const existingCategory = await CourseCategory.findOne({
+    const existingCategory = await Category.findOne({
       where: { name, id: { [Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
     });
     if (existingCategory) {
@@ -787,7 +813,7 @@ export const updateCourseCategory = async (
       return;
     }
 
-    await category.update({ name });
+    await category.update({ name, description });
     res.status(200).json({
       message: 'Course category updated successfully',
       data: category,
@@ -805,7 +831,7 @@ export const deleteCourseCategory = async (
   try {
     const id = req.query.id as string;
 
-    const category = await CourseCategory.findByPk(id);
+    const category = await Category.findByPk(id);
     if (!category) {
       res.status(404).json({ message: 'Course category not found' });
       return;
@@ -834,7 +860,7 @@ export const getAssetCategories = async (
   res: Response
 ): Promise<void> => {
   try {
-    const assets = await AssetCategory.findAll();
+    const assets = await Category.findAll();
     res.status(200).json({ data: assets });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -847,10 +873,10 @@ export const createAssetCategory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { name } = req.body;
+    const { name, description } = req.body;
 
     // Check if a category with the same name already exists
-    const existingCategory = await AssetCategory.findOne({ where: { name } });
+    const existingCategory = await Category.findOne({ where: { name } });
     if (existingCategory) {
       res.status(400).json({
         message: 'A asset category with the same name already exists.',
@@ -858,7 +884,12 @@ export const createAssetCategory = async (
       return;
     }
 
-    const category = await AssetCategory.create({ name });
+    const category = await Category.create({
+      name,
+      description,
+      type: CategoryTypes.ASSET,
+      isActive: true,
+    });
     res.status(200).json({
       message: 'Asset category created successfully',
       data: category,
@@ -876,14 +907,14 @@ export const updateAssetCategory = async (
   try {
     const { id, name } = req.body;
 
-    const category = await AssetCategory.findByPk(id);
+    const category = await Category.findByPk(id);
     if (!category) {
       res.status(404).json({ message: 'Asset category not found' });
       return;
     }
 
     // Check if another category with the same name exists (exclude the current category)
-    const existingCategory = await AssetCategory.findOne({
+    const existingCategory = await Category.findOne({
       where: { name, id: { [Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
     });
     if (existingCategory) {
@@ -911,7 +942,7 @@ export const deleteAssetCategory = async (
   try {
     const id = req.query.id as string;
 
-    const category = await AssetCategory.findByPk(id);
+    const category = await Category.findByPk(id);
     if (!category) {
       res.status(404).json({ message: 'Asset category not found' });
       return;
@@ -1312,7 +1343,7 @@ export const getJobCategories = async (
   res: Response
 ): Promise<void> => {
   try {
-    const jobs = await JobCategory.findAll();
+    const jobs = await Category.findAll();
     res.status(200).json({ data: jobs });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -1327,7 +1358,7 @@ export const createJobCategory = async (
     const { name } = req.body;
 
     // Check if a category with the same name already exists
-    const existingCategory = await JobCategory.findOne({ where: { name } });
+    const existingCategory = await Category.findOne({ where: { name } });
     if (existingCategory) {
       res
         .status(400)
@@ -1335,7 +1366,11 @@ export const createJobCategory = async (
       return;
     }
 
-    const category = await JobCategory.create({ name });
+    const category = await Category.create({
+      name,
+      type: CategoryTypes.JOB,
+      isActive: true,
+    });
     res.status(200).json({
       message: 'Job category created successfully',
       data: category,
@@ -1350,16 +1385,16 @@ export const updateJobCategory = async (
   res: Response
 ): Promise<void> => {
   try {
-    const { id, name } = req.body;
+    const { id, name, description } = req.body;
 
-    const category = await JobCategory.findByPk(id);
+    const category = await Category.findByPk(id);
     if (!category) {
       res.status(404).json({ message: 'Job category not found' });
       return;
     }
 
     // Check if another category with the same name exists (exclude the current category)
-    const existingCategory = await JobCategory.findOne({
+    const existingCategory = await Category.findOne({
       where: { name, id: { [Op.ne]: id } }, // Use Op.ne (not equal) to exclude the current category by ID
     });
     if (existingCategory) {
@@ -1369,7 +1404,7 @@ export const updateJobCategory = async (
       return;
     }
 
-    await category.update({ name });
+    await category.update({ name, description });
     res.status(200).json({
       message: 'Job category updated successfully',
       data: category,
@@ -1386,7 +1421,7 @@ export const deleteJobCategory = async (
   try {
     const id = req.query.id as string;
 
-    const category = await JobCategory.findByPk(id);
+    const category = await Category.findByPk(id);
     if (!category) {
       res.status(404).json({ message: 'Job category not found' });
       return;
@@ -1539,7 +1574,7 @@ export const viewDigitalAsset = async (
       where: { id },
       include: [
         {
-          model: Category, // Including the related AssetCategory model
+          model: Category, // Including the related Category model
           as: 'assetCategory', // Alias for the relationship (adjust if necessary)
           attributes: ['id', 'name'], // You can specify the fields you want to include
         },

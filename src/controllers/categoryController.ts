@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import categoryService from '../services/category.service';
 import { handleError } from '../utils/errorHandler';
 import { CategoryTypes } from '../models/category';
+import { Op } from 'sequelize';
 
 class CategoryController {
   async createCategory(req: Request, res: Response) {
@@ -21,6 +22,7 @@ class CategoryController {
     try {
       const { id } = req.params;
       const includeChildren = req.query.includeChildren === 'true';
+
       const category = await categoryService.getCategoryById(
         id,
         includeChildren
@@ -35,9 +37,13 @@ class CategoryController {
     try {
       const includeInactive = req.query.includeInactive === 'true';
       const type = req.query.type as CategoryTypes;
+
+      const { children = 0 } = req.query as any;
+
       const categories = await categoryService.getAllCategories(
         includeInactive,
-        type
+        type,
+        children
       );
       res.json({ status: true, data: categories });
     } catch (error) {

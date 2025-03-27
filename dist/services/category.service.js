@@ -54,14 +54,8 @@ class CategoryService {
         });
     }
     getAllCategories() {
-        return __awaiter(this, arguments, void 0, function* (includeInactive = false, type) {
-            const where = {};
-            if (!includeInactive) {
-                where.isActive = true;
-            }
-            if (type) {
-                where.type = type;
-            }
+        return __awaiter(this, arguments, void 0, function* (includeInactive = false, type, children) {
+            const where = Object.assign(Object.assign(Object.assign({}, (type && { type })), (!includeInactive && { isActive: true })), { parentId: Boolean(+children) ? { [sequelize_1.Op.ne]: null } : null });
             return category_1.default.findAll({
                 where,
                 include: [

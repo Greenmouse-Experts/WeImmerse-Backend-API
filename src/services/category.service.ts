@@ -56,17 +56,14 @@ class CategoryService {
 
   async getAllCategories(
     includeInactive: boolean = false,
-    type?: CategoryTypes
+    type?: CategoryTypes,
+    children?: any
   ) {
-    const where: any = {};
-
-    if (!includeInactive) {
-      where.isActive = true;
-    }
-
-    if (type) {
-      where.type = type;
-    }
+    const where = {
+      ...(type && { type }),
+      ...(!includeInactive && { isActive: true }),
+      parentId: Boolean(+children) ? { [Op.ne]: null } : null,
+    };
 
     return Category.findAll({
       where,
