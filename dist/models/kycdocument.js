@@ -48,6 +48,10 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
         },
+        documentUrlBack: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: false,
+        },
         uploadedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,

@@ -70,6 +70,10 @@ const initModel = (sequelize: Sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
+      documentUrlBack: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
       uploadedAt: {
         type: DataTypes.DATE,
         allowNull: false,

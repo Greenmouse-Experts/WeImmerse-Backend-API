@@ -57,8 +57,8 @@ const uploadKYCDocument = (req, res) => __awaiter(void 0, void 0, void 0, functi
     var _a;
     try {
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Assuming the user ID is passed in the URL params
-        const { documentType, documentUrl } = req.body;
-        if (!userId || !documentType || !documentUrl) {
+        const { documentType, documentUrl, documentUrlBack } = req.body;
+        if (!userId || !documentType || !documentUrl || !documentUrlBack) {
             return res
                 .status(400)
                 .json({ status: false, message: 'All fields are required' });
@@ -83,6 +83,7 @@ const uploadKYCDocument = (req, res) => __awaiter(void 0, void 0, void 0, functi
             userId,
             documentType,
             documentUrl,
+            documentUrlBack,
         });
         return res.status(201).json({
             status: true,

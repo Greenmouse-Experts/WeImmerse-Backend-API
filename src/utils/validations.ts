@@ -429,6 +429,10 @@ export const uploadKycDocumentValidationRules = () => {
       .not()
       .isEmpty()
       .withMessage('Document URL is required'),
+    check('documentUrlBack')
+      .optional()
+      .isString()
+      .withMessage('Document URL Back is required'),
   ];
 };
 

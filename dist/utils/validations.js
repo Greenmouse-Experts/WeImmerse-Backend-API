@@ -379,6 +379,10 @@ const uploadKycDocumentValidationRules = () => {
             .not()
             .isEmpty()
             .withMessage('Document URL is required'),
+        (0, express_validator_1.check)('documentUrlBack')
+            .optional()
+            .isString()
+            .withMessage('Document URL Back is required'),
     ];
 };
 exports.uploadKycDocumentValidationRules = uploadKycDocumentValidationRules;

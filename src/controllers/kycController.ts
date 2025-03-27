@@ -21,9 +21,9 @@ export const uploadKYCDocument = async (
 ): Promise<any> => {
   try {
     const userId = (req as AuthRequest).user?.id; // Assuming the user ID is passed in the URL params
-    const { documentType, documentUrl } = req.body;
+    const { documentType, documentUrl, documentUrlBack } = req.body;
 
-    if (!userId || !documentType || !documentUrl) {
+    if (!userId || !documentType || !documentUrl || !documentUrlBack) {
       return res
         .status(400)
         .json({ status: false, message: 'All fields are required' });
@@ -52,6 +52,7 @@ export const uploadKYCDocument = async (
       userId,
       documentType,
       documentUrl,
+      documentUrlBack,
     });
     return res.status(201).json({
       status: true,
