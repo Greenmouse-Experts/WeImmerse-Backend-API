@@ -310,6 +310,13 @@ export const saveCourseProgress = async (
     // Get completed lessons
     const completedLessons = await LessonCompletion.count({
       where: { userId: studentId },
+      include: [
+        {
+          model: Lesson,
+          as: 'lesson',
+          where: { courseId: courseId }, // Filter by courseId
+        },
+      ],
     });
 
     const courseProgress = await courseProgressService.saveCourseProgress(
@@ -327,7 +334,9 @@ export const saveCourseProgress = async (
   } catch (error) {
     console.log(error);
 
-    res.status(500).json({ error: 'Failed to create course progress' });
+    res
+      .status(500)
+      .json({ error: error || 'Failed to create course progress' });
   }
 };
 

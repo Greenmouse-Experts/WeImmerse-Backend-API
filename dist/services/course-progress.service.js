@@ -29,7 +29,7 @@ const saveCourseProgress = (studentId, courseId, totalLessons, completedLessons)
     return yield courseprogress_1.default.create({
         studentId,
         courseId,
-        completedLessons: 0,
+        completedLessons: completedLessons,
         totalLessons,
         progressPercentage: 0,
         lastAccessed: new Date(),

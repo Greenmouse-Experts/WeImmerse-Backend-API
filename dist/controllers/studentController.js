@@ -295,6 +295,13 @@ const saveCourseProgress = (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Get completed lessons
         const completedLessons = yield lessoncompletion_1.default.count({
             where: { userId: studentId },
+            include: [
+                {
+                    model: lesson_1.default,
+                    as: 'lesson',
+                    where: { courseId: courseId }, // Filter by courseId
+                },
+            ],
         });
         const courseProgress = yield course_progress_service_1.default.saveCourseProgress(studentId, courseId, totalLessons, completedLessons);
         res.status(201).json({
@@ -305,7 +312,9 @@ const saveCourseProgress = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
     catch (error) {
         console.log(error);
-        res.status(500).json({ error: 'Failed to create course progress' });
+        res
+            .status(500)
+            .json({ error: error || 'Failed to create course progress' });
     }
 });
 exports.saveCourseProgress = saveCourseProgress;

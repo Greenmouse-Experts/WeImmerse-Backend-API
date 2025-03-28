@@ -24,7 +24,7 @@ const saveCourseProgress = async (
   return await CourseProgress.create({
     studentId,
     courseId,
-    completedLessons: 0,
+    completedLessons: completedLessons,
     totalLessons,
     progressPercentage: 0,
     lastAccessed: new Date(),
