@@ -296,6 +296,18 @@ export const saveCourseProgress = async (
         .json({ message: 'courseId and lessonId are required' });
     }
 
+    // Verify that courseId is correct
+    const course = await Course.findOne({ where: { id: courseId } });
+    if (!course) {
+      throw new Error('Course not found.');
+    }
+
+    // Verify that courseId is correct
+    const lesson = await Lesson.findOne({ where: { id: courseId } });
+    if (!lesson) {
+      throw new Error('Lesson not found.');
+    }
+
     // Get total lessons
     const totalLessons = await Lesson.count({
       where: { courseId, status: LessonStatus.PUBLISHED },
@@ -331,12 +343,12 @@ export const saveCourseProgress = async (
       message: 'Course progress saved successfully.',
       // data: courseProgress,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
 
     res
       .status(500)
-      .json({ error: error || 'Failed to create course progress' });
+      .json({ message: error.message || 'Failed to create course progress' });
   }
 };
 

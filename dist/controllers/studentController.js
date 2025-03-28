@@ -286,6 +286,16 @@ const saveCourseProgress = (req, res) => __awaiter(void 0, void 0, void 0, funct
                 .status(400)
                 .json({ message: 'courseId and lessonId are required' });
         }
+        // Verify that courseId is correct
+        const course = yield course_1.default.findOne({ where: { id: courseId } });
+        if (!course) {
+            throw new Error('Course not found.');
+        }
+        // Verify that courseId is correct
+        const lesson = yield lesson_1.default.findOne({ where: { id: courseId } });
+        if (!lesson) {
+            throw new Error('Lesson not found.');
+        }
         // Get total lessons
         const totalLessons = yield lesson_1.default.count({
             where: { courseId, status: lesson_1.LessonStatus.PUBLISHED },
@@ -314,7 +324,7 @@ const saveCourseProgress = (req, res) => __awaiter(void 0, void 0, void 0, funct
         console.log(error);
         res
             .status(500)
-            .json({ error: error || 'Failed to create course progress' });
+            .json({ message: error.message || 'Failed to create course progress' });
     }
 });
 exports.saveCourseProgress = saveCourseProgress;
