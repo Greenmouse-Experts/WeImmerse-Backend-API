@@ -118,7 +118,7 @@ class WithdrawalService {
                 let message = '';
                 let withdrawalHistory = {};
                 if (approve) {
-                    const transferResponse = yield (0, paystack_service_1.initiateTransfer)(withdrawalRequest.amount, withdrawalRequest.recipientCode, 'Withdrawal payout');
+                    const transferResponse = yield paystack_service_1.PaystackService.initiateTransfer(withdrawalRequest.amount, withdrawalRequest.recipientCode, 'Withdrawal payout');
                     message = transferResponse.message;
                     withdrawalHistory = JSON.parse(JSON.stringify(yield withdrawalhistory_1.default.create({
                         userId: withdrawalRequest.userId,
@@ -176,7 +176,7 @@ class WithdrawalService {
                     throw new Error('Withdrawal history not found.');
                 }
                 // Finalize transfer with otp
-                const paymentVerification = yield (0, paystack_service_1.finalizeTransfer)(withdrawalHistory.payoutReference, otp);
+                const paymentVerification = yield paystack_service_1.PaystackService.finalizeTransfer(withdrawalHistory.payoutReference, otp);
                 if (!paymentVerification.status) {
                     throw new Error('Payment verification failed');
                 }

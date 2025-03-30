@@ -4,6 +4,7 @@ import { Server } from 'socket.io';
 import createExpressApp from './services/express.service';
 import sequelizeService from './services/sequelize.service'; // Adjusted to match your service structure
 import apiRouter from './routes/authRoute'; // Import your routes here
+import { setupSubscriptionJobs } from './jobs/subscription.job';
 // import { configureSocket } from "./services/socket.service";
 
 dotenv.config();
@@ -36,6 +37,8 @@ sequelizeService
     if (sequelizeService.connection) {
       await sequelizeService.connection.authenticate(); // Ensure the connection is established
       console.log('Database connected successfully');
+      // Setup cron jobs
+      setupSubscriptionJobs();
     } else {
       console.error('Database connection is not initialized.');
     }

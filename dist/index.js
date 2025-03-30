@@ -52,6 +52,7 @@ const socket_io_1 = require("socket.io");
 const express_service_1 = __importDefault(require("./services/express.service"));
 const sequelize_service_1 = __importDefault(require("./services/sequelize.service")); // Adjusted to match your service structure
 const authRoute_1 = __importDefault(require("./routes/authRoute")); // Import your routes here
+const subscription_job_1 = require("./jobs/subscription.job");
 // import { configureSocket } from "./services/socket.service";
 dotenv.config();
 // Initialize the Express app
@@ -73,6 +74,8 @@ sequelize_service_1.default
     if (sequelize_service_1.default.connection) {
         yield sequelize_service_1.default.connection.authenticate(); // Ensure the connection is established
         console.log('Database connected successfully');
+        // Setup cron jobs
+        (0, subscription_job_1.setupSubscriptionJobs)();
     }
     else {
         console.error('Database connection is not initialized.');

@@ -537,6 +537,106 @@ export const updateCategoryValidationRules = () => {
   ];
 };
 
+// Subscription Plan Validators
+export const createPlanValidationRules = () => {
+  return [
+    check('name')
+      .not()
+      .isEmpty()
+      .withMessage('Plan name is required')
+      .isLength({ max: 100 })
+      .withMessage('Plan name must be less than 100 characters'),
+    check('duration')
+      .isInt({ min: 1 })
+      .withMessage('Duration must be a positive integer'),
+    check('price')
+      .isDecimal()
+      .withMessage('Price must be a decimal number')
+      .custom((value) => value >= 0)
+      .withMessage('Price cannot be negative'),
+    check('currency')
+      .isString()
+      .withMessage('Currency must be a string')
+      .isLength({ min: 3, max: 3 })
+      .withMessage('Currency must be 3 characters'),
+    check('period')
+      .isIn(['Quarterly', 'Monthly', 'Yearly'])
+      .withMessage('Invalid period value'),
+  ];
+};
+
+export const updatePlanValidationRules = () => {
+  return [
+    check('name')
+      .optional()
+      .isLength({ max: 100 })
+      .withMessage('Plan name must be less than 100 characters'),
+    check('duration')
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage('Duration must be a positive integer'),
+    check('price')
+      .optional()
+      .isDecimal()
+      .withMessage('Price must be a decimal number')
+      .custom((value) => value >= 0)
+      .withMessage('Price cannot be negative'),
+    check('currency')
+      .optional()
+      .isString()
+      .withMessage('Currency must be a string')
+      .isLength({ min: 3, max: 3 })
+      .withMessage('Currency must be 3 characters'),
+    check('period')
+      .optional()
+      .isIn(['Quarterly', 'Monthly', 'Yearly'])
+      .withMessage('Invalid period value'),
+  ];
+};
+
+// Subscription Validation
+export const createSubscriptionValidationRules = () => {
+  return [
+    check('planId')
+      .not()
+      .isEmpty()
+      .withMessage('Plan ID is required')
+      .isUUID()
+      .withMessage('Plan ID must be a valid UUID'),
+    check('paymentMethod')
+      .not()
+      .isEmpty()
+      .withMessage('Payment method is required')
+      .isString(),
+    check('isAutoRenew').optional().isBoolean(),
+  ];
+};
+
+export const cancelSubscriptionValidationRules = () => {
+  return [
+    check('subscriptionId')
+      .not()
+      .isEmpty()
+      .withMessage('Subscription ID is required')
+      .isUUID()
+      .withMessage('Subscription ID must be a valid UUID'),
+  ];
+};
+
+// Payment Validation
+export const verifyPaymentValidationRules = () => {
+  return [
+    check('reference')
+      .not()
+      .isEmpty()
+      .withMessage('Payment reference is required')
+      .isString(),
+    check('subscriptionId')
+      .optional()
+      .isUUID()
+      .withMessage('Subscription ID must be a valid UUID'),
+  ];
+};
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,

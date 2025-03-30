@@ -49,7 +49,7 @@ const createWithdrawalAccount = (req, res) => __awaiter(void 0, void 0, void 0, 
                 .json({ status: false, message: 'Withdrawal account exists.' });
         }
         // Verify account with paystack
-        const verifiedAccount = yield (0, paystack_service_1.verifyBankAccount)(accountNumber, bankCode);
+        const verifiedAccount = yield paystack_service_1.PaystackService.verifyBankAccount(accountNumber, bankCode);
         const account = JSON.parse(JSON.stringify(yield withdrawalaccount_1.default.create(Object.assign(Object.assign({}, req.body), { userId, accountName: verifiedAccount.account_name }), { transaction })));
         // Create a wallet for user if not existent
         yield wallet_service_1.default.createWallet(userId);
@@ -197,7 +197,7 @@ const requestWithdrawal = (req, res) => __awaiter(void 0, void 0, void 0, functi
             if (!withdrawalAccount) {
                 throw new Error('Bank details are required to create a Paystack recipient');
             }
-            recipientCode = yield (0, paystack_service_1.createTransferRecipient)(name, email, withdrawalAccount.accountNumber, withdrawalAccount.bankCode);
+            recipientCode = yield paystack_service_1.PaystackService.createTransferRecipient(name, email, withdrawalAccount.accountNumber, withdrawalAccount.bankCode);
         }
         const result = yield withdrawal_service_1.default.requestWithdrawal(userId, amount, currency, paymentProvider, recipientCode);
         if (!result.success)

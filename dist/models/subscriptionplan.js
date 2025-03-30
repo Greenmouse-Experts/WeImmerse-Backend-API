@@ -4,7 +4,12 @@ exports.initModel = void 0;
 // models/subscriptionplan.ts
 const sequelize_1 = require("sequelize");
 class SubscriptionPlan extends sequelize_1.Model {
-    static associate(models) { }
+    static associate(models) {
+        SubscriptionPlan.hasMany(models.Subscription, {
+            foreignKey: 'planId',
+            as: 'subscriptions',
+        });
+    }
 }
 const initModel = (sequelize) => {
     SubscriptionPlan.init({
@@ -34,6 +39,11 @@ const initModel = (sequelize) => {
         period: {
             type: sequelize_1.DataTypes.ENUM('Quarterly', 'Monthly', 'Yearly'),
             allowNull: false,
+        },
+        features: {
+            type: sequelize_1.DataTypes.JSON,
+            allowNull: false,
+            defaultValue: [],
         },
     }, {
         sequelize,

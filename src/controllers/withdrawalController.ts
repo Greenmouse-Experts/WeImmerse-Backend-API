@@ -1,9 +1,6 @@
 import { Request, Response } from 'express';
 import WithdrawalAccount from '../models/withdrawalaccount';
-import {
-  createTransferRecipient,
-  verifyBankAccount,
-} from '../services/paystack.service';
+import { PaystackService } from '../services/paystack.service';
 import Wallet from '../models/wallet';
 import WalletService from '../services/wallet.service';
 import WithdrawalService from '../services/withdrawal.service';
@@ -56,7 +53,10 @@ export const createWithdrawalAccount = async (
     }
 
     // Verify account with paystack
-    const verifiedAccount = await verifyBankAccount(accountNumber, bankCode);
+    const verifiedAccount = await PaystackService.verifyBankAccount(
+      accountNumber,
+      bankCode
+    );
 
     const account = JSON.parse(
       JSON.stringify(
@@ -234,7 +234,7 @@ export const requestWithdrawal = async (
           'Bank details are required to create a Paystack recipient'
         );
       }
-      recipientCode = await createTransferRecipient(
+      recipientCode = await PaystackService.createTransferRecipient(
         name,
         email,
         withdrawalAccount.accountNumber,

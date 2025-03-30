@@ -870,7 +870,7 @@ const getSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, func
 });
 exports.getSubscriptionPlan = getSubscriptionPlan;
 const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { name, duration, price, currency, period } = req.body;
+    const { name, duration, price, currency, period, features } = req.body;
     try {
         // Check if the subscription plan name already exists
         const existingPlan = yield subscriptionplan_1.default.findOne({ where: { name } });
@@ -888,6 +888,7 @@ const createSubscriptionPlan = (req, res) => __awaiter(void 0, void 0, void 0, f
             price,
             currency,
             period,
+            features,
         });
         res.status(200).json({
             status: true,

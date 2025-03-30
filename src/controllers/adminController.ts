@@ -1015,7 +1015,7 @@ export const createSubscriptionPlan = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { name, duration, price, currency, period } = req.body;
+  const { name, duration, price, currency, period, features } = req.body;
 
   try {
     // Check if the subscription plan name already exists
@@ -1036,6 +1036,7 @@ export const createSubscriptionPlan = async (
       price,
       currency,
       period,
+      features,
     });
 
     res.status(200).json({

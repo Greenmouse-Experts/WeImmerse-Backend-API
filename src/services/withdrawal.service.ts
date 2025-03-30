@@ -5,7 +5,7 @@ import WithdrawalHistory from '../models/withdrawalhistory';
 import User from '../models/user';
 import Admin from '../models/admin';
 import WithdrawalAccount from '../models/withdrawalaccount';
-import { finalizeTransfer, initiateTransfer } from './paystack.service';
+import { PaystackService } from './paystack.service';
 import WalletService from './wallet.service';
 import Wallet from '../models/wallet';
 
@@ -87,7 +87,7 @@ class WithdrawalService {
       let message = '';
       let withdrawalHistory = {};
       if (approve) {
-        const transferResponse = await initiateTransfer(
+        const transferResponse = await PaystackService.initiateTransfer(
           withdrawalRequest.amount,
           withdrawalRequest.recipientCode,
           'Withdrawal payout'
@@ -170,7 +170,7 @@ class WithdrawalService {
       }
 
       // Finalize transfer with otp
-      const paymentVerification = await finalizeTransfer(
+      const paymentVerification = await PaystackService.finalizeTransfer(
         withdrawalHistory.payoutReference,
         otp
       );

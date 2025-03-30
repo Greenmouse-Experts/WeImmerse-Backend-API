@@ -6,12 +6,18 @@ class SubscriptionPlan extends Model {
   public name!: string;
   public duration!: number; // Duration in days
   public price!: number;
-  public currency!: number;
+  public currency!: string;
   public period!: number;
+  public features!: object[]; // or Record<string, any>[]
   public createdAt!: Date;
   public updatedAt!: Date;
 
-  static associate(models: any) {}
+  static associate(models: any) {
+    SubscriptionPlan.hasMany(models.Subscription, {
+      foreignKey: 'planId',
+      as: 'subscriptions',
+    });
+  }
 }
 
 const initModel = (sequelize: Sequelize) => {
@@ -43,6 +49,11 @@ const initModel = (sequelize: Sequelize) => {
       period: {
         type: DataTypes.ENUM('Quarterly', 'Monthly', 'Yearly'),
         allowNull: false,
+      },
+      features: {
+        type: DataTypes.JSON,
+        allowNull: false,
+        defaultValue: [],
       },
     },
     {

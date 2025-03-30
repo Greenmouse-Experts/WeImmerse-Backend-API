@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
+exports.validate = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 const category_1 = require("../models/category");
 // Validation rules for different functionalities
@@ -476,6 +476,107 @@ const updateCategoryValidationRules = () => {
     ];
 };
 exports.updateCategoryValidationRules = updateCategoryValidationRules;
+// Subscription Plan Validators
+const createPlanValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('name')
+            .not()
+            .isEmpty()
+            .withMessage('Plan name is required')
+            .isLength({ max: 100 })
+            .withMessage('Plan name must be less than 100 characters'),
+        (0, express_validator_1.check)('duration')
+            .isInt({ min: 1 })
+            .withMessage('Duration must be a positive integer'),
+        (0, express_validator_1.check)('price')
+            .isDecimal()
+            .withMessage('Price must be a decimal number')
+            .custom((value) => value >= 0)
+            .withMessage('Price cannot be negative'),
+        (0, express_validator_1.check)('currency')
+            .isString()
+            .withMessage('Currency must be a string')
+            .isLength({ min: 3, max: 3 })
+            .withMessage('Currency must be 3 characters'),
+        (0, express_validator_1.check)('period')
+            .isIn(['Quarterly', 'Monthly', 'Yearly'])
+            .withMessage('Invalid period value'),
+    ];
+};
+exports.createPlanValidationRules = createPlanValidationRules;
+const updatePlanValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('name')
+            .optional()
+            .isLength({ max: 100 })
+            .withMessage('Plan name must be less than 100 characters'),
+        (0, express_validator_1.check)('duration')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Duration must be a positive integer'),
+        (0, express_validator_1.check)('price')
+            .optional()
+            .isDecimal()
+            .withMessage('Price must be a decimal number')
+            .custom((value) => value >= 0)
+            .withMessage('Price cannot be negative'),
+        (0, express_validator_1.check)('currency')
+            .optional()
+            .isString()
+            .withMessage('Currency must be a string')
+            .isLength({ min: 3, max: 3 })
+            .withMessage('Currency must be 3 characters'),
+        (0, express_validator_1.check)('period')
+            .optional()
+            .isIn(['Quarterly', 'Monthly', 'Yearly'])
+            .withMessage('Invalid period value'),
+    ];
+};
+exports.updatePlanValidationRules = updatePlanValidationRules;
+// Subscription Validation
+const createSubscriptionValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('planId')
+            .not()
+            .isEmpty()
+            .withMessage('Plan ID is required')
+            .isUUID()
+            .withMessage('Plan ID must be a valid UUID'),
+        (0, express_validator_1.check)('paymentMethod')
+            .not()
+            .isEmpty()
+            .withMessage('Payment method is required')
+            .isString(),
+        (0, express_validator_1.check)('isAutoRenew').optional().isBoolean(),
+    ];
+};
+exports.createSubscriptionValidationRules = createSubscriptionValidationRules;
+const cancelSubscriptionValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('subscriptionId')
+            .not()
+            .isEmpty()
+            .withMessage('Subscription ID is required')
+            .isUUID()
+            .withMessage('Subscription ID must be a valid UUID'),
+    ];
+};
+exports.cancelSubscriptionValidationRules = cancelSubscriptionValidationRules;
+// Payment Validation
+const verifyPaymentValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('reference')
+            .not()
+            .isEmpty()
+            .withMessage('Payment reference is required')
+            .isString(),
+        (0, express_validator_1.check)('subscriptionId')
+            .optional()
+            .isUUID()
+            .withMessage('Subscription ID must be a valid UUID'),
+    ];
+};
+exports.verifyPaymentValidationRules = verifyPaymentValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
