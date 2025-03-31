@@ -292,7 +292,7 @@ const saveCourseProgress = (req, res) => __awaiter(void 0, void 0, void 0, funct
             throw new Error('Course not found.');
         }
         // Verify that courseId is correct
-        const lesson = yield lesson_1.default.findOne({ where: { id: courseId } });
+        const lesson = yield lesson_1.default.findOne({ where: { id: lessonId } });
         if (!lesson) {
             throw new Error('Lesson not found.');
         }

@@ -303,7 +303,7 @@ export const saveCourseProgress = async (
     }
 
     // Verify that courseId is correct
-    const lesson = await Lesson.findOne({ where: { id: courseId } });
+    const lesson = await Lesson.findOne({ where: { id: lessonId } });
     if (!lesson) {
       throw new Error('Lesson not found.');
     }
