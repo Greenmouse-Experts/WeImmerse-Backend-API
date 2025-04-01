@@ -2,6 +2,24 @@
 import bcrypt from 'bcrypt';
 import { Model, DataTypes, Op, Sequelize } from 'sequelize';
 import Lesson from './lesson';
+
+export enum UserType {
+  STUDENT = 'student',
+  USER = 'user',
+  INSTITUTION = 'institution',
+  CREATOR = 'creator',
+}
+
+export enum UserAccountStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
+export enum Gender {
+  MALE = 'male',
+  FEMALE = 'female',
+}
+
 class User extends Model {
   public id!: string; // Use '!' to indicate these fields are definitely assigned
   public name!: string;
@@ -11,7 +29,7 @@ class User extends Model {
   public phoneNumber!: string;
   public dateOfBirth!: string;
   public educationalLevel?: string;
-  public gender?: string;
+  public gender?: Gender;
   public schoolId?: string; // This will be serialized as JSON
   public professionalSkill?: string;
   public industry?: string;
@@ -19,8 +37,8 @@ class User extends Model {
   public referralCode?: string;
   public photo?: string;
   public evToken?: number;
-  public accountType?: string;
-  public status?: 'active' | 'inactive';
+  public accountType?: UserType;
+  public status?: UserAccountStatus;
   public verified?: boolean;
   public reason?: string;
   public createdAt?: Date;
@@ -70,6 +88,10 @@ class User extends Model {
     this.hasOne(models.WithdrawalHistory, {
       as: 'withdrawalHistory',
       foreignKey: 'userId',
+    });
+    this.hasMany(models.Coupon, {
+      as: 'coupons',
+      foreignKey: 'couponId',
     });
   }
 
@@ -186,11 +208,11 @@ const initModel = (sequelize: Sequelize) => {
         allowNull: true,
       },
       accountType: {
-        type: DataTypes.ENUM('student', 'user', 'institution', 'creator'),
+        type: DataTypes.ENUM(...Object.keys(UserType)),
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM('active', 'inactive'),
+        type: DataTypes.ENUM(...Object.keys(UserAccountStatus)),
         allowNull: false,
         defaultValue: 'active',
       },

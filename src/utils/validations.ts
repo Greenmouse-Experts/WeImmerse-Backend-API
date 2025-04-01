@@ -637,6 +637,101 @@ export const verifyPaymentValidationRules = () => {
       .withMessage('Subscription ID must be a valid UUID'),
   ];
 };
+
+export const createCouponValidationRules = () => {
+  return [
+    check('code')
+      .not()
+      .isEmpty()
+      .withMessage('Coupon code is required')
+      .isString()
+      .withMessage('Coupon code must be a string')
+      .isLength({ min: 4, max: 20 })
+      .withMessage('Coupon code must be between 4 and 20 characters'),
+    check('discountType')
+      .not()
+      .isEmpty()
+      .withMessage('Discount type is required')
+      .isIn(['percentage', 'fixed'])
+      .withMessage('Discount type must be either "percentage" or "fixed"'),
+    check('discountValue')
+      .not()
+      .isEmpty()
+      .withMessage('Discount value is required')
+      .isFloat({ min: 0.01 })
+      .withMessage('Discount value must be a positive number'),
+    check('maxUses')
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage('Max uses must be a positive integer'),
+    check('validFrom')
+      .not()
+      .isEmpty()
+      .withMessage('Valid from date is required')
+      .isISO8601()
+      .withMessage('Valid from must be a valid date'),
+    check('validUntil')
+      .not()
+      .isEmpty()
+      .withMessage('Valid until date is required')
+      .isISO8601()
+      .withMessage('Valid until must be a valid date')
+      .custom((value, { req }) => {
+        if (new Date(value) <= new Date(req.body.validFrom)) {
+          throw new Error('Valid until must be after valid from');
+        }
+        return true;
+      }),
+    check('minPurchaseAmount')
+      .optional()
+      .isFloat({ min: 0 })
+      .withMessage('Minimum purchase amount must be a positive number'),
+    check('applicableCourses')
+      .optional()
+      .isArray()
+      .withMessage('Applicable courses must be an array'),
+    check('applicableCourses.*')
+      .optional()
+      .isUUID()
+      .withMessage('Each course ID must be a valid UUID'),
+    check('applicableAccountTypes')
+      .optional()
+      .isArray()
+      .withMessage('Applicable account types must be an array'),
+    check('applicableAccountTypes.*')
+      .optional()
+      .isIn(['student', 'user', 'institution', 'creator'])
+      .withMessage('Invalid account type'),
+  ];
+};
+
+export const applyCouponValidationRules = () => {
+  return [
+    check('couponCode')
+      .not()
+      .isEmpty()
+      .withMessage('Coupon code is required')
+      .isString()
+      .withMessage('Coupon code must be a string'),
+    check('userId')
+      .not()
+      .isEmpty()
+      .withMessage('User ID is required')
+      .isUUID()
+      .withMessage('User ID must be a valid UUID'),
+    check('courseId')
+      .optional()
+      .isUUID()
+      .withMessage('Course ID must be a valid UUID'),
+    check('purchaseAmount')
+      .not()
+      .isEmpty()
+      .withMessage('Purchase amount is required')
+      .isFloat({ min: 0 })
+      .withMessage('Purchase amount must be a positive number'),
+  ];
+};
+
 // Middleware to handle validation errors, sending only the first error
 export const validate = (
   req: Request,

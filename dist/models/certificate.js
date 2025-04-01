@@ -15,13 +15,13 @@ const initModel = (sequelize) => {
         userId: {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
-            references: { model: 'users', key: 'id' },
+            // references: { model: 'users', key: 'id' },
             onDelete: 'CASCADE',
         },
         courseId: {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
-            references: { model: 'courses', key: 'id' },
+            // references: { model: 'courses', key: 'id' },
             onDelete: 'CASCADE',
         },
         certificateUrl: {

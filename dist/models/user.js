@@ -12,10 +12,27 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = void 0;
+exports.initModel = exports.Gender = exports.UserAccountStatus = exports.UserType = void 0;
 // models/user.ts
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
+var UserType;
+(function (UserType) {
+    UserType["STUDENT"] = "student";
+    UserType["USER"] = "user";
+    UserType["INSTITUTION"] = "institution";
+    UserType["CREATOR"] = "creator";
+})(UserType || (exports.UserType = UserType = {}));
+var UserAccountStatus;
+(function (UserAccountStatus) {
+    UserAccountStatus["ACTIVE"] = "active";
+    UserAccountStatus["INACTIVE"] = "inactive";
+})(UserAccountStatus || (exports.UserAccountStatus = UserAccountStatus = {}));
+var Gender;
+(function (Gender) {
+    Gender["MALE"] = "male";
+    Gender["FEMALE"] = "female";
+})(Gender || (exports.Gender = Gender = {}));
 class User extends sequelize_1.Model {
     // Method to hash the password before saving
     static hashPassword(password) {
@@ -61,6 +78,10 @@ class User extends sequelize_1.Model {
         this.hasOne(models.WithdrawalHistory, {
             as: 'withdrawalHistory',
             foreignKey: 'userId',
+        });
+        this.hasMany(models.Coupon, {
+            as: 'coupons',
+            foreignKey: 'couponId',
         });
     }
 }
@@ -137,11 +158,11 @@ const initModel = (sequelize) => {
             allowNull: true,
         },
         accountType: {
-            type: sequelize_1.DataTypes.ENUM('student', 'user', 'institution', 'creator'),
+            type: sequelize_1.DataTypes.ENUM(...Object.keys(UserType)),
             allowNull: false,
         },
         status: {
-            type: sequelize_1.DataTypes.ENUM('active', 'inactive'),
+            type: sequelize_1.DataTypes.ENUM(...Object.keys(UserAccountStatus)),
             allowNull: false,
             defaultValue: 'active',
         },

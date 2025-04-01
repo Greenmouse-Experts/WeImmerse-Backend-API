@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
+exports.validate = exports.applyCouponValidationRules = exports.createCouponValidationRules = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 const category_1 = require("../models/category");
 // Validation rules for different functionalities
@@ -577,6 +577,100 @@ const verifyPaymentValidationRules = () => {
     ];
 };
 exports.verifyPaymentValidationRules = verifyPaymentValidationRules;
+const createCouponValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('code')
+            .not()
+            .isEmpty()
+            .withMessage('Coupon code is required')
+            .isString()
+            .withMessage('Coupon code must be a string')
+            .isLength({ min: 4, max: 20 })
+            .withMessage('Coupon code must be between 4 and 20 characters'),
+        (0, express_validator_1.check)('discountType')
+            .not()
+            .isEmpty()
+            .withMessage('Discount type is required')
+            .isIn(['percentage', 'fixed'])
+            .withMessage('Discount type must be either "percentage" or "fixed"'),
+        (0, express_validator_1.check)('discountValue')
+            .not()
+            .isEmpty()
+            .withMessage('Discount value is required')
+            .isFloat({ min: 0.01 })
+            .withMessage('Discount value must be a positive number'),
+        (0, express_validator_1.check)('maxUses')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Max uses must be a positive integer'),
+        (0, express_validator_1.check)('validFrom')
+            .not()
+            .isEmpty()
+            .withMessage('Valid from date is required')
+            .isISO8601()
+            .withMessage('Valid from must be a valid date'),
+        (0, express_validator_1.check)('validUntil')
+            .not()
+            .isEmpty()
+            .withMessage('Valid until date is required')
+            .isISO8601()
+            .withMessage('Valid until must be a valid date')
+            .custom((value, { req }) => {
+            if (new Date(value) <= new Date(req.body.validFrom)) {
+                throw new Error('Valid until must be after valid from');
+            }
+            return true;
+        }),
+        (0, express_validator_1.check)('minPurchaseAmount')
+            .optional()
+            .isFloat({ min: 0 })
+            .withMessage('Minimum purchase amount must be a positive number'),
+        (0, express_validator_1.check)('applicableCourses')
+            .optional()
+            .isArray()
+            .withMessage('Applicable courses must be an array'),
+        (0, express_validator_1.check)('applicableCourses.*')
+            .optional()
+            .isUUID()
+            .withMessage('Each course ID must be a valid UUID'),
+        (0, express_validator_1.check)('applicableAccountTypes')
+            .optional()
+            .isArray()
+            .withMessage('Applicable account types must be an array'),
+        (0, express_validator_1.check)('applicableAccountTypes.*')
+            .optional()
+            .isIn(['student', 'user', 'institution', 'creator'])
+            .withMessage('Invalid account type'),
+    ];
+};
+exports.createCouponValidationRules = createCouponValidationRules;
+const applyCouponValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('couponCode')
+            .not()
+            .isEmpty()
+            .withMessage('Coupon code is required')
+            .isString()
+            .withMessage('Coupon code must be a string'),
+        (0, express_validator_1.check)('userId')
+            .not()
+            .isEmpty()
+            .withMessage('User ID is required')
+            .isUUID()
+            .withMessage('User ID must be a valid UUID'),
+        (0, express_validator_1.check)('courseId')
+            .optional()
+            .isUUID()
+            .withMessage('Course ID must be a valid UUID'),
+        (0, express_validator_1.check)('purchaseAmount')
+            .not()
+            .isEmpty()
+            .withMessage('Purchase amount is required')
+            .isFloat({ min: 0 })
+            .withMessage('Purchase amount must be a positive number'),
+    ];
+};
+exports.applyCouponValidationRules = applyCouponValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
