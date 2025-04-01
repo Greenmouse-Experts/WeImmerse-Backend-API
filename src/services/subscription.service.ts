@@ -6,6 +6,9 @@ import Transaction from '../models/transaction';
 import { sendEmail } from '../utils/email';
 import { calculateEndDate } from '../utils/date';
 import { PaystackService } from './paystack.service';
+import { emailTemplates } from '../utils/messages';
+import User from '../models/user';
+import { sendMail } from './mail.service';
 
 class SubscriptionService {
   // Subscription Plan Management
@@ -172,17 +175,32 @@ class SubscriptionService {
     await transaction.update({ status: 'success' });
 
     if (transaction.subscriptionId) {
-      const subscription = await Subscription.findByPk(
-        transaction.subscriptionId
-      );
+      const subscription = (await Subscription.findOne({
+        where: { id: transaction.subscriptionId },
+        include: [
+          {
+            model: SubscriptionPlan,
+            as: 'plan',
+          },
+          { model: User, as: 'user' },
+        ],
+      })) as Subscription & { plan: SubscriptionPlan; user: User };
+
       if (subscription) {
         await subscription.update({
           status: 'active',
           transactionId: transaction.id,
         });
 
-        // Send confirmation email
-        await sendSubscriptionConfirmation(subscription);
+        const messageToSubscriber =
+          await emailTemplates.sendSubscriptionConfirmation(subscription);
+
+        // Send email
+        await sendMail(
+          subscription.user.email,
+          `${process.env.APP_NAME} - Your Subscription is Confirmed! 🎉`,
+          messageToSubscriber
+        );
       }
     }
 
@@ -196,19 +214,36 @@ class SubscriptionService {
   // Subscription Expiry & Renewal
   async checkExpiredSubscriptions() {
     const now = new Date();
-    const expiredSubscriptions = await Subscription.findAll({
+    const expiredSubscriptions = (await Subscription.findAll({
       where: {
         status: 'active',
         endDate: { [Op.lt]: now },
       },
-    });
+      include: [
+        {
+          model: SubscriptionPlan,
+          as: 'plan',
+        },
+        { model: User, as: 'user' },
+      ],
+    })) as (Subscription & { plan: SubscriptionPlan; user: User })[];
 
     for (const subscription of expiredSubscriptions) {
       if (subscription.isAutoRenew) {
         await this.renewSubscription(subscription.id);
       } else {
         await subscription.update({ status: 'expired' });
-        await sendSubscriptionExpiredNotification(subscription);
+        const messageToSubscriber =
+          await emailTemplates.sendSubscriptionExpiredNotification(
+            subscription
+          );
+
+        // Send email
+        await sendMail(
+          subscription.user.email,
+          `${process.env.APP_NAME} - 🚫 Your Subscription Has Expired – Let’s Get You Back on Track!`,
+          messageToSubscriber
+        );
       }
     }
 
@@ -216,10 +251,16 @@ class SubscriptionService {
   }
 
   async renewSubscription(subscriptionId: string) {
-    const subscription = await Subscription.findOne({
+    const subscription = (await Subscription.findOne({
       where: { subscriptionId },
-      include: [{ model: SubscriptionPlan, as: 'plan' }],
-    });
+      include: [
+        {
+          model: SubscriptionPlan,
+          as: 'plan',
+        },
+        { model: User, as: 'user' },
+      ],
+    })) as Subscription & { plan: SubscriptionPlan; user: User };
 
     if (!subscription) throw new Error('Subscription not found');
     if (subscription.status !== 'active')
@@ -256,8 +297,21 @@ class SubscriptionService {
         transactionId: transaction.id,
       });
 
-      await sendSubscriptionRenewalConfirmation(subscription);
-      return { success: true, subscription };
+      const messageToSubscriber =
+        await emailTemplates.sendSubscriptionRenewalConfirmation(subscription);
+
+      // Send email
+      await sendMail(
+        subscription.user.email,
+        `${process.env.APP_NAME} - Your subscription plan is renewed successful!`,
+        messageToSubscriber
+      );
+
+      return {
+        success: true,
+        message: 'Subscription renewed successfully.',
+        subscription,
+      };
     } else {
       await transaction.update({ status: 'failed' });
       await subscription.update({
@@ -265,27 +319,39 @@ class SubscriptionService {
         isAutoRenew: false,
       });
 
-      await sendPaymentFailureNotification(subscription);
-      return { success: false, subscription };
+      const messageToSubscriber =
+        await emailTemplates.sendPaymentFailureNotification(subscription);
+
+      // Send email
+      await sendMail(
+        subscription.user.email,
+        `${process.env.APP_NAME} - 😕 Oops! We Couldn’t Renew Your Subscription`,
+        messageToSubscriber
+      );
+      return {
+        success: false,
+        message: 'Subscription renewal failed.',
+        subscription,
+      };
     }
   }
 }
 
-// Helper functions for emails (would be in a separate file)
-async function sendSubscriptionConfirmation(subscription: Subscription) {
-  // Implementation would use your email service
-}
+// // Helper functions for emails (would be in a separate file)
+// async function sendSubscriptionConfirmation(subscription: Subscription) {
+//   // Implementation would use your email service
+// }
 
-async function sendSubscriptionExpiredNotification(subscription: Subscription) {
-  // Implementation would use your email service
-}
+// async function sendSubscriptionExpiredNotification(subscription: Subscription) {
+//   // Implementation would use your email service
+// }
 
-async function sendSubscriptionRenewalConfirmation(subscription: Subscription) {
-  // Implementation would use your email service
-}
+// async function sendSubscriptionRenewalConfirmation(subscription: Subscription) {
+//   // Implementation would use your email service
+// }
 
-async function sendPaymentFailureNotification(subscription: Subscription) {
-  // Implementation would use your email service
-}
+// async function sendPaymentFailureNotification(subscription: Subscription) {
+//   // Implementation would use your email service
+// }
 
 export default new SubscriptionService();

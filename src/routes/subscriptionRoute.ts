@@ -10,6 +10,7 @@ import {
   validate,
 } from '../utils/validations';
 import authMiddleware from '../middlewares/authMiddleware';
+import authorizeCreatorOrInstitution from '../middlewares/authorizeCreatorOrInstitution';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ const router = Router();
 router.post(
   '/subscribe',
   authMiddleware,
+  authorizeCreatorOrInstitution,
   createSubscriptionValidationRules(),
   validate,
   SubscriptionController.createSubscription
@@ -25,18 +27,21 @@ router.post(
 router.get(
   '/my-subscriptions',
   authMiddleware,
+  authorizeCreatorOrInstitution,
   SubscriptionController.getUserSubscriptions
 );
 
 router.get(
   '/my-active-subscription',
   authMiddleware,
+  authorizeCreatorOrInstitution,
   SubscriptionController.getActiveSubscription
 );
 
 router.post(
   '/cancel/:id',
   authMiddleware,
+  authorizeCreatorOrInstitution,
   cancelSubscriptionValidationRules(),
   validate,
   SubscriptionController.cancelSubscription
@@ -46,6 +51,7 @@ router.post(
 router.post(
   '/verify-payment',
   authMiddleware,
+  authorizeCreatorOrInstitution,
   verifyPaymentValidationRules(),
   validate,
   SubscriptionController.verifyPayment

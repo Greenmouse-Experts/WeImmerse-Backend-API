@@ -20,6 +20,10 @@ class SubscriptionController {
             try {
                 const userId = req.user.id; // Assuming user ID is in the request
                 const email = req.user.email;
+                const activeSubscription = yield subscription_service_1.default.getActiveSubscription(userId);
+                if (activeSubscription) {
+                    throw new Error('You already have an active subscription.');
+                }
                 const subscription = yield subscription_service_1.default.createSubscription(Object.assign({ userId }, req.body));
                 // Initialize payment
                 const plan = yield subscription_service_1.default.getPlanById(req.body.planId);
@@ -33,7 +37,7 @@ class SubscriptionController {
                 });
             }
             catch (error) {
-                res.status(400).json({ message: error.message });
+                res.status(400).json({ status: false, message: error.message });
             }
         });
     }

@@ -1,5 +1,14 @@
 "use strict";
 // utils/emailTemplates.ts
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -4104,5 +4113,272 @@ exports.emailTemplates = {
 </html>
     `;
     },
+    // Helper functions for emails (would be in a separate file)
+    sendSubscriptionConfirmation: (subscription) => __awaiter(void 0, void 0, void 0, function* () {
+        const { user, plan } = subscription;
+        const logoUrl = process.env.LOGO_URL;
+        const subscriptionUrl = `${process.env.CLIENT_URL}/auth/login?redirect_url=/dashboard/subscriptions`;
+        const emailContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width" />
+          <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+          <title>Subscription Confirmation</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              background-color: #f6f6f6;
+              margin: 0;
+              padding: 0;
+            }
+            .container {
+              max-width: 600px;
+              margin: 20px auto;
+              background: #ffffff;
+              padding: 20px;
+              border-radius: 8px;
+              box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            }
+            .header {
+              text-align: center;
+              font-size: 24px;
+              font-weight: bold;
+              color: #333;
+              margin-bottom: 20px;
+            }
+            .content {
+              font-size: 16px;
+              color: #555;
+              line-height: 1.6;
+            }
+            .button {
+              display: inline-block;
+              background-color: #000;
+              color: #ffffff !important;
+              text-decoration: none;
+              padding: 10px 20px;
+              border-radius: 5px;
+              margin-top: 20px;
+            }
+            .footer {
+              margin-top: 20px;
+              font-size: 14px;
+              color: #888;
+              text-align: center;
+            }
+            .details {
+              background: #f9f9f9;
+              padding: 15px;
+              border-radius: 5px;
+              margin: 20px 0;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="container" style="background-color: #f6f6f6;">
+            <div class="logo" style="margin-bottom: 40px; text-align: center;">
+              <img
+                src="${logoUrl}"
+                alt="Logo of ${process.env.APP_NAME}"
+                width="150px"
+              />
+            </div>
+            <div class="content">
+              <p>Dear ${user.name},</p>
+              <p>Thank you for subscribing to ${plan.name}!</p>
+              
+              <div class="details">
+                <h3>Subscription Details:</h3>
+                <ul>
+                  <li>Plan: ${plan.name}</li>
+                  <li>Start Date: ${(0, moment_1.default)(subscription.startDate).format('LLL')}</li>
+                  <li>End Date: ${(0, moment_1.default)(subscription.endDate).format('LLL')}</li>
+                  <li>Status: ${subscription.status}</li>
+                  <li>Auto-renew: ${subscription.isAutoRenew ? 'Yes' : 'No'}</li>
+                  <li>Payment Method: ${subscription.paymentMethod}</li>
+                </ul>
+              </div>
+  
+              <p>You can manage your subscription at any time from your account dashboard.</p>
+              
+              <a href="${subscriptionUrl}" class="button">View My Subscription</a>
+              
+              <p>If you have any questions about your subscription, please contact our support team.</p>
+            </div>
+            <div class="footer">
+              &copy;
+              <script>
+                document.write(new Date().getFullYear());
+              </script>
+              ${process.env.APP_NAME}. All rights reserved.
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+        return emailContent;
+        // Implementation would use your email service
+        // await emailService.sendEmail(...)
+    }),
+    sendSubscriptionExpiredNotification: (subscription) => __awaiter(void 0, void 0, void 0, function* () {
+        const { user, plan } = subscription;
+        const logoUrl = process.env.LOGO_URL;
+        const subscriptionUrl = `${process.env.CLIENT_URL}/auth/login?redirect_url=/dashboard/subscriptions`;
+        const emailContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <!-- Same style as previous email -->
+        </head>
+        <body>
+          <div class="container" style="background-color: #f6f6f6;">
+            <div class="logo" style="margin-bottom: 40px; text-align: center;">
+              <img
+                src="${logoUrl}"
+                alt="Logo of ${process.env.APP_NAME}"
+                width="150px"
+              />
+            </div>
+            <div class="content">
+              <p>Dear ${user.name},</p>
+              <p>Your ${plan.name} subscription has expired on ${(0, moment_1.default)(subscription.endDate).format('LLL')}.</p>
+              
+              <div class="details">
+                <h3>Subscription Details:</h3>
+                <ul>
+                  <li>Plan: ${plan.name}</li>
+                  <li>Start Date: ${(0, moment_1.default)(subscription.startDate).format('LLL')}</li>
+                  <li>End Date: ${(0, moment_1.default)(subscription.endDate).format('LLL')}</li>
+                </ul>
+              </div>
+  
+              <p>To continue enjoying our services, please renew your subscription.</p>
+              
+              <a href="${subscriptionUrl}" class="button">Renew Subscription</a>
+              
+              <p>If you have any questions, our support team is here to help.</p>
+            </div>
+            <div class="footer">
+              &copy;
+              <script>
+                document.write(new Date().getFullYear());
+              </script>
+              ${process.env.APP_NAME}. All rights reserved.
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+        return emailContent;
+        // Implementation would use your email service
+    }),
+    sendSubscriptionRenewalConfirmation: (subscription) => __awaiter(void 0, void 0, void 0, function* () {
+        const { user, plan } = subscription;
+        const logoUrl = process.env.LOGO_URL;
+        const subscriptionUrl = `${process.env.CLIENT_URL}/auth/login?redirect_url=/dashboard/subscriptions`;
+        const emailContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <!-- Same style as previous email -->
+        </head>
+        <body>
+          <div class="container" style="background-color: #f6f6f6;">
+            <div class="logo" style="margin-bottom: 40px; text-align: center;">
+              <img
+                src="${logoUrl}"
+                alt="Logo of ${process.env.APP_NAME}"
+                width="150px"
+              />
+            </div>
+            <div class="content">
+              <p>Dear ${user.name},</p>
+              <p>Your ${plan.name} subscription has been successfully renewed!</p>
+              
+              <div class="details">
+                <h3>Renewal Details:</h3>
+                <ul>
+                  <li>Plan: ${plan.name}</li>
+                  <li>New End Date: ${(0, moment_1.default)(subscription.endDate).format('LLL')}</li>
+                  <li>Payment Method: ${subscription.paymentMethod}</li>
+                  <li>Transaction ID: ${subscription.transactionId}</li>
+                </ul>
+              </div>
+  
+              <p>You can manage your subscription at any time from your account dashboard.</p>
+              
+              <a href="${subscriptionUrl}" class="button">View My Subscription</a>
+              
+              <p>Thank you for continuing with us!</p>
+            </div>
+            <div class="footer">
+              &copy;
+              <script>
+                document.write(new Date().getFullYear());
+              </script>
+              ${process.env.APP_NAME}. All rights reserved.
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+        return emailContent;
+        // Implementation would use your email service
+    }),
+    sendPaymentFailureNotification: (subscription) => __awaiter(void 0, void 0, void 0, function* () {
+        const { user, plan } = subscription;
+        const logoUrl = process.env.LOGO_URL;
+        const paymentUrl = `${process.env.CLIENT_URL}/auth/login?redirect_url=/dashboard/billing`;
+        const emailContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <!-- Same style as previous email -->
+        </head>
+        <body>
+          <div class="container" style="background-color: #f6f6f6;">
+            <div class="logo" style="margin-bottom: 40px; text-align: center;">
+              <img
+                src="${logoUrl}"
+                alt="Logo of ${process.env.APP_NAME}"
+                width="150px"
+              />
+            </div>
+            <div class="content">
+              <p>Dear ${user.name},</p>
+              <p>We encountered an issue processing your payment for the ${plan.name} subscription.</p>
+              
+              <div class="details">
+                <h3>Subscription Details:</h3>
+                <ul>
+                  <li>Plan: ${plan.name}</li>
+                  <li>Next Payment Due: ${(0, moment_1.default)(subscription.endDate).format('LLL')}</li>
+                  <li>Payment Method: ${subscription.paymentMethod}</li>
+                </ul>
+              </div>
+  
+              <p>Please update your payment information to avoid service interruption.</p>
+              
+              <a href="${paymentUrl}" class="button">Update Payment Method</a>
+              
+              <p>If you believe this is an error or need assistance, please contact our support team immediately.</p>
+              
+              <p><strong>Note:</strong> Your subscription will be suspended if the payment is not processed within 3 days.</p>
+            </div>
+            <div class="footer">
+              &copy;
+              <script>
+                document.write(new Date().getFullYear());
+              </script>
+              ${process.env.APP_NAME}. All rights reserved.
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+        return emailContent;
+        // Implementation would use your email service
+    }),
 };
 //# sourceMappingURL=messages.js.map

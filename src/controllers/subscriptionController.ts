@@ -16,6 +16,13 @@ class SubscriptionController {
       const userId = (req as any).user.id; // Assuming user ID is in the request
       const email = (req as any).user.email;
 
+      const activeSubscription =
+        await SubscriptionService.getActiveSubscription(userId);
+
+      if (activeSubscription) {
+        throw new Error('You already have an active subscription.');
+      }
+
       const subscription = await SubscriptionService.createSubscription({
         userId,
         ...req.body,
@@ -39,7 +46,7 @@ class SubscriptionController {
         payment,
       });
     } catch (error: any) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ status: false, message: error.message });
     }
   }
 

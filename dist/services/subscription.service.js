@@ -19,6 +19,9 @@ const subscription_1 = __importDefault(require("../models/subscription"));
 const transaction_1 = __importDefault(require("../models/transaction"));
 const date_1 = require("../utils/date");
 const paystack_service_1 = require("./paystack.service");
+const messages_1 = require("../utils/messages");
+const user_1 = __importDefault(require("../models/user"));
+const mail_service_1 = require("./mail.service");
 class SubscriptionService {
     // Subscription Plan Management
     createPlan(data) {
@@ -154,14 +157,24 @@ class SubscriptionService {
             }
             yield transaction.update({ status: 'success' });
             if (transaction.subscriptionId) {
-                const subscription = yield subscription_1.default.findByPk(transaction.subscriptionId);
+                const subscription = (yield subscription_1.default.findOne({
+                    where: { id: transaction.subscriptionId },
+                    include: [
+                        {
+                            model: subscriptionplan_1.default,
+                            as: 'plan',
+                        },
+                        { model: user_1.default, as: 'user' },
+                    ],
+                }));
                 if (subscription) {
                     yield subscription.update({
                         status: 'active',
                         transactionId: transaction.id,
                     });
-                    // Send confirmation email
-                    yield sendSubscriptionConfirmation(subscription);
+                    const messageToSubscriber = yield messages_1.emailTemplates.sendSubscriptionConfirmation(subscription);
+                    // Send email
+                    yield (0, mail_service_1.sendMail)(subscription.user.email, `${process.env.APP_NAME} - Your Subscription is Confirmed! 🎉`, messageToSubscriber);
                 }
             }
             return {
@@ -175,19 +188,28 @@ class SubscriptionService {
     checkExpiredSubscriptions() {
         return __awaiter(this, void 0, void 0, function* () {
             const now = new Date();
-            const expiredSubscriptions = yield subscription_1.default.findAll({
+            const expiredSubscriptions = (yield subscription_1.default.findAll({
                 where: {
                     status: 'active',
                     endDate: { [sequelize_1.Op.lt]: now },
                 },
-            });
+                include: [
+                    {
+                        model: subscriptionplan_1.default,
+                        as: 'plan',
+                    },
+                    { model: user_1.default, as: 'user' },
+                ],
+            }));
             for (const subscription of expiredSubscriptions) {
                 if (subscription.isAutoRenew) {
                     yield this.renewSubscription(subscription.id);
                 }
                 else {
                     yield subscription.update({ status: 'expired' });
-                    yield sendSubscriptionExpiredNotification(subscription);
+                    const messageToSubscriber = yield messages_1.emailTemplates.sendSubscriptionExpiredNotification(subscription);
+                    // Send email
+                    yield (0, mail_service_1.sendMail)(subscription.user.email, `${process.env.APP_NAME} - 🚫 Your Subscription Has Expired – Let’s Get You Back on Track!`, messageToSubscriber);
                 }
             }
             return expiredSubscriptions.length;
@@ -195,10 +217,16 @@ class SubscriptionService {
     }
     renewSubscription(subscriptionId) {
         return __awaiter(this, void 0, void 0, function* () {
-            const subscription = yield subscription_1.default.findOne({
+            const subscription = (yield subscription_1.default.findOne({
                 where: { subscriptionId },
-                include: [{ model: subscriptionplan_1.default, as: 'plan' }],
-            });
+                include: [
+                    {
+                        model: subscriptionplan_1.default,
+                        as: 'plan',
+                    },
+                    { model: user_1.default, as: 'user' },
+                ],
+            }));
             if (!subscription)
                 throw new Error('Subscription not found');
             if (subscription.status !== 'active')
@@ -228,8 +256,14 @@ class SubscriptionService {
                     endDate: newEndDate,
                     transactionId: transaction.id,
                 });
-                yield sendSubscriptionRenewalConfirmation(subscription);
-                return { success: true, subscription };
+                const messageToSubscriber = yield messages_1.emailTemplates.sendSubscriptionRenewalConfirmation(subscription);
+                // Send email
+                yield (0, mail_service_1.sendMail)(subscription.user.email, `${process.env.APP_NAME} - Your subscription plan is renewed successful!`, messageToSubscriber);
+                return {
+                    success: true,
+                    message: 'Subscription renewed successfully.',
+                    subscription,
+                };
             }
             else {
                 yield transaction.update({ status: 'failed' });
@@ -237,32 +271,30 @@ class SubscriptionService {
                     status: 'expired',
                     isAutoRenew: false,
                 });
-                yield sendPaymentFailureNotification(subscription);
-                return { success: false, subscription };
+                const messageToSubscriber = yield messages_1.emailTemplates.sendPaymentFailureNotification(subscription);
+                // Send email
+                yield (0, mail_service_1.sendMail)(subscription.user.email, `${process.env.APP_NAME} - 😕 Oops! We Couldn’t Renew Your Subscription`, messageToSubscriber);
+                return {
+                    success: false,
+                    message: 'Subscription renewal failed.',
+                    subscription,
+                };
             }
         });
     }
 }
-// Helper functions for emails (would be in a separate file)
-function sendSubscriptionConfirmation(subscription) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Implementation would use your email service
-    });
-}
-function sendSubscriptionExpiredNotification(subscription) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Implementation would use your email service
-    });
-}
-function sendSubscriptionRenewalConfirmation(subscription) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Implementation would use your email service
-    });
-}
-function sendPaymentFailureNotification(subscription) {
-    return __awaiter(this, void 0, void 0, function* () {
-        // Implementation would use your email service
-    });
-}
+// // Helper functions for emails (would be in a separate file)
+// async function sendSubscriptionConfirmation(subscription: Subscription) {
+//   // Implementation would use your email service
+// }
+// async function sendSubscriptionExpiredNotification(subscription: Subscription) {
+//   // Implementation would use your email service
+// }
+// async function sendSubscriptionRenewalConfirmation(subscription: Subscription) {
+//   // Implementation would use your email service
+// }
+// async function sendPaymentFailureNotification(subscription: Subscription) {
+//   // Implementation would use your email service
+// }
 exports.default = new SubscriptionService();
 //# sourceMappingURL=subscription.service.js.map
