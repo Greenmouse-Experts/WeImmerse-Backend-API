@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.adminLogin = exports.resetPassword = exports.codeCheck = exports.forgetPassword = exports.resendVerificationEmail = exports.login = exports.verifyEmail = exports.institutionRegister = exports.creatorRegister = exports.studentRegister = exports.userRegister = exports.index = void 0;
+exports.getAllSubscriptionPlans = exports.adminLogin = exports.resetPassword = exports.codeCheck = exports.forgetPassword = exports.resendVerificationEmail = exports.login = exports.verifyEmail = exports.institutionRegister = exports.creatorRegister = exports.studentRegister = exports.userRegister = exports.index = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const helpers_1 = require("../utils/helpers");
@@ -24,8 +24,10 @@ const logger_1 = __importDefault(require("../middlewares/logger")); // Adjust th
 const helpers_2 = require("../utils/helpers");
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
+const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
 const institutioninformation_1 = __importDefault(require("../models/institutioninformation"));
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
+const sequelize_1 = require("sequelize");
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.status(200).json({
         code: 200,
@@ -605,4 +607,26 @@ const adminLogin = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.adminLogin = adminLogin;
+// Subscription Plan
+const getAllSubscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { name } = req.query; // Get the name from query parameters
+        const queryOptions = {}; // Initialize query options
+        // If a name is provided, add a condition to the query
+        if (name) {
+            queryOptions.where = {
+                name: {
+                    [sequelize_1.Op.like]: `%${name}%`, // Use a partial match for name
+                },
+            };
+        }
+        const plans = yield subscriptionplan_1.default.findAll(queryOptions); // Use query options
+        res.status(200).json({ data: plans });
+    }
+    catch (error) {
+        logger_1.default.error('Error fetching subscription plans:', error);
+        res.status(500).json({ message: error.message || 'Internal server error' });
+    }
+});
+exports.getAllSubscriptionPlans = getAllSubscriptionPlans;
 //# sourceMappingURL=authController.js.map

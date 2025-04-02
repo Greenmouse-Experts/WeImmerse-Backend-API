@@ -15,6 +15,7 @@ import SubscriptionPlan from '../models/subscriptionplan';
 import UserNotificationSetting from '../models/usernotificationsetting';
 import InstitutionInformation from '../models/institutioninformation';
 import sequelizeService from '../services/sequelize.service';
+import { Op } from 'sequelize';
 
 export const index = async (req: Request, res: Response) => {
   res.status(200).json({
@@ -760,5 +761,32 @@ export const adminLogin = async (
 
     // Handle server errors
     res.status(500).json({ message: 'Internal server error' });
+  }
+};
+
+// Subscription Plan
+export const getAllSubscriptionPlans = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { name } = req.query; // Get the name from query parameters
+
+    const queryOptions: any = {}; // Initialize query options
+
+    // If a name is provided, add a condition to the query
+    if (name) {
+      queryOptions.where = {
+        name: {
+          [Op.like]: `%${name}%`, // Use a partial match for name
+        },
+      };
+    }
+
+    const plans = await SubscriptionPlan.findAll(queryOptions); // Use query options
+    res.status(200).json({ data: plans });
+  } catch (error: any) {
+    logger.error('Error fetching subscription plans:', error);
+    res.status(500).json({ message: error.message || 'Internal server error' });
   }
 };

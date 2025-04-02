@@ -32,33 +32,40 @@ var __importStar = (this && this.__importStar) || (function () {
         return result;
     };
 })();
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 // src/routes/authroute.ts
 const express_1 = require("express");
 const authController = __importStar(require("../controllers/authController"));
 const frontendController = __importStar(require("../controllers/frontendController"));
 const validations_1 = require("../utils/validations"); // Import the service
+const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
+const authorizeCreatorOrInstitution_1 = __importDefault(require("../middlewares/authorizeCreatorOrInstitution"));
 const authRoutes = (0, express_1.Router)();
 // Auth routes
-authRoutes.get("/", authController.index);
-authRoutes.post("/auth/register/user", (0, validations_1.userRegistrationValidationRules)(), validations_1.validate, authController.userRegister);
-authRoutes.post("/auth/register/institution", (0, validations_1.institutionRegistrationValidationRules)(), validations_1.validate, authController.institutionRegister);
-authRoutes.post("/auth/register/creator", (0, validations_1.creatorRegistrationValidationRules)(), validations_1.validate, authController.creatorRegister);
-authRoutes.post("/auth/register/student", (0, validations_1.studentRegistrationValidationRules)(), validations_1.validate, authController.studentRegister);
-authRoutes.post("/auth/verify/email", (0, validations_1.verificationValidationRules)(), validations_1.validate, authController.verifyEmail);
-authRoutes.post("/auth/login", (0, validations_1.loginValidationRules)(), validations_1.validate, authController.login);
-authRoutes.post("/auth/resend/verification/email", (0, validations_1.resendVerificationValidationRules)(), validations_1.validate, authController.resendVerificationEmail);
-authRoutes.post("/auth/password/forgot", (0, validations_1.forgotPasswordValidationRules)(), validations_1.validate, authController.forgetPassword);
-authRoutes.post("/auth/password/code/check", (0, validations_1.verificationValidationRules)(), validations_1.validate, authController.codeCheck);
-authRoutes.post("/auth/password/reset", (0, validations_1.resetPasswordValidationRules)(), validations_1.validate, authController.resetPassword);
+authRoutes.get('/', authController.index);
+authRoutes.post('/auth/register/user', (0, validations_1.userRegistrationValidationRules)(), validations_1.validate, authController.userRegister);
+authRoutes.post('/auth/register/institution', (0, validations_1.institutionRegistrationValidationRules)(), validations_1.validate, authController.institutionRegister);
+authRoutes.post('/auth/register/creator', (0, validations_1.creatorRegistrationValidationRules)(), validations_1.validate, authController.creatorRegister);
+authRoutes.post('/auth/register/student', (0, validations_1.studentRegistrationValidationRules)(), validations_1.validate, authController.studentRegister);
+authRoutes.post('/auth/verify/email', (0, validations_1.verificationValidationRules)(), validations_1.validate, authController.verifyEmail);
+authRoutes.post('/auth/login', (0, validations_1.loginValidationRules)(), validations_1.validate, authController.login);
+authRoutes.post('/auth/resend/verification/email', (0, validations_1.resendVerificationValidationRules)(), validations_1.validate, authController.resendVerificationEmail);
+authRoutes.post('/auth/password/forgot', (0, validations_1.forgotPasswordValidationRules)(), validations_1.validate, authController.forgetPassword);
+authRoutes.post('/auth/password/code/check', (0, validations_1.verificationValidationRules)(), validations_1.validate, authController.codeCheck);
+authRoutes.post('/auth/password/reset', (0, validations_1.resetPasswordValidationRules)(), validations_1.validate, authController.resetPassword);
 // Admin
-authRoutes.post("/auth/admin/login", (0, validations_1.loginValidationRules)(), validations_1.validate, authController.adminLogin);
+authRoutes.post('/auth/admin/login', (0, validations_1.loginValidationRules)(), validations_1.validate, authController.adminLogin);
 // Frontend
-authRoutes.get("/fetch/digital/assets", frontendController.fetchDigitalAssets);
-authRoutes.get("/view/digital/asset", frontendController.viewDigitalAsset);
-authRoutes.get("/fetch/physical/assets", frontendController.fetchPhysicalAssets);
-authRoutes.get("/view/physical/asset", frontendController.viewPhysicalAsset);
-authRoutes.get("/fetch/jobs", frontendController.fetchJobs);
-authRoutes.get("/view/job", frontendController.viewJob);
+authRoutes.get('/fetch/digital/assets', frontendController.fetchDigitalAssets);
+authRoutes.get('/view/digital/asset', frontendController.viewDigitalAsset);
+authRoutes.get('/fetch/physical/assets', frontendController.fetchPhysicalAssets);
+authRoutes.get('/view/physical/asset', frontendController.viewPhysicalAsset);
+authRoutes.get('/fetch/jobs', frontendController.fetchJobs);
+authRoutes.get('/view/job', frontendController.viewJob);
+// Subscription plan
+authRoutes.get('/subscription/fetch', authMiddleware_1.default, authorizeCreatorOrInstitution_1.default, authController.getAllSubscriptionPlans);
 exports.default = authRoutes; // Export the router
 //# sourceMappingURL=authRoute.js.map
