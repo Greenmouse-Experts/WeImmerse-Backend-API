@@ -103,7 +103,7 @@ authRoutes.get('/view/job', frontendController.viewJob);
 
 // Subscription plan
 authRoutes.get(
-  '/subscription/fetch',
+  '/subscription-plans/fetch',
   authMiddleware,
   authorizeCreatorOrInstitution,
   authController.getAllSubscriptionPlans

@@ -66,6 +66,6 @@ authRoutes.get('/view/physical/asset', frontendController.viewPhysicalAsset);
 authRoutes.get('/fetch/jobs', frontendController.fetchJobs);
 authRoutes.get('/view/job', frontendController.viewJob);
 // Subscription plan
-authRoutes.get('/subscription/fetch', authMiddleware_1.default, authorizeCreatorOrInstitution_1.default, authController.getAllSubscriptionPlans);
+authRoutes.get('/subscription-plans/fetch', authMiddleware_1.default, authorizeCreatorOrInstitution_1.default, authController.getAllSubscriptionPlans);
 exports.default = authRoutes; // Export the router
 //# sourceMappingURL=authRoute.js.map
