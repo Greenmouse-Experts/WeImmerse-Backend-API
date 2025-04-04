@@ -1,6 +1,8 @@
 import axios from 'axios';
 import Transaction from '../models/transaction';
 import Subscription from '../models/subscription';
+import logger from '../middlewares/logger';
+import * as crypto from 'crypto';
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
@@ -34,6 +36,27 @@ interface Bank {
   code: string;
   country: string;
   currency: string;
+}
+
+interface RefundResponse {
+  status: boolean;
+  message: string;
+  data: {
+    transaction: {
+      id: number;
+      domain: string;
+      reference: string;
+      amount: number;
+      currency: string;
+      status: string;
+    };
+    integration: number;
+    deducted_amount: number;
+    channel: string | null;
+    customer_note: string | null;
+    merchant_note: string | null;
+    refunded_at: string;
+  };
 }
 
 export class PaystackService {
@@ -336,5 +359,55 @@ export class PaystackService {
     };
 
     return urls[region] || `${process.env.BASE_URL}/api/payments/callback`;
+  }
+
+  /**
+   * Initialize a refund for a transaction
+   * @param reference - The original transaction reference
+   * @param amount - Amount to refund (in the original currency)
+   * @param reason - Optional reason for the refund
+   */
+  static async initiateRefund(
+    reference: string,
+    amount: number,
+    reason?: string
+  ): Promise<RefundResponse> {
+    try {
+      const response = await axios.post(
+        `${PAYSTACK_BASE_URL}/refund`,
+        {
+          transaction: reference,
+          amount: amount * 100, // Convert to smallest currency unit (kobo for NGN)
+          ...(reason && { merchant_note: reason }),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error: any) {
+      logger.error('Paystack refund initialization failed:', {
+        reference,
+        amount,
+        error: error.response?.data || error.message,
+      });
+
+      throw new Error(
+        error.response?.data?.message || 'Failed to initiate refund'
+      );
+    }
+  }
+
+  static verifyWebhookSignature(body: string, signature: string): boolean {
+    const hash = crypto
+      .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY!)
+      .update(body)
+      .digest('hex');
+
+    return hash === signature;
   }
 }

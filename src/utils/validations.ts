@@ -630,7 +630,8 @@ export const verifyPaymentValidationRules = () => {
       .not()
       .isEmpty()
       .withMessage('Payment reference is required')
-      .isString(),
+      .isString()
+      .withMessage('Payment reference must be a string'),
     check('subscriptionId')
       .optional()
       .isUUID()
@@ -729,6 +730,75 @@ export const applyCouponValidationRules = () => {
       .withMessage('Purchase amount is required')
       .isFloat({ min: 0 })
       .withMessage('Purchase amount must be a positive number'),
+  ];
+};
+
+export const initiatePurchaseValidationRules = () => {
+  return [
+    check('productType')
+      .not()
+      .isEmpty()
+      .withMessage('Product type is required')
+      .isIn(['digital_asset', 'physical_asset', 'course'])
+      .withMessage('Invalid product type'),
+    check('productId')
+      .not()
+      .isEmpty()
+      .withMessage('Product ID is required')
+      .isUUID()
+      .withMessage('Product ID must be a valid UUID'),
+    check('paymentMethod')
+      .not()
+      .isEmpty()
+      .withMessage('Payment method is required')
+      .isIn(['card', 'bank_transfer', 'wallet'])
+      .withMessage('Invalid payment method'),
+    check('amount')
+      .not()
+      .isEmpty()
+      .withMessage('Amount is required')
+      .isFloat({ min: 0 })
+      .withMessage('Amount must be a positive number'),
+    check('currency')
+      .optional()
+      .isString()
+      .withMessage('Currency must be a string')
+      .isLength({ min: 3, max: 3 })
+      .withMessage('Currency must be 3 characters'),
+  ];
+};
+
+export const webhookValidationRules = () => {
+  return [
+    check('event')
+      .notEmpty()
+      .withMessage('Event is required')
+      .isString()
+      .withMessage('Event must be a string'),
+    check('data')
+      .notEmpty()
+      .withMessage('Data is required')
+      .isObject()
+      .withMessage('Data must be an object'),
+    check('data.reference')
+      .notEmpty()
+      .withMessage('Reference is required')
+      .isString()
+      .withMessage('Reference must be a string'),
+    check('data.status')
+      .notEmpty()
+      .withMessage('Status is required')
+      .isString()
+      .withMessage('Status must be a string'),
+    check('data.amount')
+      .notEmpty()
+      .withMessage('Amount is required')
+      .isNumeric()
+      .withMessage('Amount must be a number'),
+    check('data.metadata')
+      .optional()
+      .isObject()
+      .withMessage('Metadata must be an object'),
   ];
 };
 

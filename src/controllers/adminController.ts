@@ -2063,6 +2063,67 @@ export const publishCourse = async (
   }
 };
 
+// Get all courses with filters (categoryId)
+export const getAllCourses = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    // Retrieve the authenticated user's ID
+    const userId = (req as AuthenticatedRequest).adminId;
+
+    const { categoryId } = req.query;
+
+    // Ensure userId is defined
+    if (!userId) {
+      res.status(401).json({ message: 'Unauthorized: User ID is missing.' });
+      return;
+    }
+
+    // Extract pagination query parameters
+    const { page, limit, offset } = getPaginationFields(
+      req.query.page as string,
+      req.query.limit as string
+    );
+
+    let whereCondition: any = {};
+
+    const { rows: courses, count: totalItems } = await Course.findAndCountAll({
+      where: whereCondition,
+      include: [
+        { model: User, as: 'creator' },
+        { model: Category, as: 'courseCategory' },
+        // Adjust alias to match your associations
+      ],
+      order: [['createdAt', 'DESC']],
+      limit,
+      offset,
+    });
+
+    // Calculate pagination metadata
+    const totalPages = getTotalPages(totalItems, limit);
+
+    // Respond with the paginated courses and metadata
+    return res.status(200).json({
+      message: 'Courses retrieved successfully.',
+      data: courses,
+      meta: {
+        totalItems,
+        totalPages,
+        currentPage: page,
+        itemsPerPage: limit,
+      },
+    });
+  } catch (error: any) {
+    console.log(error);
+
+    res.status(500).json({
+      status: false,
+      message: error?.message || 'Error fetching courses',
+    });
+  }
+};
+
 // Job Post
 // Review job post
 export const reviewJobPost = async (

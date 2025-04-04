@@ -72,7 +72,7 @@ class Course extends Model {
 
   static associate(models: any) {
     this.belongsTo(models.User, { as: 'creator', foreignKey: 'creatorId' });
-    this.belongsTo(models.CourseCategory, {
+    this.belongsTo(models.Category, {
       as: 'courseCategory',
       foreignKey: 'categoryId',
     });
@@ -178,7 +178,7 @@ const initModel = (sequelize: Sequelize) => {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: 'course_categories', // Ensure this matches the name of the CourseCategory table
+          model: 'categories', // Ensure this matches the name of the CourseCategory table
           key: 'id',
         },
         onDelete: 'CASCADE',

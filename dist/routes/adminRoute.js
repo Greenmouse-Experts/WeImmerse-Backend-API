@@ -112,6 +112,7 @@ adminRoutes.delete('/physical/asset/delete', adminAuthMiddleware_1.default, admi
 adminRoutes.patch('/physical/asset/update/status', adminAuthMiddleware_1.default, adminController.updatePhysicalAssetStatus);
 // Course
 adminRoutes.post('/course/:id/publish', adminAuthMiddleware_1.default, adminController.publishCourse);
+adminRoutes.get('/course/fetch', adminAuthMiddleware_1.default, adminController.getAllCourses);
 // Job
 adminRoutes.get('/job/fetch/:userId', adminAuthMiddleware_1.default, adminController.fetchJobs);
 adminRoutes.patch('/job/:id/review', adminAuthMiddleware_1.default, (0, validations_1.reviewJobValidationRules)(), validations_1.validate, adminController.reviewJobPost);

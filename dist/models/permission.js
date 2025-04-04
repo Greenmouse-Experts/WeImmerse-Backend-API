@@ -1,7 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.initModel = void 0;
-// models/permission.ts
 const sequelize_1 = require("sequelize");
 class Permission extends sequelize_1.Model {
     static associate(models) {
@@ -28,10 +27,10 @@ const initModel = (sequelize) => {
         },
     }, {
         sequelize,
-        modelName: "Permission",
+        modelName: 'Permission',
         timestamps: true,
         paranoid: false,
-        tableName: "permissions"
+        tableName: 'permissions',
     });
 };
 exports.initModel = initModel;

@@ -25,17 +25,28 @@ import path from 'path';
 import fs from 'fs';
 import LessonAssignment from '../models/lessonassignment';
 import { formatCourse } from '../utils/helpers';
+import Category, { CategoryTypes } from '../models/category';
+import categoryService from '../services/category.service';
 
 export const courseCategories = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   try {
-    // Create courseCategory
-    const courseCategory = await CourseCategory.findAll();
+    const includeInactive = req.query.includeInactive === 'true';
+    const type = CategoryTypes.COURSE;
+
+    const { children = 0 } = req.query as any;
+
+    const courseCategories = await categoryService.getAllCategories(
+      includeInactive,
+      type,
+      children
+    );
 
     res.status(200).json({
-      data: courseCategory, // You can populate related data as needed
+      status: true,
+      data: courseCategories, // You can populate related data as needed
     });
   } catch (error: any) {
     logger.error(error);
@@ -1451,10 +1462,20 @@ export const assetCategories = async (
   res: Response
 ): Promise<void> => {
   try {
-    const assetCategory = await AssetCategory.findAll();
+    const includeInactive = req.query.includeInactive === 'true';
+    const type = CategoryTypes.ASSET;
+
+    const { children = 0 } = req.query as any;
+
+    const assetCategories = await categoryService.getAllCategories(
+      includeInactive,
+      type,
+      children
+    );
 
     res.status(200).json({
-      data: assetCategory, // You can populate related data as needed
+      status: true,
+      data: assetCategories, // You can populate related data as needed
     });
   } catch (error: any) {
     logger.error(error);

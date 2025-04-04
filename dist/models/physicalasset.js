@@ -6,17 +6,17 @@ const sequelize_1 = require("sequelize");
 class PhysicalAsset extends sequelize_1.Model {
     static associate(models) {
         // Define associations here if needed
-        this.belongsTo(models.AssetCategory, {
-            as: "assetCategory",
-            foreignKey: "categoryId",
+        this.belongsTo(models.Category, {
+            as: 'assetCategory',
+            foreignKey: 'categoryId',
         });
         this.belongsTo(models.User, {
-            as: "user",
-            foreignKey: "creatorId",
+            as: 'user',
+            foreignKey: 'creatorId',
         });
         this.belongsTo(models.Admin, {
-            as: "admin",
-            foreignKey: "creatorId",
+            as: 'admin',
+            foreignKey: 'creatorId',
         });
     }
 }
@@ -36,7 +36,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'asset_categories', // Ensure the related table is correct
+                model: 'categories', // Ensure the related table is correct
                 key: 'id',
             },
             onDelete: 'CASCADE',
@@ -80,7 +80,7 @@ const initModel = (sequelize) => {
         },
         adminNote: {
             type: sequelize_1.DataTypes.TEXT,
-            allowNull: true
+            allowNull: true,
         },
     }, {
         sequelize,

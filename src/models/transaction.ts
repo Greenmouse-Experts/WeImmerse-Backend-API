@@ -1,15 +1,44 @@
 // models/transaction.ts
 import { Model, DataTypes, Sequelize } from 'sequelize';
 
+export enum PaymentType {
+  SUBSCRIPTION = 'subscription',
+  DIGITAL_ASSET = 'digital_asset',
+  PHYSICAL_ASSET = 'physical_asset',
+  COURSE = 'course',
+}
+
+export enum ProductType {
+  SUBSCRIPTION = 'subscription',
+  DIGITAL_ASSET = 'digital_asset',
+  PHYSICAL_ASSET = 'physical_asset',
+  COURSE = 'course',
+}
+
+export enum PaymentStatus {
+  PENDING = 'pending',
+  COMPLETED = 'success',
+  FAILED = 'failed',
+  REFUNDED = 'refunded',
+}
+
+export enum PaymentMethod {
+  CARD = 'card',
+  BANK_TRANSFER = 'bank_transfer',
+  WALLET = 'wallet',
+  PAYSTACK = 'paystack',
+}
+
 class Transaction extends Model {
   public id!: string;
   public subscriptionId!: string | null;
+  public productId!: string | null;
   public userId!: string;
   public amount!: number;
   public currency!: string;
-  public status!: 'pending' | 'success' | 'failed' | 'refunded';
-  public paymentType!: 'subscription' | 'job' | 'asset' | 'course';
-  public paymentMethod!: string;
+  public status!: PaymentStatus;
+  public paymentType!: ProductType;
+  public paymentMethod!: PaymentMethod;
   public paymentGateway!: string;
   public gatewayReference!: string | null;
   public metadata!: any;
@@ -44,6 +73,10 @@ const initModel = (sequelize: Sequelize) => {
           key: 'id',
         },
       },
+      productId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+      },
       userId: {
         type: DataTypes.UUID,
         allowNull: false,
@@ -53,9 +86,9 @@ const initModel = (sequelize: Sequelize) => {
         },
       },
       paymentType: {
-        type: DataTypes.ENUM('subscription', 'job', 'asset', 'course'),
+        type: DataTypes.ENUM(...Object.keys(ProductType)),
         allowNull: false,
-        defaultValue: 'subscription',
+        defaultValue: ProductType.SUBSCRIPTION,
       },
       amount: {
         type: DataTypes.DECIMAL(10, 2),
@@ -67,13 +100,14 @@ const initModel = (sequelize: Sequelize) => {
         defaultValue: 'NGN',
       },
       status: {
-        type: DataTypes.ENUM('pending', 'success', 'failed', 'refunded'),
+        type: DataTypes.ENUM(...Object.keys(PaymentStatus)),
         allowNull: false,
         defaultValue: 'pending',
       },
       paymentMethod: {
-        type: DataTypes.STRING,
+        type: DataTypes.ENUM(...Object.keys(PaymentMethod)),
         allowNull: false,
+        defaultValue: PaymentMethod.PAYSTACK,
       },
       paymentGateway: {
         type: DataTypes.STRING,

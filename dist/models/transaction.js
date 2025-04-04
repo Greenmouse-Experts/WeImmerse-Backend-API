@@ -1,8 +1,36 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = void 0;
+exports.initModel = exports.PaymentMethod = exports.PaymentStatus = exports.ProductType = exports.PaymentType = void 0;
 // models/transaction.ts
 const sequelize_1 = require("sequelize");
+var PaymentType;
+(function (PaymentType) {
+    PaymentType["SUBSCRIPTION"] = "subscription";
+    PaymentType["DIGITAL_ASSET"] = "digital_asset";
+    PaymentType["PHYSICAL_ASSET"] = "physical_asset";
+    PaymentType["COURSE"] = "course";
+})(PaymentType || (exports.PaymentType = PaymentType = {}));
+var ProductType;
+(function (ProductType) {
+    ProductType["SUBSCRIPTION"] = "subscription";
+    ProductType["DIGITAL_ASSET"] = "digital_asset";
+    ProductType["PHYSICAL_ASSET"] = "physical_asset";
+    ProductType["COURSE"] = "course";
+})(ProductType || (exports.ProductType = ProductType = {}));
+var PaymentStatus;
+(function (PaymentStatus) {
+    PaymentStatus["PENDING"] = "pending";
+    PaymentStatus["COMPLETED"] = "success";
+    PaymentStatus["FAILED"] = "failed";
+    PaymentStatus["REFUNDED"] = "refunded";
+})(PaymentStatus || (exports.PaymentStatus = PaymentStatus = {}));
+var PaymentMethod;
+(function (PaymentMethod) {
+    PaymentMethod["CARD"] = "card";
+    PaymentMethod["BANK_TRANSFER"] = "bank_transfer";
+    PaymentMethod["WALLET"] = "wallet";
+    PaymentMethod["PAYSTACK"] = "paystack";
+})(PaymentMethod || (exports.PaymentMethod = PaymentMethod = {}));
 class Transaction extends sequelize_1.Model {
     static associate(models) {
         Transaction.belongsTo(models.Subscription, {
@@ -30,6 +58,10 @@ const initModel = (sequelize) => {
                 key: 'id',
             },
         },
+        productId: {
+            type: sequelize_1.DataTypes.UUID,
+            allowNull: false,
+        },
         userId: {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
@@ -39,9 +71,9 @@ const initModel = (sequelize) => {
             },
         },
         paymentType: {
-            type: sequelize_1.DataTypes.ENUM('subscription', 'job', 'asset', 'course'),
+            type: sequelize_1.DataTypes.ENUM(...Object.keys(ProductType)),
             allowNull: false,
-            defaultValue: 'subscription',
+            defaultValue: ProductType.SUBSCRIPTION,
         },
         amount: {
             type: sequelize_1.DataTypes.DECIMAL(10, 2),
@@ -53,13 +85,14 @@ const initModel = (sequelize) => {
             defaultValue: 'NGN',
         },
         status: {
-            type: sequelize_1.DataTypes.ENUM('pending', 'success', 'failed', 'refunded'),
+            type: sequelize_1.DataTypes.ENUM(...Object.keys(PaymentStatus)),
             allowNull: false,
             defaultValue: 'pending',
         },
         paymentMethod: {
-            type: sequelize_1.DataTypes.STRING,
+            type: sequelize_1.DataTypes.ENUM(...Object.keys(PaymentMethod)),
             allowNull: false,
+            defaultValue: PaymentMethod.PAYSTACK,
         },
         paymentGateway: {
             type: sequelize_1.DataTypes.STRING,

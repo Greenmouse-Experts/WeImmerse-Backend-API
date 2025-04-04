@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -14,6 +47,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PaystackService = void 0;
 const axios_1 = __importDefault(require("axios"));
+const logger_1 = __importDefault(require("../middlewares/logger"));
+const crypto = __importStar(require("crypto"));
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 class PaystackService {
@@ -246,6 +281,41 @@ class PaystackService {
             UK: `${process.env.BASE_URL}/api/payments/uk/callback`,
         };
         return urls[region] || `${process.env.BASE_URL}/api/payments/callback`;
+    }
+    /**
+     * Initialize a refund for a transaction
+     * @param reference - The original transaction reference
+     * @param amount - Amount to refund (in the original currency)
+     * @param reason - Optional reason for the refund
+     */
+    static initiateRefund(reference, amount, reason) {
+        return __awaiter(this, void 0, void 0, function* () {
+            var _a, _b, _c;
+            try {
+                const response = yield axios_1.default.post(`${PAYSTACK_BASE_URL}/refund`, Object.assign({ transaction: reference, amount: amount * 100 }, (reason && { merchant_note: reason })), {
+                    headers: {
+                        Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
+                return response.data;
+            }
+            catch (error) {
+                logger_1.default.error('Paystack refund initialization failed:', {
+                    reference,
+                    amount,
+                    error: ((_a = error.response) === null || _a === void 0 ? void 0 : _a.data) || error.message,
+                });
+                throw new Error(((_c = (_b = error.response) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.message) || 'Failed to initiate refund');
+            }
+        });
+    }
+    static verifyWebhookSignature(body, signature) {
+        const hash = crypto
+            .createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
+            .update(body)
+            .digest('hex');
+        return hash === signature;
     }
 }
 exports.PaystackService = PaystackService;

@@ -27,7 +27,7 @@ class DigitalAsset extends Model {
 
   static associate(models: any) {
     // Define associations here if needed
-    this.belongsTo(models.AssetCategory, {
+    this.belongsTo(models.Category, {
       as: 'assetCategory',
       foreignKey: 'categoryId',
     });
@@ -59,7 +59,7 @@ const initModel = (sequelize: Sequelize) => {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: 'asset_categories', // Ensure the related table is correct
+          model: 'categories', // Ensure the related table is correct
           key: 'id',
         },
         onDelete: 'CASCADE',

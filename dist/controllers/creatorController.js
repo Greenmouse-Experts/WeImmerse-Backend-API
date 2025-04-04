@@ -37,12 +37,17 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const lessonassignment_1 = __importDefault(require("../models/lessonassignment"));
 const helpers_1 = require("../utils/helpers");
+const category_1 = require("../models/category");
+const category_service_1 = __importDefault(require("../services/category.service"));
 const courseCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        // Create courseCategory
-        const courseCategory = yield coursecategory_1.default.findAll();
+        const includeInactive = req.query.includeInactive === 'true';
+        const type = category_1.CategoryTypes.COURSE;
+        const { children = 0 } = req.query;
+        const courseCategories = yield category_service_1.default.getAllCategories(includeInactive, type, children);
         res.status(200).json({
-            data: courseCategory, // You can populate related data as needed
+            status: true,
+            data: courseCategories, // You can populate related data as needed
         });
     }
     catch (error) {
@@ -1190,9 +1195,13 @@ const deleteLessonAssignment = (req, res) => __awaiter(void 0, void 0, void 0, f
 exports.deleteLessonAssignment = deleteLessonAssignment;
 const assetCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const assetCategory = yield assetcategory_1.default.findAll();
+        const includeInactive = req.query.includeInactive === 'true';
+        const type = category_1.CategoryTypes.ASSET;
+        const { children = 0 } = req.query;
+        const assetCategories = yield category_service_1.default.getAllCategories(includeInactive, type, children);
         res.status(200).json({
-            data: assetCategory, // You can populate related data as needed
+            status: true,
+            data: assetCategories, // You can populate related data as needed
         });
     }
     catch (error) {

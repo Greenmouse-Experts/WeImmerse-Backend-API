@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.applyCouponValidationRules = exports.createCouponValidationRules = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
+exports.validate = exports.webhookValidationRules = exports.initiatePurchaseValidationRules = exports.applyCouponValidationRules = exports.createCouponValidationRules = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 const category_1 = require("../models/category");
 // Validation rules for different functionalities
@@ -569,7 +569,8 @@ const verifyPaymentValidationRules = () => {
             .not()
             .isEmpty()
             .withMessage('Payment reference is required')
-            .isString(),
+            .isString()
+            .withMessage('Payment reference must be a string'),
         (0, express_validator_1.check)('subscriptionId')
             .optional()
             .isUUID()
@@ -671,6 +672,75 @@ const applyCouponValidationRules = () => {
     ];
 };
 exports.applyCouponValidationRules = applyCouponValidationRules;
+const initiatePurchaseValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('productType')
+            .not()
+            .isEmpty()
+            .withMessage('Product type is required')
+            .isIn(['digital_asset', 'physical_asset', 'course'])
+            .withMessage('Invalid product type'),
+        (0, express_validator_1.check)('productId')
+            .not()
+            .isEmpty()
+            .withMessage('Product ID is required')
+            .isUUID()
+            .withMessage('Product ID must be a valid UUID'),
+        (0, express_validator_1.check)('paymentMethod')
+            .not()
+            .isEmpty()
+            .withMessage('Payment method is required')
+            .isIn(['card', 'bank_transfer', 'wallet'])
+            .withMessage('Invalid payment method'),
+        (0, express_validator_1.check)('amount')
+            .not()
+            .isEmpty()
+            .withMessage('Amount is required')
+            .isFloat({ min: 0 })
+            .withMessage('Amount must be a positive number'),
+        (0, express_validator_1.check)('currency')
+            .optional()
+            .isString()
+            .withMessage('Currency must be a string')
+            .isLength({ min: 3, max: 3 })
+            .withMessage('Currency must be 3 characters'),
+    ];
+};
+exports.initiatePurchaseValidationRules = initiatePurchaseValidationRules;
+const webhookValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('event')
+            .notEmpty()
+            .withMessage('Event is required')
+            .isString()
+            .withMessage('Event must be a string'),
+        (0, express_validator_1.check)('data')
+            .notEmpty()
+            .withMessage('Data is required')
+            .isObject()
+            .withMessage('Data must be an object'),
+        (0, express_validator_1.check)('data.reference')
+            .notEmpty()
+            .withMessage('Reference is required')
+            .isString()
+            .withMessage('Reference must be a string'),
+        (0, express_validator_1.check)('data.status')
+            .notEmpty()
+            .withMessage('Status is required')
+            .isString()
+            .withMessage('Status must be a string'),
+        (0, express_validator_1.check)('data.amount')
+            .notEmpty()
+            .withMessage('Amount is required')
+            .isNumeric()
+            .withMessage('Amount must be a number'),
+        (0, express_validator_1.check)('data.metadata')
+            .optional()
+            .isObject()
+            .withMessage('Metadata must be an object'),
+    ];
+};
+exports.webhookValidationRules = webhookValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

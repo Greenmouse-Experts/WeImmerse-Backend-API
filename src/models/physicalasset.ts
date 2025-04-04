@@ -14,7 +14,7 @@ class PhysicalAsset extends Model {
   public specificationTags!: string[]; // Array of tags
   public currency!: string;
   public amount!: number;
-  public status!: "published" | "unpublished" | "under_review";
+  public status!: 'published' | 'unpublished' | 'under_review';
   public adminNote?: string;
 
   public readonly createdAt!: Date;
@@ -22,17 +22,17 @@ class PhysicalAsset extends Model {
 
   static associate(models: any) {
     // Define associations here if needed
-    this.belongsTo(models.AssetCategory, {
-      as: "assetCategory",
-      foreignKey: "categoryId",
+    this.belongsTo(models.Category, {
+      as: 'assetCategory',
+      foreignKey: 'categoryId',
     });
     this.belongsTo(models.User, {
-      as: "user",
-      foreignKey: "creatorId",
+      as: 'user',
+      foreignKey: 'creatorId',
     });
     this.belongsTo(models.Admin, {
-      as: "admin",
-      foreignKey: "creatorId",
+      as: 'admin',
+      foreignKey: 'creatorId',
     });
   }
 }
@@ -48,16 +48,16 @@ const initModel = (sequelize: Sequelize) => {
       },
       creatorId: {
         type: DataTypes.UUID,
-        allowNull: false,   
+        allowNull: false,
       },
       categoryId: {
         type: DataTypes.UUID,
         allowNull: false,
         references: {
-          model: 'asset_categories', // Ensure the related table is correct
+          model: 'categories', // Ensure the related table is correct
           key: 'id',
         },
-        onDelete: 'CASCADE', 
+        onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
       },
       assetName: {
@@ -98,7 +98,7 @@ const initModel = (sequelize: Sequelize) => {
       },
       adminNote: {
         type: DataTypes.TEXT,
-        allowNull: true
+        allowNull: true,
       },
     },
     {

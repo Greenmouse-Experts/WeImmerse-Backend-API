@@ -6,7 +6,7 @@ const sequelize_1 = require("sequelize");
 class DigitalAsset extends sequelize_1.Model {
     static associate(models) {
         // Define associations here if needed
-        this.belongsTo(models.AssetCategory, {
+        this.belongsTo(models.Category, {
             as: 'assetCategory',
             foreignKey: 'categoryId',
         });
@@ -36,7 +36,7 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
-                model: 'asset_categories', // Ensure the related table is correct
+                model: 'categories', // Ensure the related table is correct
                 key: 'id',
             },
             onDelete: 'CASCADE',

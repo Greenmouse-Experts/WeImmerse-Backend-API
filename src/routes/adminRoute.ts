@@ -355,6 +355,11 @@ adminRoutes.post(
   adminAuthMiddleware,
   adminController.publishCourse
 );
+adminRoutes.get(
+  '/course/fetch',
+  adminAuthMiddleware,
+  adminController.getAllCourses
+);
 
 // Job
 adminRoutes.get(
