@@ -61,10 +61,11 @@ class PaystackService {
             try {
                 // Convert amount to kobo (smallest currency unit)
                 const amountInKobo = Math.round(amount * 100);
+                const refNo = +reference.split('-')[1];
                 const response = yield axios_1.default.post(`${PAYSTACK_BASE_URL}/transaction/initialize`, {
                     email: userEmail,
                     amount: amountInKobo,
-                    reference,
+                    reference: refNo,
                     currency: currency || 'NGN',
                     metadata,
                     channels: this.getPaymentChannels(process.env.DEFAULT_COUNTRY),
@@ -87,7 +88,7 @@ class PaystackService {
         return __awaiter(this, void 0, void 0, function* () {
             var _a, _b, _c;
             try {
-                const response = yield axios_1.default.get(`${PAYSTACK_BASE_URL}/transaction/verify/${reference}`, {
+                const response = yield axios_1.default.get(`${PAYSTACK_BASE_URL}/transaction/${reference}`, {
                     headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
                 });
                 return response.data;

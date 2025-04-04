@@ -74,12 +74,14 @@ export class PaystackService {
       // Convert amount to kobo (smallest currency unit)
       const amountInKobo = Math.round(amount * 100);
 
+      const refNo = +reference.split('-')[1];
+
       const response = await axios.post(
         `${PAYSTACK_BASE_URL}/transaction/initialize`,
         {
           email: userEmail,
           amount: amountInKobo,
-          reference,
+          reference: refNo,
           currency: currency || 'NGN',
           metadata,
           channels: this.getPaymentChannels(process.env.DEFAULT_COUNTRY!),
@@ -107,7 +109,7 @@ export class PaystackService {
   ): Promise<PaymentVerificationResponse> {
     try {
       const response = await axios.get(
-        `${PAYSTACK_BASE_URL}/transaction/verify/${reference}`,
+        `${PAYSTACK_BASE_URL}/transaction/${reference}`,
         {
           headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
         }
