@@ -108,8 +108,10 @@ export class PaystackService {
     reference: string
   ): Promise<PaymentVerificationResponse> {
     try {
+      const refNo = +reference.split('-')[1];
+
       const response = await axios.get(
-        `${PAYSTACK_BASE_URL}/transaction/${reference}`,
+        `${PAYSTACK_BASE_URL}/transaction/${refNo}`,
         {
           headers: { Authorization: `Bearer ${PAYSTACK_SECRET_KEY}` },
         }
