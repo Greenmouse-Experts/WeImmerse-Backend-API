@@ -5,7 +5,7 @@ module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.addColumn('transactions', 'productId', {
       type: Sequelize.UUID,
-      allowNull: false,
+      allowNull: true,
     });
 
     // Remove paymentMethod column

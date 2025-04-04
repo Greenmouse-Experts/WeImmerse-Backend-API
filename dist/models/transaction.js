@@ -60,7 +60,7 @@ const initModel = (sequelize) => {
         },
         productId: {
             type: sequelize_1.DataTypes.UUID,
-            allowNull: false,
+            allowNull: true,
         },
         userId: {
             type: sequelize_1.DataTypes.UUID,
