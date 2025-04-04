@@ -16,13 +16,13 @@ exports.viewJob = exports.fetchJobs = exports.viewPhysicalAsset = exports.fetchP
 const sequelize_1 = require("sequelize");
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const logger_1 = __importDefault(require("../middlewares/logger"));
-const assetcategory_1 = __importDefault(require("../models/assetcategory"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const job_1 = __importDefault(require("../models/job"));
 const helpers_1 = require("../utils/helpers");
 const user_1 = __importDefault(require("../models/user"));
 const admin_1 = __importDefault(require("../models/admin"));
 const role_1 = __importDefault(require("../models/role"));
+const category_1 = __importDefault(require("../models/category"));
 const fetchDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { assetName, pricingType } = req.query; // Extract search parameters
@@ -41,36 +41,36 @@ const fetchDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, funct
             where: searchConditions,
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related AssetCategory model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
                     model: user_1.default,
-                    as: "user",
-                    attributes: ["id", "accountType", "name", "email"],
+                    as: 'user',
+                    attributes: ['id', 'accountType', 'name', 'email'],
                 },
                 {
                     model: admin_1.default,
-                    as: "admin",
-                    attributes: ["id", "name", "email"],
+                    as: 'admin',
+                    attributes: ['id', 'name', 'email'],
                     include: [
                         {
                             model: role_1.default, // Assuming you've imported the Role model
-                            as: "role", // Make sure this alias matches the one you used in the association
+                            as: 'role', // Make sure this alias matches the one you used in the association
                         },
                     ],
-                }
+                },
             ],
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: assets });
     }
     catch (error) {
-        logger_1.default.error("Error fetching digital assets:", error);
+        logger_1.default.error('Error fetching digital assets:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch Digital Assets" });
+            .json({ error: error.message || 'Failed to fetch Digital Assets' });
     }
 });
 exports.fetchDigitalAssets = fetchDigitalAssets;
@@ -82,36 +82,36 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related AssetCategory model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
                     model: user_1.default,
-                    as: "user",
-                    attributes: ["id", "accountType", "name", "email"],
+                    as: 'user',
+                    attributes: ['id', 'accountType', 'name', 'email'],
                 },
                 {
                     model: admin_1.default,
-                    as: "admin",
-                    attributes: ["id", "name", "email"],
+                    as: 'admin',
+                    attributes: ['id', 'name', 'email'],
                     include: [
                         {
                             model: role_1.default, // Assuming you've imported the Role model
-                            as: "role", // Make sure this alias matches the one you used in the association
+                            as: 'role', // Make sure this alias matches the one you used in the association
                         },
                     ],
-                }
+                },
             ],
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: asset });
     }
     catch (error) {
-        logger_1.default.error("Error fetching digital asset:", error);
+        logger_1.default.error('Error fetching digital asset:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch Digital Asset" });
+            .json({ error: error.message || 'Failed to fetch Digital Asset' });
     }
 });
 exports.viewDigitalAsset = viewDigitalAsset;
@@ -130,36 +130,36 @@ const fetchPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, func
             where: searchConditions,
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related AssetCategory model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
                     model: user_1.default,
-                    as: "user",
-                    attributes: ["id", "accountType", "name", "email"],
+                    as: 'user',
+                    attributes: ['id', 'accountType', 'name', 'email'],
                 },
                 {
                     model: admin_1.default,
-                    as: "admin",
-                    attributes: ["id", "name", "email"],
+                    as: 'admin',
+                    attributes: ['id', 'name', 'email'],
                     include: [
                         {
                             model: role_1.default, // Assuming you've imported the Role model
-                            as: "role", // Make sure this alias matches the one you used in the association
+                            as: 'role', // Make sure this alias matches the one you used in the association
                         },
                     ],
-                }
+                },
             ],
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: assets });
     }
     catch (error) {
-        logger_1.default.error("Error fetching physical assets:", error);
+        logger_1.default.error('Error fetching physical assets:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch physical Assets" });
+            .json({ error: error.message || 'Failed to fetch physical Assets' });
     }
 });
 exports.fetchPhysicalAssets = fetchPhysicalAssets;
@@ -171,36 +171,36 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related AssetCategory model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
                 {
                     model: user_1.default,
-                    as: "user",
-                    attributes: ["id", "accountType", "name", "email"],
+                    as: 'user',
+                    attributes: ['id', 'accountType', 'name', 'email'],
                 },
                 {
                     model: admin_1.default,
-                    as: "admin",
-                    attributes: ["id", "name", "email"],
+                    as: 'admin',
+                    attributes: ['id', 'name', 'email'],
                     include: [
                         {
                             model: role_1.default, // Assuming you've imported the Role model
-                            as: "role", // Make sure this alias matches the one you used in the association
+                            as: 'role', // Make sure this alias matches the one you used in the association
                         },
                     ],
-                }
+                },
             ],
-            order: [["createdAt", "DESC"]], // Sort by creation date descending
+            order: [['createdAt', 'DESC']], // Sort by creation date descending
         });
         res.status(200).json({ data: asset });
     }
     catch (error) {
-        logger_1.default.error("Error fetching physical asset:", error);
+        logger_1.default.error('Error fetching physical asset:', error);
         res
             .status(500)
-            .json({ error: error.message || "Failed to fetch physical asset" });
+            .json({ error: error.message || 'Failed to fetch physical asset' });
     }
 });
 exports.viewPhysicalAsset = viewPhysicalAsset;
