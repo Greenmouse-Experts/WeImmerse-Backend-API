@@ -71,7 +71,7 @@ export const courseCreate = async (
 
   try {
     // Category Check
-    const category = CourseCategory.findByPk(categoryId, { transaction });
+    const category = Category.findByPk(categoryId, { transaction });
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',
@@ -147,7 +147,7 @@ export const courseBasic = async (
     currency,
   } = req.body;
 
-  const category = CourseCategory.findByPk(categoryId);
+  const category = Category.findByPk(categoryId);
   if (!category) {
     res.status(404).json({
       message: 'Category not found in our database.',
