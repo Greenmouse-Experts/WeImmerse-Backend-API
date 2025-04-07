@@ -91,11 +91,11 @@ export const getPurchaseHistory = async (req: Request, res: Response) => {
 
 export const getPurchaseDetails = async (req: Request, res: Response) => {
   try {
-    const { transactionId } = req.params;
+    const { paymentId } = req.params;
     const userId = (req.user as any).id;
 
     const transaction = await TransactionService.getPurchaseDetails(
-      transactionId,
+      paymentId,
       userId
     );
 

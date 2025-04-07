@@ -49,6 +49,7 @@ exports.PaystackService = void 0;
 const axios_1 = __importDefault(require("axios"));
 const logger_1 = __importDefault(require("../middlewares/logger"));
 const crypto = __importStar(require("crypto"));
+const helpers_1 = require("../utils/helpers");
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 class PaystackService {
@@ -65,7 +66,7 @@ class PaystackService {
                     email: userEmail,
                     amount: amountInKobo,
                     reference,
-                    currency: currency || 'NGN',
+                    currency: currency ? (0, helpers_1.CurrencySymbol)(currency) : 'NGN',
                     metadata,
                     channels: this.getPaymentChannels(process.env.DEFAULT_COUNTRY),
                     callback_url: this.getCallbackUrl(process.env.DEFAULT_COUNTRY),

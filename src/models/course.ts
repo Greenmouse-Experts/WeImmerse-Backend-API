@@ -211,6 +211,7 @@ const initModel = (sequelize: Sequelize) => {
       currency: {
         type: DataTypes.STRING,
         allowNull: true,
+        defaultValue: 'NGN',
       },
       price: {
         type: DataTypes.DECIMAL(10, 2),

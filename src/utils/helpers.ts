@@ -305,6 +305,15 @@ enum AccountVettingStatus {
   DISAPPROVED = 'disapproved',
 }
 
+const CurrencySymbol = (currency: string) => {
+  switch (currency) {
+    case '₦':
+      return 'NGN';
+    default:
+      return 'NGN';
+  }
+};
+
 // Export functions
 export {
   generateOTP,
@@ -321,4 +330,5 @@ export {
   uploadToS3,
   formatMoney,
   AccountVettingStatus,
+  CurrencySymbol,
 };

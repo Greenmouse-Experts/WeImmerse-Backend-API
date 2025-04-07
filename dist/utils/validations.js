@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.validate = exports.webhookValidationRules = exports.initiatePurchaseValidationRules = exports.applyCouponValidationRules = exports.createCouponValidationRules = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 const category_1 = require("../models/category");
+const transaction_1 = require("../models/transaction");
 // Validation rules for different functionalities
 // User registration validation rules
 const userRegistrationValidationRules = () => {
@@ -690,7 +691,7 @@ const initiatePurchaseValidationRules = () => {
             .not()
             .isEmpty()
             .withMessage('Payment method is required')
-            .isIn(['card', 'bank_transfer', 'wallet'])
+            .isIn(Object.values(transaction_1.PaymentMethod))
             .withMessage('Invalid payment method'),
         (0, express_validator_1.check)('amount')
             .not()
@@ -702,7 +703,7 @@ const initiatePurchaseValidationRules = () => {
             .optional()
             .isString()
             .withMessage('Currency must be a string')
-            .isLength({ min: 3, max: 3 })
+            .isLength({ min: 1, max: 3 })
             .withMessage('Currency must be 3 characters'),
     ];
 };

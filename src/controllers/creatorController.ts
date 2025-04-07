@@ -280,6 +280,7 @@ export const getCourses = async (
       include: [
         { model: User, as: 'creator' }, // Adjust alias to match your associations
         { model: Module, as: 'modules' }, // Adjust alias to match your associations
+        { model: Category, as: 'courseCategory' }, // Adjust alias to match your associations
       ],
       order: [['createdAt', 'DESC']],
       limit,

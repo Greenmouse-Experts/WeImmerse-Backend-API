@@ -87,9 +87,9 @@ const getPurchaseHistory = (req, res) => __awaiter(void 0, void 0, void 0, funct
 exports.getPurchaseHistory = getPurchaseHistory;
 const getPurchaseDetails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { transactionId } = req.params;
+        const { paymentId } = req.params;
         const userId = req.user.id;
-        const transaction = yield transaction_service_1.default.getPurchaseDetails(transactionId, userId);
+        const transaction = yield transaction_service_1.default.getPurchaseDetails(paymentId, userId);
         res.status(200).json({
             status: true,
             message: 'Purchase details retrieved successfully',

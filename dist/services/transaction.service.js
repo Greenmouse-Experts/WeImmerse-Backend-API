@@ -49,7 +49,7 @@ const uuid_1 = require("uuid");
 const transaction_1 = __importStar(require("../models/transaction"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
-const course_1 = __importDefault(require("../models/course"));
+const course_1 = __importStar(require("../models/course"));
 const user_1 = __importDefault(require("../models/user"));
 const userdigitalasset_1 = __importDefault(require("../models/userdigitalasset"));
 const physicalassetorder_1 = __importDefault(require("../models/physicalassetorder"));
@@ -128,6 +128,9 @@ class TransactionService {
             try {
                 // Verify with payment processor
                 const verification = yield paystack_service_1.PaystackService.verifyPayment(reference);
+                if (verification.data.status === 'abandoned') {
+                    throw new ApiError_1.BadRequestError('Purchase has not been paid for yet!');
+                }
                 // Update transaction status based on verification
                 let newStatus = transaction_2.PaymentStatus.FAILED;
                 if (verification.data.status === 'success') {
@@ -309,7 +312,7 @@ class TransactionService {
                     break;
                 case 'course':
                     product = yield course_1.default.findOne({
-                        where: { id: productId, status: 'live', published: true },
+                        where: { id: productId, status: course_1.CourseStatus.LIVE, published: true },
                         include: [{ association: 'creator' }],
                     });
                     if (!product)

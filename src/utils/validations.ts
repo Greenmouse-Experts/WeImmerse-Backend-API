@@ -1,6 +1,7 @@
 import { check, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 import { CategoryTypes } from '../models/category';
+import { PaymentMethod } from '../models/transaction';
 
 // Validation rules for different functionalities
 
@@ -751,7 +752,7 @@ export const initiatePurchaseValidationRules = () => {
       .not()
       .isEmpty()
       .withMessage('Payment method is required')
-      .isIn(['card', 'bank_transfer', 'wallet'])
+      .isIn(Object.values(PaymentMethod))
       .withMessage('Invalid payment method'),
     check('amount')
       .not()
@@ -763,7 +764,7 @@ export const initiatePurchaseValidationRules = () => {
       .optional()
       .isString()
       .withMessage('Currency must be a string')
-      .isLength({ min: 3, max: 3 })
+      .isLength({ min: 1, max: 3 })
       .withMessage('Currency must be 3 characters'),
   ];
 };

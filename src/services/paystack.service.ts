@@ -3,6 +3,7 @@ import Transaction from '../models/transaction';
 import Subscription from '../models/subscription';
 import logger from '../middlewares/logger';
 import * as crypto from 'crypto';
+import { CurrencySymbol } from '../utils/helpers';
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
@@ -80,7 +81,7 @@ export class PaystackService {
           email: userEmail,
           amount: amountInKobo,
           reference,
-          currency: currency || 'NGN',
+          currency: currency ? CurrencySymbol(currency) : 'NGN',
           metadata,
           channels: this.getPaymentChannels(process.env.DEFAULT_COUNTRY!),
           callback_url: this.getCallbackUrl(process.env.DEFAULT_COUNTRY!),

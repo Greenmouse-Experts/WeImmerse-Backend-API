@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AccountVettingStatus = exports.formatMoney = exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.generateOTP = void 0;
+exports.CurrencySymbol = exports.AccountVettingStatus = exports.formatMoney = exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.generateOTP = void 0;
 exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.generateReferralCode = generateReferralCode;
 // utils/helpers.ts
@@ -278,4 +278,13 @@ var AccountVettingStatus;
     AccountVettingStatus["APPROVED"] = "approved";
     AccountVettingStatus["DISAPPROVED"] = "disapproved";
 })(AccountVettingStatus || (exports.AccountVettingStatus = AccountVettingStatus = {}));
+const CurrencySymbol = (currency) => {
+    switch (currency) {
+        case '₦':
+            return 'NGN';
+        default:
+            return 'NGN';
+    }
+};
+exports.CurrencySymbol = CurrencySymbol;
 //# sourceMappingURL=helpers.js.map

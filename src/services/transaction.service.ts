@@ -3,7 +3,7 @@ import { Op } from 'sequelize';
 import Transaction, { ProductType } from '../models/transaction';
 import DigitalAsset from '../models/digitalasset';
 import PhysicalAsset from '../models/physicalasset';
-import Course from '../models/course';
+import Course, { CourseStatus } from '../models/course';
 import User from '../models/user';
 import UserDigitalAsset from '../models/userdigitalasset';
 import PhysicalAssetOrder from '../models/physicalassetorder';
@@ -18,6 +18,7 @@ import {
   NotFoundError,
   ForbiddenError,
   ConflictError,
+  BadRequestError,
 } from '../utils/ApiError';
 import logger from '../middlewares/logger';
 import { sendMail } from './mail.service';
@@ -126,6 +127,10 @@ class TransactionService {
     try {
       // Verify with payment processor
       const verification = await PaystackService.verifyPayment(reference);
+
+      if (verification.data.status === 'abandoned') {
+        throw new BadRequestError('Purchase has not been paid for yet!');
+      }
 
       // Update transaction status based on verification
       let newStatus = PaymentStatus.FAILED;
@@ -343,7 +348,7 @@ class TransactionService {
 
       case 'course':
         product = await Course.findOne({
-          where: { id: productId, status: 'live', published: true },
+          where: { id: productId, status: CourseStatus.LIVE, published: true },
           include: [{ association: 'creator' }],
         });
 

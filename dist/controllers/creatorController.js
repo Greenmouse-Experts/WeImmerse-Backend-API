@@ -259,6 +259,7 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             include: [
                 { model: user_1.default, as: 'creator' }, // Adjust alias to match your associations
                 { model: module_1.default, as: 'modules' }, // Adjust alias to match your associations
+                { model: category_1.default, as: 'courseCategory' }, // Adjust alias to match your associations
             ],
             order: [['createdAt', 'DESC']],
             limit,
