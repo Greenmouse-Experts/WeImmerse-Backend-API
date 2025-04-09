@@ -9,6 +9,7 @@ export enum PaymentType {
 }
 
 export enum ProductType {
+  PRODUCT = 'product',
   SUBSCRIPTION = 'subscription',
   DIGITAL_ASSET = 'digital_asset',
   PHYSICAL_ASSET = 'physical_asset',
@@ -89,7 +90,7 @@ const initModel = (sequelize: Sequelize) => {
       paymentType: {
         type: DataTypes.ENUM(...Object.keys(ProductType)),
         allowNull: false,
-        defaultValue: ProductType.SUBSCRIPTION,
+        defaultValue: ProductType.PRODUCT,
       },
       amount: {
         type: DataTypes.DECIMAL(10, 2),

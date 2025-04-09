@@ -24,13 +24,14 @@ module.exports = {
     // Add paymentMethod column
     await queryInterface.addColumn('transactions', 'paymentType', {
       type: Sequelize.ENUM(
+        'product',
         'subscription',
         'digital_asset',
         'physical_asset',
         'course'
       ),
       allowNull: false,
-      defaultValue: 'subscription',
+      defaultValue: 'product',
     });
   },
 

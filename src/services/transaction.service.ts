@@ -428,7 +428,7 @@ class TransactionService {
     }
 
     // Send purchase confirmation email
-    await this.sendPurchaseConfirmation(transaction);
+    // await this.sendPurchaseConfirmation(transaction);
   }
 
   /**

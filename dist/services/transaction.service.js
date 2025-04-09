@@ -382,7 +382,7 @@ class TransactionService {
                     break;
             }
             // Send purchase confirmation email
-            yield this.sendPurchaseConfirmation(transaction);
+            // await this.sendPurchaseConfirmation(transaction);
         });
     }
     /**

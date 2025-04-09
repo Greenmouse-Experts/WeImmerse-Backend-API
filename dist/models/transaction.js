@@ -12,6 +12,7 @@ var PaymentType;
 })(PaymentType || (exports.PaymentType = PaymentType = {}));
 var ProductType;
 (function (ProductType) {
+    ProductType["PRODUCT"] = "product";
     ProductType["SUBSCRIPTION"] = "subscription";
     ProductType["DIGITAL_ASSET"] = "digital_asset";
     ProductType["PHYSICAL_ASSET"] = "physical_asset";
@@ -74,7 +75,7 @@ const initModel = (sequelize) => {
         paymentType: {
             type: sequelize_1.DataTypes.ENUM(...Object.keys(ProductType)),
             allowNull: false,
-            defaultValue: ProductType.SUBSCRIPTION,
+            defaultValue: ProductType.PRODUCT,
         },
         amount: {
             type: sequelize_1.DataTypes.DECIMAL(10, 2),
