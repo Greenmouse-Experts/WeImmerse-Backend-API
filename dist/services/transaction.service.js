@@ -60,6 +60,7 @@ const ApiError_1 = require("../utils/ApiError");
 const logger_1 = __importDefault(require("../middlewares/logger"));
 const mail_service_1 = require("./mail.service");
 const messages_1 = require("../utils/messages");
+const coupon_service_1 = __importDefault(require("./coupon.service"));
 class TransactionService {
     /**
      * Initiate a new purchase transaction
@@ -67,7 +68,7 @@ class TransactionService {
     static initiatePurchase(_a) {
         return __awaiter(this, arguments, void 0, function* ({ userId, productType, productId, paymentMethod = transaction_2.PaymentMethod.PAYSTACK, amount, currency = 'NGN', shippingAddress, }) {
             // Verify the product exists and is available for purchase
-            const { product, creator } = yield this.verifyProduct(productType, productId, amount, currency, userId);
+            const { product, creator } = yield this.verifyProduct(productType, productId, amount, currency, userId, true);
             // Generate transaction reference
             const reference = `TXN-${(0, uuid_1.v4)()}`;
             // Create transaction record
@@ -264,7 +265,7 @@ class TransactionService {
     /**
      * Verify product availability and pricing
      */
-    static verifyProduct(productType, productId, amount, currency, userId) {
+    static verifyProduct(productType, productId, amount, currency, userId, skipMultiItem) {
         return __awaiter(this, void 0, void 0, function* () {
             let product;
             let creator;
@@ -327,6 +328,10 @@ class TransactionService {
                         throw new ApiError_1.ForbiddenError('This is a free course');
                     }
                     else if (product.price > 0) {
+                        console.log(product.price);
+                        console.log(amount);
+                        console.log(product.currency);
+                        console.log(currency);
                         if (!product.currency)
                             throw new ApiError_1.ForbiddenError('Course not properly configured');
                         if (product.currency !== currency || product.price !== amount) {
@@ -383,47 +388,79 @@ class TransactionService {
     /**
      * Send purchase confirmation email
      */
-    static sendPurchaseConfirmation(transaction) {
-        return __awaiter(this, void 0, void 0, function* () {
-            try {
-                const user = yield user_1.default.findByPk(transaction.userId);
-                if (!user)
-                    return;
-                let productName = '';
-                let productTypeName = '';
-                switch (transaction.paymentType) {
-                    case transaction_1.ProductType.DIGITAL_ASSET:
-                        productTypeName = 'Digital Asset';
-                        const digitalAsset = yield digitalasset_1.default.findByPk(transaction.productId);
-                        productName = (digitalAsset === null || digitalAsset === void 0 ? void 0 : digitalAsset.assetName) || 'Digital Asset';
-                        break;
-                    case transaction_1.ProductType.PHYSICAL_ASSET:
-                        productTypeName = 'Physical Asset';
-                        const physicalAsset = yield physicalasset_1.default.findByPk(transaction.productId);
-                        productName = (physicalAsset === null || physicalAsset === void 0 ? void 0 : physicalAsset.assetName) || 'Physical Asset';
-                        break;
-                    case transaction_1.ProductType.COURSE:
-                        productTypeName = 'Course';
-                        const course = yield course_1.default.findByPk(transaction.productId);
-                        productName = (course === null || course === void 0 ? void 0 : course.title) || 'Course';
-                        break;
-                }
-                const emailContent = messages_1.emailTemplates.sendPurchaseConfirmation({
-                    user,
-                    productName,
-                    productType: productTypeName,
-                    amount: transaction.amount,
-                    currency: transaction.currency,
-                    transactionId: transaction.id,
-                    paymentMethod: transaction.paymentMethod,
-                });
-                yield (0, mail_service_1.sendMail)(user.email, `Purchase Confirmation - ${productName}`, emailContent);
-            }
-            catch (error) {
-                logger_1.default.error('Error sending purchase confirmation email:', error);
-            }
-        });
-    }
+    // private static async sendPurchaseConfirmation(transaction: Transaction) {
+    //   try {
+    //     const user = await User.findByPk(transaction.userId);
+    //     if (!user) return;
+    //     // Get all purchased items from metadata
+    //     const items = transaction.metadata.items || [];
+    //     const coupon = transaction.metadata.coupon;
+    //     const originalAmount =
+    //       transaction.metadata.originalAmount || transaction.amount;
+    //     // Prepare product details for email
+    //     const productDetails = await Promise.all(
+    //       items.map(async (item: any) => {
+    //         let productName = '';
+    //         let productTypeName = '';
+    //         switch (item.productType) {
+    //           case 'digital_asset':
+    //             productTypeName = 'Digital Asset';
+    //             const digitalAsset = await DigitalAsset.findByPk(item.productId);
+    //             productName = digitalAsset?.assetName || 'Digital Asset';
+    //             break;
+    //           case 'physical_asset':
+    //             productTypeName = 'Physical Asset';
+    //             const physicalAsset = await PhysicalAsset.findByPk(
+    //               item.productId
+    //             );
+    //             productName = physicalAsset?.assetName || 'Physical Asset';
+    //             break;
+    //           case 'course':
+    //             productTypeName = 'Course';
+    //             const course = await Course.findByPk(item.productId);
+    //             productName = course?.title || 'Course';
+    //             break;
+    //         }
+    //         return {
+    //           name: productName,
+    //           type: productTypeName,
+    //           quantity: item.quantity || 1,
+    //           price: item.price,
+    //           currency: transaction.currency,
+    //         };
+    //       })
+    //     );
+    //     const emailContent = emailTemplates.sendPurchaseConfirmation({
+    //       user,
+    //       items: productDetails,
+    //       totalAmount: transaction.amount,
+    //       originalAmount,
+    //       currency: transaction.currency,
+    //       transactionId: transaction.id,
+    //       paymentMethod: transaction.paymentMethod,
+    //       coupon: coupon
+    //         ? {
+    //             code: coupon.code,
+    //             discountAmount: coupon.discountAmount,
+    //           }
+    //         : null,
+    //     });
+    //     // await sendMail(
+    //     //   user.email,
+    //     //   `Purchase Confirmation - ${productName}`,
+    //     //   emailContent
+    //     // );
+    //     await sendMail(
+    //       user.email,
+    //       `Purchase Confirmation - ${productDetails.length} Item${
+    //         productDetails.length > 1 ? 's' : ''
+    //       }`,
+    //       emailContent
+    //     );
+    //   } catch (error) {
+    //     logger.error('Error sending purchase confirmation email:', error);
+    //   }
+    // }
     /**
      * Helper to get product name based on type
      */
@@ -506,6 +543,235 @@ class TransactionService {
                         },
                     });
                     break;
+            }
+        });
+    }
+    /**
+     * Initiate a purchase for multiple items with optional coupon
+     */
+    static initiateMultiItemPurchase(_a) {
+        return __awaiter(this, arguments, void 0, function* ({ userId, items, couponCode, paymentMethod = transaction_2.PaymentMethod.PAYSTACK, currency = 'NGN', shippingAddress, }) {
+            // Verify all products and calculate total amount
+            const { products, totalAmount } = yield this.verifyMultipleProducts(items, currency, userId);
+            // Apply coupon if provided
+            let discountAmount = 0;
+            let coupon = null;
+            let couponValidation = null;
+            if (couponCode) {
+                couponValidation = yield coupon_service_1.default.validateAndApplyCoupon(couponCode, userId, null, // For multi-item purchases, we don't check course-specific coupons
+                totalAmount);
+                if (couponValidation.valid && couponValidation.coupon) {
+                    discountAmount = couponValidation.discountAmount || 0;
+                    coupon = couponValidation.coupon;
+                }
+                else {
+                    throw new ApiError_1.ForbiddenError(couponValidation.message || 'Invalid coupon');
+                }
+            }
+            const amountToCharge = totalAmount - discountAmount;
+            // Generate transaction reference
+            const reference = `TXN-${(0, uuid_1.v4)()}`;
+            // Create transaction record
+            const transaction = yield transaction_1.default.create({
+                userId,
+                amount: amountToCharge,
+                originalAmount: totalAmount,
+                discountAmount,
+                currency,
+                paymentMethod,
+                paymentGateway: 'paystack',
+                gatewayReference: reference,
+                status: transaction_2.PaymentStatus.PENDING,
+                metadata: {
+                    items: products.map((p) => ({
+                        productType: p.productType,
+                        productId: p.productId,
+                        price: p.price,
+                        quantity: p.quantity || 1,
+                    })),
+                    coupon: coupon
+                        ? {
+                            code: coupon.code,
+                            discountAmount,
+                            couponId: coupon.id,
+                        }
+                        : null,
+                    shippingAddress,
+                },
+            });
+            try {
+                // Get user email for payment processing
+                const user = yield user_1.default.findByPk(userId);
+                if (!user)
+                    throw new ApiError_1.NotFoundError('User not found');
+                // Initialize payment with payment processor
+                const paymentLink = yield paystack_service_1.PaystackService.initializePayment(reference, amountToCharge, currency, user.email, {
+                    transactionId: transaction.id,
+                    userId,
+                    productType: 'multi_item',
+                    couponId: coupon === null || coupon === void 0 ? void 0 : coupon.id,
+                });
+                return Object.assign(Object.assign({}, transaction.toJSON()), { paymentLink, items: products, coupon: coupon
+                        ? {
+                            code: coupon.code,
+                            discountAmount,
+                        }
+                        : null });
+            }
+            catch (error) {
+                // Update transaction status if initialization fails
+                yield transaction.update({ status: transaction_2.PaymentStatus.FAILED });
+                logger_1.default.error('Payment initialization failed:', error);
+                throw error;
+            }
+        });
+    }
+    /**
+     * Verify multiple products and calculate total amount
+     */
+    static verifyMultipleProducts(items, currency, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const products = [];
+            let totalAmount = 0;
+            for (const item of items) {
+                const { productType, productId, quantity = 1, amount } = item;
+                // Verify each product
+                const { product } = yield this.verifyProduct(productType, productId, amount, // Amount will be calculated separately
+                currency, userId, true // Skip amount validation for multi-item
+                );
+                let price = 0;
+                switch (productType) {
+                    case 'digital_asset':
+                        price =
+                            product.pricingType === 'One-Time-Purchase'
+                                ? product.amount || 0
+                                : 0;
+                        break;
+                    case 'physical_asset':
+                        price = product.amount || 0;
+                        break;
+                    case 'course':
+                        price = product.price || 0;
+                        break;
+                }
+                const itemTotal = price * quantity;
+                totalAmount += itemTotal;
+                products.push(Object.assign(Object.assign({}, item), { price, name: this.getProductName(productType, product), total: itemTotal }));
+            }
+            if (totalAmount <= 0) {
+                throw new ApiError_1.ForbiddenError('Total purchase amount must be greater than zero');
+            }
+            return { products, totalAmount };
+        });
+    }
+    /**
+     * Complete a multi-item purchase
+     */
+    static completeMultiItemPurchase(reference, userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const transaction = yield this.verifyPayment(reference, userId);
+            const { items, coupon } = transaction.metadata;
+            // Record coupon usage if applicable
+            if (coupon === null || coupon === void 0 ? void 0 : coupon.couponId) {
+                yield coupon_service_1.default.applyCoupon(coupon.code, transaction.userId, null, // Not course-specific
+                transaction.metadata.originalAmount, transaction.id);
+            }
+            // Process each item in the order
+            for (const item of items) {
+                switch (item.productType) {
+                    case 'digital_asset':
+                        yield userdigitalasset_1.default.create({
+                            userId: transaction.userId,
+                            assetId: item.productId,
+                            transactionId: transaction.id,
+                            accessGrantedAt: new Date(),
+                            quantity: item.quantity || 1,
+                        });
+                        break;
+                    case 'physical_asset':
+                        yield physicalassetorder_1.default.create({
+                            userId: transaction.userId,
+                            assetId: item.productId,
+                            transactionId: transaction.id,
+                            amount: item.total,
+                            currency: transaction.currency,
+                            shippingAddress: transaction.metadata.shippingAddress || {},
+                            status: 'processing',
+                            quantity: item.quantity || 1,
+                        });
+                        break;
+                    case 'course':
+                        yield courseenrollment_1.default.create({
+                            userId: transaction.userId,
+                            courseId: item.productId,
+                            enrolledAt: new Date(),
+                            transactionId: transaction.id,
+                        });
+                        break;
+                }
+            }
+            // Send purchase confirmation email
+            yield this.sendPurchaseConfirmation(transaction);
+        });
+    }
+    static sendPurchaseConfirmation(transaction) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = yield user_1.default.findByPk(transaction.userId);
+                if (!user)
+                    return;
+                // Get all purchased items from metadata
+                const items = transaction.metadata.items || [];
+                const coupon = transaction.metadata.coupon;
+                const originalAmount = transaction.metadata.originalAmount || transaction.amount;
+                // Prepare product details for email
+                const productDetails = yield Promise.all(items.map((item) => __awaiter(this, void 0, void 0, function* () {
+                    let productName = '';
+                    let productTypeName = '';
+                    switch (item.productType) {
+                        case 'digital_asset':
+                            productTypeName = 'Digital Asset';
+                            const digitalAsset = yield digitalasset_1.default.findByPk(item.productId);
+                            productName = (digitalAsset === null || digitalAsset === void 0 ? void 0 : digitalAsset.assetName) || 'Digital Asset';
+                            break;
+                        case 'physical_asset':
+                            productTypeName = 'Physical Asset';
+                            const physicalAsset = yield physicalasset_1.default.findByPk(item.productId);
+                            productName = (physicalAsset === null || physicalAsset === void 0 ? void 0 : physicalAsset.assetName) || 'Physical Asset';
+                            break;
+                        case 'course':
+                            productTypeName = 'Course';
+                            const course = yield course_1.default.findByPk(item.productId);
+                            productName = (course === null || course === void 0 ? void 0 : course.title) || 'Course';
+                            break;
+                    }
+                    return {
+                        name: productName,
+                        type: productTypeName,
+                        quantity: item.quantity || 1,
+                        price: item.price,
+                        currency: transaction.currency,
+                    };
+                })));
+                const emailContent = yield messages_1.emailTemplates.sendPurchaseConfirmation({
+                    user,
+                    items: productDetails,
+                    totalAmount: transaction.amount,
+                    originalAmount,
+                    currency: transaction.currency,
+                    transactionId: transaction.id,
+                    paymentMethod: transaction.paymentMethod,
+                    coupon: coupon
+                        ? {
+                            code: coupon.code,
+                            discountAmount: coupon.discountAmount,
+                        }
+                        : null,
+                });
+                yield (0, mail_service_1.sendMail)(user.email, `Purchase Confirmation - ${productDetails.length} Item${productDetails.length > 1 ? 's' : ''}`, emailContent);
+            }
+            catch (error) {
+                logger_1.default.error('Error sending purchase confirmation email:', error);
             }
         });
     }

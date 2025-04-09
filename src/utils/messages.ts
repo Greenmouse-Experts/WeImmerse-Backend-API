@@ -12,7 +12,7 @@ import WithdrawalHistory from '../models/withdrawalhistory';
 import WithdrawalRequest, {
   WithdrawalStatus,
 } from '../models/withdrawalrequest';
-import { AccountVettingStatus, formatMoney } from './helpers';
+import { AccountVettingStatus, CurrencySymbol, formatMoney } from './helpers';
 import moment from 'moment';
 
 export const emailTemplates = {
@@ -4559,26 +4559,133 @@ export const emailTemplates = {
     // Implementation would use your email service
   },
 
-  sendPurchaseConfirmation: (data: {
+  //   sendPurchaseConfirmation: (data: {
+  //     user: User;
+  //     productName: string;
+  //     productType: string;
+  //     amount: number;
+  //     currency: string;
+  //     transactionId: string;
+  //     paymentMethod: string;
+  //   }) => {
+  //     const {
+  //       user,
+  //       productName,
+  //       productType,
+  //       amount,
+  //       currency,
+  //       transactionId,
+  //       paymentMethod,
+  //     } = data;
+  //     const logoUrl = process.env.LOGO_URL;
+  //     const dashboardUrl = `${process.env.CLIENT_URL}/dashboard`;
+
+  //     return `
+  //       <!DOCTYPE html>
+  //       <html>
+  //       <head>
+  //         <style>
+  //           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+  //           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+  //           .header { text-align: center; margin-bottom: 30px; }
+  //           .logo { margin-bottom: 20px; }
+  //           .content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; }
+  //           .details { margin: 20px 0; }
+  //           .button {
+  //             display: inline-block;
+  //             padding: 10px 20px;
+  //             background-color: #4CAF50;
+  //             color: white;
+  //             text-decoration: none;
+  //             border-radius: 5px;
+  //             margin: 20px 0;
+  //           }
+  //           .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #777; }
+  //         </style>
+  //       </head>
+  //       <body>
+  //         <div class="container">
+  //           <div class="header">
+  //             <div class="logo">
+  //               <img src="${logoUrl}" alt="Company Logo" width="150">
+  //             </div>
+  //             <h1>Purchase Confirmation</h1>
+  //           </div>
+
+  //           <div class="content">
+  //             <p>Dear ${user.name},</p>
+  //             <p>Thank you for your purchase! Here are the details of your transaction:</p>
+
+  //             <div class="details">
+  //               <h3>Purchase Details:</h3>
+  //               <ul>
+  //                 <li><strong>Product:</strong> ${productName} (${productType})</li>
+  //                 <li><strong>Amount:</strong> ${currency} ${amount.toFixed(
+  //       2
+  //     )}</li>
+  //                 <li><strong>Transaction ID:</strong> ${transactionId}</li>
+  //                 <li><strong>Payment Method:</strong> ${paymentMethod}</li>
+  //                 <li><strong>Date:</strong> ${new Date().toLocaleString()}</li>
+  //               </ul>
+  //             </div>
+
+  //             <p>You can view your purchase in your dashboard:</p>
+  //             <a href="${dashboardUrl}" class="button">Go to Dashboard</a>
+
+  //             <p>If you have any questions about your purchase, please contact our support team.</p>
+  //           </div>
+
+  //           <div class="footer">
+  //             <p>&copy; ${new Date().getFullYear()} ${
+  //       process.env.APP_NAME
+  //     }. All rights reserved.</p>
+  //           </div>
+  //         </div>
+  //       </body>
+  //       </html>
+  //     `;
+  //   },
+  sendPurchaseConfirmation: async (data: {
     user: User;
-    productName: string;
-    productType: string;
-    amount: number;
+    items: Array<{
+      name: string;
+      type: string;
+      quantity: number;
+      price: number;
+      currency: string;
+    }>;
+    totalAmount: number;
+    originalAmount: number;
     currency: string;
     transactionId: string;
     paymentMethod: string;
+    coupon?: {
+      code: string;
+      discountAmount: number;
+    } | null;
   }) => {
     const {
       user,
-      productName,
-      productType,
-      amount,
+      items,
+      totalAmount,
+      originalAmount,
       currency,
       transactionId,
       paymentMethod,
+      coupon,
     } = data;
+
     const logoUrl = process.env.LOGO_URL;
     const dashboardUrl = `${process.env.CLIENT_URL}/dashboard`;
+    const hasDiscount = coupon && originalAmount !== totalAmount;
+
+    // Format currency
+    const formatCurrency = (amount: number) => {
+      return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency ? CurrencySymbol(currency) : 'NGN',
+      }).format(amount);
+    };
 
     return `
       <!DOCTYPE html>
@@ -4591,6 +4698,11 @@ export const emailTemplates = {
           .logo { margin-bottom: 20px; }
           .content { background-color: #f9f9f9; padding: 20px; border-radius: 5px; }
           .details { margin: 20px 0; }
+          .product-list { width: 100%; border-collapse: collapse; margin: 15px 0; }
+          .product-list th, .product-list td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+          .product-list th { background-color: #f2f2f2; }
+          .totals { margin-top: 20px; padding: 15px; background-color: #f5f5f5; border-radius: 5px; }
+          .discount { color: #4CAF50; }
           .button {
             display: inline-block;
             padding: 10px 20px;
@@ -4610,29 +4722,68 @@ export const emailTemplates = {
               <img src="${logoUrl}" alt="Company Logo" width="150">
             </div>
             <h1>Purchase Confirmation</h1>
+            <p>Order #${transactionId}</p>
           </div>
           
           <div class="content">
             <p>Dear ${user.name},</p>
-            <p>Thank you for your purchase! Here are the details of your transaction:</p>
+            <p>Thank you for your purchase! Here are the details of your order:</p>
             
             <div class="details">
-              <h3>Purchase Details:</h3>
-              <ul>
-                <li><strong>Product:</strong> ${productName} (${productType})</li>
-                <li><strong>Amount:</strong> ${currency} ${amount.toFixed(
-      2
-    )}</li>
-                <li><strong>Transaction ID:</strong> ${transactionId}</li>
-                <li><strong>Payment Method:</strong> ${paymentMethod}</li>
-                <li><strong>Date:</strong> ${new Date().toLocaleString()}</li>
-              </ul>
+              <h3>Order Summary:</h3>
+              <table class="product-list">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Type</th>
+                    <th>Qty</th>
+                    <th>Price</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${items
+                    .map(
+                      (item) => `
+                    <tr>
+                      <td>${item.name}</td>
+                      <td>${item.type}</td>
+                      <td>${item.quantity}</td>
+                      <td>${formatCurrency(item.price)}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+  
+              <div class="totals">
+                ${
+                  hasDiscount
+                    ? `
+                  <p><strong>Subtotal:</strong> ${formatCurrency(
+                    originalAmount
+                  )}</p>
+                  <p class="discount">
+                    <strong>Discount (${
+                      coupon?.code
+                    }):</strong> -${formatCurrency(coupon?.discountAmount || 0)}
+                  </p>
+                `
+                    : ''
+                }
+                <p><strong>Total Amount:</strong> ${formatCurrency(
+                  totalAmount
+                )}</p>
+              </div>
+  
+              <p><strong>Payment Method:</strong> ${paymentMethod}</p>
+              <p><strong>Order Date:</strong> ${new Date().toLocaleString()}</p>
             </div>
             
-            <p>You can view your purchase in your dashboard:</p>
+            <p>You can view your order details in your dashboard:</p>
             <a href="${dashboardUrl}" class="button">Go to Dashboard</a>
             
-            <p>If you have any questions about your purchase, please contact our support team.</p>
+            <p>If you have any questions about your order, please contact our support team.</p>
           </div>
           
           <div class="footer">

@@ -5,6 +5,7 @@ import {
   verifyPaymentValidationRules,
   webhookValidationRules,
   validate,
+  initiateMultiPurchaseValidationRules,
 } from '../utils/validations';
 import authMiddleware from '../middlewares/authMiddleware';
 import { webhookAuth } from '../middlewares/webhookAuth';
@@ -26,6 +27,23 @@ purchaseRoutes.post(
   verifyPaymentValidationRules(),
   validate,
   purchaseController.verifyPayment
+);
+
+// Purchase routes
+purchaseRoutes.post(
+  '/initiate-trx',
+  authMiddleware,
+  initiateMultiPurchaseValidationRules(),
+  validate,
+  purchaseController.initiatePurchaseV2
+);
+
+purchaseRoutes.post(
+  '/verify-trx',
+  authMiddleware,
+  verifyPaymentValidationRules(),
+  validate,
+  purchaseController.verifyPaymentV2
 );
 
 purchaseRoutes.get(

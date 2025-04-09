@@ -1,7 +1,7 @@
 import { check, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 import { CategoryTypes } from '../models/category';
-import { PaymentMethod } from '../models/transaction';
+import { PaymentMethod, ProductType } from '../models/transaction';
 
 // Validation rules for different functionalities
 
@@ -740,7 +740,7 @@ export const initiatePurchaseValidationRules = () => {
       .not()
       .isEmpty()
       .withMessage('Product type is required')
-      .isIn(['digital_asset', 'physical_asset', 'course'])
+      .isIn(Object.values(ProductType))
       .withMessage('Invalid product type'),
     check('productId')
       .not()
@@ -800,6 +800,47 @@ export const webhookValidationRules = () => {
       .optional()
       .isObject()
       .withMessage('Metadata must be an object'),
+  ];
+};
+
+export const initiateMultiPurchaseValidationRules = () => {
+  return [
+    check('items')
+      .isArray({ min: 1 })
+      .withMessage('At least one item is required'),
+    check('items.*.productType')
+      .isIn(Object.values(ProductType))
+      .withMessage('Invalid product type!'),
+    check('items.*.productId')
+      .isUUID()
+      .withMessage('Product ID must be a valid UUID'),
+    check('items.*.amount')
+      .not()
+      .isEmpty()
+      .withMessage('Amount is required')
+      .isFloat({ min: 0 })
+      .withMessage('Amount must be a positive number'),
+    check('items.*.quantity')
+      .optional()
+      .isInt({ min: 1 })
+      .withMessage('Quantity must be at least 1'),
+    check('couponCode')
+      .optional()
+      .isString()
+      .withMessage('Coupon code must be a string'),
+    check('paymentMethod')
+      .isIn(Object.values(PaymentMethod))
+      .withMessage('Invalid payment method'),
+    check('shippingAddress')
+      .if((value, { req }) =>
+        req.body.items.some(
+          (i: any) => i.productType === ProductType.DIGITAL_ASSET
+        )
+      )
+      .notEmpty()
+      .withMessage('Shipping address is required for physical assets')
+      .isObject()
+      .withMessage('Shipping address must be an object'),
   ];
 };
 

@@ -45,6 +45,9 @@ const purchaseRoutes = (0, express_1.Router)();
 // Purchase routes
 purchaseRoutes.post('/initiate', authMiddleware_1.default, (0, validations_1.initiatePurchaseValidationRules)(), validations_1.validate, purchaseController.initiatePurchase);
 purchaseRoutes.post('/verify', authMiddleware_1.default, (0, validations_1.verifyPaymentValidationRules)(), validations_1.validate, purchaseController.verifyPayment);
+// Purchase routes
+purchaseRoutes.post('/initiate-trx', authMiddleware_1.default, (0, validations_1.initiateMultiPurchaseValidationRules)(), validations_1.validate, purchaseController.initiatePurchaseV2);
+purchaseRoutes.post('/verify-trx', authMiddleware_1.default, (0, validations_1.verifyPaymentValidationRules)(), validations_1.validate, purchaseController.verifyPaymentV2);
 purchaseRoutes.get('/history', authMiddleware_1.default, purchaseController.getPurchaseHistory);
 purchaseRoutes.get('/details/:paymentId', authMiddleware_1.default, purchaseController.getPurchaseDetails);
 // Webhook route (no auth needed)

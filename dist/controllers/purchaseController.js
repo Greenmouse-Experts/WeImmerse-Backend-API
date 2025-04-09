@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.paymentWebhook = exports.getPurchaseDetails = exports.getPurchaseHistory = exports.verifyPayment = exports.initiatePurchase = void 0;
+exports.paymentWebhook = exports.getPurchaseDetails = exports.getPurchaseHistory = exports.verifyPaymentV2 = exports.initiatePurchaseV2 = exports.verifyPayment = exports.initiatePurchase = void 0;
 const transaction_service_1 = __importDefault(require("../services/transaction.service"));
 const logger_1 = __importDefault(require("../middlewares/logger"));
 const ApiError_1 = require("../utils/ApiError");
@@ -65,6 +65,62 @@ const verifyPayment = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.verifyPayment = verifyPayment;
+const initiatePurchaseV2 = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { productType, productId, paymentMethod, amount, currency, shippingAddress, items, couponCode, } = req.body;
+        const userId = req.user.id;
+        // const transaction = await TransactionService.initiatePurchase({
+        //   userId,
+        //   productType,
+        //   productId,
+        //   paymentMethod,
+        //   amount,
+        //   currency,
+        //   shippingAddress,
+        // });
+        const transaction = yield transaction_service_1.default.initiateMultiItemPurchase({
+            userId,
+            items,
+            couponCode,
+            paymentMethod,
+            currency,
+            shippingAddress,
+        });
+        res.status(201).json({
+            status: true,
+            message: 'Purchase initiated successfully',
+            data: transaction,
+        });
+    }
+    catch (error) {
+        logger_1.default.error('Error initiating purchase:', error);
+        res.status(error.statusCode || 500).json({
+            status: false,
+            message: error.message || 'Internal server error',
+        });
+    }
+});
+exports.initiatePurchaseV2 = initiatePurchaseV2;
+const verifyPaymentV2 = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { reference } = req.body;
+        const userId = req.user.id;
+        const transaction = yield transaction_service_1.default.completeMultiItemPurchase(reference, userId);
+        res.status(200).json({
+            status: true,
+            message: 'Payment verified successfully',
+            data: transaction,
+        });
+    }
+    catch (error) {
+        logger_1.default.error('Error verifying payment:', error);
+        res.status(error.statusCode || 500).json({
+            status: false,
+            message: error.message || 'Internal server error',
+        });
+    }
+});
+exports.verifyPaymentV2 = verifyPaymentV2;
 const getPurchaseHistory = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const userId = req.user.id;

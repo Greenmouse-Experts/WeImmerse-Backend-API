@@ -3,6 +3,7 @@ import TransactionService from '../services/transaction.service';
 import logger from '../middlewares/logger';
 import { ForbiddenError } from '../utils/ApiError';
 import { PaystackService } from '../services/paystack.service';
+import Transaction from '../models/transaction';
 
 export const initiatePurchase = async (req: Request, res: Response) => {
   try {
@@ -46,6 +47,76 @@ export const verifyPayment = async (req: Request, res: Response) => {
     const userId = (req.user as any).id;
 
     const transaction = await TransactionService.verifyPayment(
+      reference,
+      userId
+    );
+
+    res.status(200).json({
+      status: true,
+      message: 'Payment verified successfully',
+      data: transaction,
+    });
+  } catch (error: any) {
+    logger.error('Error verifying payment:', error);
+    res.status(error.statusCode || 500).json({
+      status: false,
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+export const initiatePurchaseV2 = async (req: Request, res: Response) => {
+  try {
+    const {
+      productType,
+      productId,
+      paymentMethod,
+      amount,
+      currency,
+      shippingAddress,
+      items,
+      couponCode,
+    } = req.body;
+    const userId = (req.user as any).id;
+
+    // const transaction = await TransactionService.initiatePurchase({
+    //   userId,
+    //   productType,
+    //   productId,
+    //   paymentMethod,
+    //   amount,
+    //   currency,
+    //   shippingAddress,
+    // });
+    const transaction = await TransactionService.initiateMultiItemPurchase({
+      userId,
+      items,
+      couponCode,
+      paymentMethod,
+      currency,
+      shippingAddress,
+    });
+
+    res.status(201).json({
+      status: true,
+      message: 'Purchase initiated successfully',
+      data: transaction,
+    });
+  } catch (error: any) {
+    logger.error('Error initiating purchase:', error);
+    res.status(error.statusCode || 500).json({
+      status: false,
+      message: error.message || 'Internal server error',
+    });
+  }
+};
+
+export const verifyPaymentV2 = async (req: Request, res: Response) => {
+  try {
+    const { reference } = req.body;
+    const userId = (req.user as any).id;
+
+    const transaction = await TransactionService.completeMultiItemPurchase(
       reference,
       userId
     );

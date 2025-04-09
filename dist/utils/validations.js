@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.webhookValidationRules = exports.initiatePurchaseValidationRules = exports.applyCouponValidationRules = exports.createCouponValidationRules = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
+exports.validate = exports.initiateMultiPurchaseValidationRules = exports.webhookValidationRules = exports.initiatePurchaseValidationRules = exports.applyCouponValidationRules = exports.createCouponValidationRules = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 const category_1 = require("../models/category");
 const transaction_1 = require("../models/transaction");
@@ -679,7 +679,7 @@ const initiatePurchaseValidationRules = () => {
             .not()
             .isEmpty()
             .withMessage('Product type is required')
-            .isIn(['digital_asset', 'physical_asset', 'course'])
+            .isIn(Object.values(transaction_1.ProductType))
             .withMessage('Invalid product type'),
         (0, express_validator_1.check)('productId')
             .not()
@@ -742,6 +742,43 @@ const webhookValidationRules = () => {
     ];
 };
 exports.webhookValidationRules = webhookValidationRules;
+const initiateMultiPurchaseValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('items')
+            .isArray({ min: 1 })
+            .withMessage('At least one item is required'),
+        (0, express_validator_1.check)('items.*.productType')
+            .isIn(Object.values(transaction_1.ProductType))
+            .withMessage('Invalid product type!'),
+        (0, express_validator_1.check)('items.*.productId')
+            .isUUID()
+            .withMessage('Product ID must be a valid UUID'),
+        (0, express_validator_1.check)('items.*.amount')
+            .not()
+            .isEmpty()
+            .withMessage('Amount is required')
+            .isFloat({ min: 0 })
+            .withMessage('Amount must be a positive number'),
+        (0, express_validator_1.check)('items.*.quantity')
+            .optional()
+            .isInt({ min: 1 })
+            .withMessage('Quantity must be at least 1'),
+        (0, express_validator_1.check)('couponCode')
+            .optional()
+            .isString()
+            .withMessage('Coupon code must be a string'),
+        (0, express_validator_1.check)('paymentMethod')
+            .isIn(Object.values(transaction_1.PaymentMethod))
+            .withMessage('Invalid payment method'),
+        (0, express_validator_1.check)('shippingAddress')
+            .if((value, { req }) => req.body.items.some((i) => i.productType === transaction_1.ProductType.DIGITAL_ASSET))
+            .notEmpty()
+            .withMessage('Shipping address is required for physical assets')
+            .isObject()
+            .withMessage('Shipping address must be an object'),
+    ];
+};
+exports.initiateMultiPurchaseValidationRules = initiateMultiPurchaseValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);
