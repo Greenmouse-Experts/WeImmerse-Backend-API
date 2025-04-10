@@ -89,6 +89,13 @@ creatorRoutes.get(
   authorizeCreator,
   creatorController.getCourseModules
 );
+// Module
+creatorRoutes.get(
+  '/course/module/:moduleId',
+  authMiddleware,
+  authorizeCreator,
+  creatorController.getCourseModuleDetails
+);
 creatorRoutes.post(
   '/course/module/create',
   authMiddleware,

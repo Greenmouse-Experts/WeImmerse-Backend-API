@@ -506,6 +506,42 @@ export const getCourseModules = async (
   }
 };
 
+export const getCourseModuleDetails = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  const courseId = req.query.courseId as string;
+  const { moduleId } = req.params;
+
+  try {
+    const course = await Course.findByPk(courseId);
+
+    if (!course) {
+      res.status(404).json({
+        message: 'Course not found in our database.',
+      });
+      return;
+    }
+
+    const modules = await Module.findAll({
+      where: { id: moduleId },
+      include: [
+        { model: Lesson, as: 'lessons' },
+        { model: LessonQuiz, as: 'quizzes' },
+      ],
+    });
+    res.status(200).json({
+      message: 'Course module details retrieved successfully.',
+      data: modules,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message:
+        error.message || 'An error occurred while processing your request.',
+    });
+  }
+};
+
 export const createCourseModule = async (
   req: Request,
   res: Response

@@ -45,8 +45,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModules = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
-exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = void 0;
+exports.deleteJob = exports.closeJob = exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModuleDetails = exports.getCourseModules = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = void 0;
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
 const logger_1 = __importDefault(require("../middlewares/logger"));
@@ -453,6 +453,36 @@ const getCourseModules = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getCourseModules = getCourseModules;
+const getCourseModuleDetails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const courseId = req.query.courseId;
+    const { moduleId } = req.params;
+    try {
+        const course = yield course_1.default.findByPk(courseId);
+        if (!course) {
+            res.status(404).json({
+                message: 'Course not found in our database.',
+            });
+            return;
+        }
+        const modules = yield module_1.default.findAll({
+            where: { id: moduleId },
+            include: [
+                { model: lesson_1.default, as: 'lessons' },
+                { model: lessonquiz_1.default, as: 'quizzes' },
+            ],
+        });
+        res.status(200).json({
+            message: 'Course module details retrieved successfully.',
+            data: modules,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while processing your request.',
+        });
+    }
+});
+exports.getCourseModuleDetails = getCourseModuleDetails;
 const createCourseModule = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { courseId, title } = req.body;
     try {
