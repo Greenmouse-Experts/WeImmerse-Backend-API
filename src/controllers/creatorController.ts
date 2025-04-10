@@ -1536,7 +1536,7 @@ export const createDigitalAsset = async (
     const userId = (req as AuthenticatedRequest).user?.id; // Extract user ID from authenticated request
 
     // Category check
-    const category = await AssetCategory.findByPk(categoryId);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',
@@ -1619,7 +1619,7 @@ export const viewDigitalAsset = async (
       where: { id, creatorId: userId },
       include: [
         {
-          model: AssetCategory, // Including the related AssetCategory model
+          model: Category, // Including the related AssetCategory model
           as: 'assetCategory', // Alias for the relationship (adjust if necessary)
           attributes: ['id', 'name'], // You can specify the fields you want to include
         },
@@ -1644,7 +1644,7 @@ export const updateDigitalAsset = async (
 
   try {
     // Category check
-    const category = await AssetCategory.findByPk(categoryId);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',
@@ -1710,7 +1710,7 @@ export const createPhysicalAsset = async (
     const userId = (req as AuthenticatedRequest).user?.id; // Extract user ID from authenticated request
 
     // Category check
-    const category = await AssetCategory.findByPk(categoryId);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',
@@ -1789,7 +1789,7 @@ export const viewPhysicalAsset = async (
       where: { id, creatorId: userId },
       include: [
         {
-          model: AssetCategory, // Including the related AssetCategory model
+          model: Category, // Including the related AssetCategory model
           as: 'assetCategory', // Alias for the relationship (adjust if necessary)
           attributes: ['id', 'name'], // You can specify the fields you want to include
         },
@@ -1814,7 +1814,7 @@ export const updatePhysicalAsset = async (
 
   try {
     // Category check
-    const category = await AssetCategory.findByPk(categoryId);
+    const category = await Category.findByPk(categoryId);
     if (!category) {
       res.status(404).json({
         message: 'Category not found in our database.',

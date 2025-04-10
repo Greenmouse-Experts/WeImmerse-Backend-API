@@ -58,7 +58,6 @@ const module_1 = __importDefault(require("../models/module"));
 const lessonquiz_1 = __importDefault(require("../models/lessonquiz"));
 const lessonquizquestion_1 = __importDefault(require("../models/lessonquizquestion"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
-const assetcategory_1 = __importDefault(require("../models/assetcategory"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const jobcategory_1 = __importDefault(require("../models/jobcategory"));
 const job_1 = __importDefault(require("../models/job"));
@@ -1283,7 +1282,7 @@ const createDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const { categoryId } = req.body;
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
         // Category check
-        const category = yield assetcategory_1.default.findByPk(categoryId);
+        const category = yield category_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
                 message: 'Category not found in our database.',
@@ -1350,7 +1349,7 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id, creatorId: userId },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related AssetCategory model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
@@ -1371,7 +1370,7 @@ const updateDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
     const { id, categoryId } = req.body; // ID is passed in the request body
     try {
         // Category check
-        const category = yield assetcategory_1.default.findByPk(categoryId);
+        const category = yield category_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
                 message: 'Category not found in our database.',
@@ -1424,7 +1423,7 @@ const createPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
         const { categoryId } = req.body;
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id; // Extract user ID from authenticated request
         // Category check
-        const category = yield assetcategory_1.default.findByPk(categoryId);
+        const category = yield category_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
                 message: 'Category not found in our database.',
@@ -1488,7 +1487,7 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
             where: { id, creatorId: userId },
             include: [
                 {
-                    model: assetcategory_1.default, // Including the related AssetCategory model
+                    model: category_1.default, // Including the related AssetCategory model
                     as: 'assetCategory', // Alias for the relationship (adjust if necessary)
                     attributes: ['id', 'name'], // You can specify the fields you want to include
                 },
@@ -1509,7 +1508,7 @@ const updatePhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, func
     const { id, categoryId } = req.body; // ID is passed in the request body
     try {
         // Category check
-        const category = yield assetcategory_1.default.findByPk(categoryId);
+        const category = yield category_1.default.findByPk(categoryId);
         if (!category) {
             res.status(404).json({
                 message: 'Category not found in our database.',
