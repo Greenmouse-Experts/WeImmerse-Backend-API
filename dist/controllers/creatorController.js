@@ -453,16 +453,8 @@ const getCourseModules = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.getCourseModules = getCourseModules;
 const getCourseModuleDetails = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const courseId = req.query.courseId;
     const { moduleId } = req.params;
     try {
-        const course = yield course_1.default.findByPk(courseId);
-        if (!course) {
-            res.status(404).json({
-                message: 'Course not found in our database.',
-            });
-            return;
-        }
         const modules = yield module_1.default.findAll({
             where: { id: moduleId },
             include: [

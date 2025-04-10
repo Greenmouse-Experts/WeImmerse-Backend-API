@@ -510,19 +510,9 @@ export const getCourseModuleDetails = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const courseId = req.query.courseId as string;
   const { moduleId } = req.params;
 
   try {
-    const course = await Course.findByPk(courseId);
-
-    if (!course) {
-      res.status(404).json({
-        message: 'Course not found in our database.',
-      });
-      return;
-    }
-
     const modules = await Module.findAll({
       where: { id: moduleId },
       include: [
