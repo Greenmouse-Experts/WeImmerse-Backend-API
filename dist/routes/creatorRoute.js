@@ -54,7 +54,7 @@ creatorRoutes.post('/course/publish', authMiddleware_1.default, authorizeCreator
 // Module
 creatorRoutes.get('/course/modules', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourseModules);
 // Module
-creatorRoutes.get('/course/module/:moduleId', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourseModuleDetails);
+creatorRoutes.get('/course/module/:moduleId/details', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourseModuleDetails);
 creatorRoutes.post('/course/module/create', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleCreationValidationRules)(), creatorValidations_1.validate, creatorController.createCourseModule);
 creatorRoutes.put('/course/module/update', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleUpdateValidationRules)(), creatorValidations_1.validate, creatorController.updateCourseModule);
 creatorRoutes.delete('/course/module/delete', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.moduleDeletionValidationRules)(), creatorValidations_1.validate, creatorController.deleteCourseModule);

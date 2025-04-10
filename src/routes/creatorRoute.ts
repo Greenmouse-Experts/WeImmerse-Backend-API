@@ -91,7 +91,7 @@ creatorRoutes.get(
 );
 // Module
 creatorRoutes.get(
-  '/course/module/:moduleId',
+  '/course/module/:moduleId/details',
   authMiddleware,
   authorizeCreator,
   creatorController.getCourseModuleDetails
