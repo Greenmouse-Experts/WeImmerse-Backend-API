@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
-import CourseStatsService from '../services/course-stats.service';
+import StatsService from '../services/stats.service';
+import AdminStatsService from '../services/admin-stats.service';
 import logger from '../middlewares/logger';
 import { PaymentStatus } from '../models/transaction';
 
-export const getCourseStatistics = async (req: Request, res: Response) => {
+export const getCreatorStatistics = async (req: Request, res: Response) => {
   try {
     const creatorId = (req.user as any)?.id; // Assuming authenticated user is the creator
-    const stats = await CourseStatsService.getCourseStatistics(creatorId);
+    const stats = await StatsService.getCourseStatistics(creatorId);
 
     res.status(200).json({
       status: true,
@@ -19,6 +20,19 @@ export const getCourseStatistics = async (req: Request, res: Response) => {
       status: false,
       message: error.message || 'Internal server error',
     });
+  }
+};
+
+export const getAdminStats = async (req: Request, res: Response) => {
+  try {
+    const year = req.query.year
+      ? parseInt(req.query.year as string)
+      : new Date().getFullYear();
+    const stats = await AdminStatsService.getAdminStats(year);
+    res.json(stats);
+  } catch (error) {
+    console.error('Admin stats error:', error);
+    res.status(500).json({ error: 'Failed to fetch admin statistics' });
   }
 };
 

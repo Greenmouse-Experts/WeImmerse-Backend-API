@@ -397,6 +397,9 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         }
         // Generate token
         const token = jwt_service_1.default.jwtSign(user.id);
+        // Update last login
+        user.lastLogin = new Date();
+        yield user.save();
         // Successful login
         res.status(200).json({
             message: 'Login successful',

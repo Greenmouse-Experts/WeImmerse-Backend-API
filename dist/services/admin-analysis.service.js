@@ -20,9 +20,10 @@ const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const subscription_1 = __importDefault(require("../models/subscription"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
-class AnalysisService {
+class AdminAnalysisService {
     getYearlyAnalysis(year, userId) {
         return __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const startDate = new Date(year, 0, 1);
             const endDate = new Date(year, 11, 31, 23, 59, 59);
             // Build the where clause conditionally
@@ -51,11 +52,13 @@ class AnalysisService {
                 courses: { revenue: 0, count: 0, topItems: [] },
                 digitalAssets: { revenue: 0, count: 0, topItems: [] },
                 physicalAssets: { revenue: 0, count: 0, topItems: [] },
+                subscriptions: { revenue: 0, count: 0, topItems: [] }, // Initialize subscriptions
                 monthlyTrends: Array.from({ length: 12 }, (_, i) => ({
                     month: i + 1,
                     coursesRevenue: 0,
                     digitalRevenue: 0,
                     physicalRevenue: 0,
+                    subscriptionRevenue: 0, // Initialize subscription revenue
                     totalRevenue: 0,
                     transactions: 0,
                 })),
@@ -98,6 +101,21 @@ class AnalysisService {
                             physicalAssetRevenueMap.set(tx.productId, current + amount);
                         }
                         break;
+                    case 'subscription':
+                        result.monthlyTrends[month].subscriptionRevenue += amount;
+                        result.subscriptions.revenue += amount;
+                        result.subscriptions.count += 1;
+                        if (tx.subscriptionId && (tx === null || tx === void 0 ? void 0 : tx.subscription)) {
+                            const current = subscriptionRevenueMap.get(tx.subscriptionId) || {
+                                revenue: 0,
+                                name: ((_a = tx === null || tx === void 0 ? void 0 : tx.subscription.plan) === null || _a === void 0 ? void 0 : _a.name) || 'Unnamed Plan',
+                            };
+                            subscriptionRevenueMap.set(tx.subscriptionId, {
+                                revenue: current.revenue + amount,
+                                name: current.name,
+                            });
+                        }
+                        break;
                 }
                 // Update total monthly values
                 result.monthlyTrends[month].totalRevenue += amount;
@@ -111,6 +129,12 @@ class AnalysisService {
             ]);
             result.digitalAssets.topItems = yield this.getTopItems(digitalAssetRevenueMap, digitalasset_1.default, ['assetName', 'assetUpload', 'assetThumbnail']);
             result.physicalAssets.topItems = yield this.getTopItems(physicalAssetRevenueMap, physicalasset_1.default, ['assetName', 'assetUpload', 'assetThumbnail']);
+            // Process subscription top items
+            result.subscriptions.topItems = Array.from(subscriptionRevenueMap.entries()).map(([id, { revenue, name }]) => ({
+                id,
+                name,
+                revenue,
+            }));
             // Format all numbers
             return this.formatResults(result);
         });
@@ -123,7 +147,9 @@ class AnalysisService {
                 where: { id: Array.from(revenueMap.keys()) },
                 attributes: ['id', ...fields],
             });
-            return items.map((item) => (Object.assign(Object.assign(Object.assign({ id: item.id, name: item[fields[0]] || 'Untitled', revenue: revenueMap.get(item.id) || 0 }, (fields.includes('image') && { image: item.image })), (fields.includes('assetUpload') && { assetUpload: item.assetUpload })), (fields.includes('assetThumbnail') && {
+            // Get the name field (first field in the array)
+            const nameField = fields[0];
+            return items.map((item) => (Object.assign(Object.assign(Object.assign({ id: item.id, name: item[nameField] || 'Untitled', revenue: revenueMap.get(item.id) || 0 }, (fields.includes('image') && { image: item.image })), (fields.includes('assetUpload') && { assetUpload: item.assetUpload })), (fields.includes('assetThumbnail') && {
                 assetThumbnail: item.assetThumbnail,
             }))));
         });
@@ -152,9 +178,14 @@ class AnalysisService {
                 count: result.physicalAssets.count,
                 topItems: this.sortAndLimit(result.physicalAssets.topItems),
             },
-            monthlyTrends: result.monthlyTrends.map((month) => (Object.assign(Object.assign({}, month), { coursesRevenue: parseFloat(month.coursesRevenue.toFixed(2)), digitalRevenue: parseFloat(month.digitalRevenue.toFixed(2)), physicalRevenue: parseFloat(month.physicalRevenue.toFixed(2)), totalRevenue: parseFloat(month.totalRevenue.toFixed(2)) }))),
+            subscriptions: {
+                revenue: parseFloat(result.subscriptions.revenue.toFixed(2)),
+                count: result.subscriptions.count,
+                topItems: this.sortAndLimit(result.subscriptions.topItems),
+            },
+            monthlyTrends: result.monthlyTrends.map((month) => (Object.assign(Object.assign({}, month), { coursesRevenue: parseFloat(month.coursesRevenue.toFixed(2)), digitalRevenue: parseFloat(month.digitalRevenue.toFixed(2)), physicalRevenue: parseFloat(month.physicalRevenue.toFixed(2)), subscriptionRevenue: parseFloat(month.subscriptionRevenue.toFixed(2)), totalRevenue: parseFloat(month.totalRevenue.toFixed(2)) }))),
         };
     }
 }
-exports.default = new AnalysisService();
-//# sourceMappingURL=analysis.service.js.map
+exports.default = new AdminAnalysisService();
+//# sourceMappingURL=admin-analysis.service.js.map

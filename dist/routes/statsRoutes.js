@@ -37,19 +37,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const courseStatsController = __importStar(require("../controllers/courseStatsController"));
+const statsController = __importStar(require("../controllers/statsController"));
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
+const adminAuthMiddleware_1 = __importDefault(require("../middlewares/adminAuthMiddleware"));
 const router = (0, express_1.Router)();
-router.get('/creator/landing', authMiddleware_1.default, courseStatsController.getCourseStatistics);
-// router.get(
-//   '/courses/:courseId/enrollments',
-//   authMiddleware,
-//   courseStatsController.getCourseEnrollments
-// );
-// router.get(
-//   '/courses/:courseId/transactions',
-//   authMiddleware,
-//   courseStatsController.getCourseTransactions
-// );
+router.get('/creator/landing', authMiddleware_1.default, statsController.getCreatorStatistics);
+router.get('/admin/landing', adminAuthMiddleware_1.default, statsController.getAdminStats);
 exports.default = router;
 //# sourceMappingURL=statsRoutes.js.map

@@ -12,6 +12,7 @@ interface YearlyAnalysis {
   courses: ProductAnalysis;
   digitalAssets: ProductAnalysis;
   physicalAssets: ProductAnalysis;
+  subscriptions: ProductAnalysis; // Added subscriptions
   monthlyTrends: MonthlyTrend[];
 }
 
@@ -35,11 +36,12 @@ interface MonthlyTrend {
   coursesRevenue: number;
   digitalRevenue: number;
   physicalRevenue: number;
+  subscriptionRevenue: number; // Added subscription revenue
   totalRevenue: number;
   transactions: number;
 }
 
-class AnalysisService {
+class AdminAnalysisService {
   async getYearlyAnalysis(
     year: number,
     userId?: string
@@ -76,11 +78,13 @@ class AnalysisService {
       courses: { revenue: 0, count: 0, topItems: [] },
       digitalAssets: { revenue: 0, count: 0, topItems: [] },
       physicalAssets: { revenue: 0, count: 0, topItems: [] },
+      subscriptions: { revenue: 0, count: 0, topItems: [] }, // Initialize subscriptions
       monthlyTrends: Array.from({ length: 12 }, (_, i) => ({
         month: i + 1,
         coursesRevenue: 0,
         digitalRevenue: 0,
         physicalRevenue: 0,
+        subscriptionRevenue: 0, // Initialize subscription revenue
         totalRevenue: 0,
         transactions: 0,
       })),
@@ -90,7 +94,10 @@ class AnalysisService {
     const courseRevenueMap = new Map<string, number>();
     const digitalAssetRevenueMap = new Map<string, number>();
     const physicalAssetRevenueMap = new Map<string, number>();
-    const subscriptionRevenueMap = new Map<string, number>();
+    const subscriptionRevenueMap = new Map<
+      string,
+      { revenue: number; name: string }
+    >();
 
     // Process each transaction with proper number handling
     for (const tx of transactions) {
@@ -128,6 +135,22 @@ class AnalysisService {
             physicalAssetRevenueMap.set(tx.productId, current + amount);
           }
           break;
+
+        case 'subscription':
+          result.monthlyTrends[month].subscriptionRevenue += amount;
+          result.subscriptions.revenue += amount;
+          result.subscriptions.count += 1;
+          if (tx.subscriptionId && (tx as any)?.subscription) {
+            const current = subscriptionRevenueMap.get(tx.subscriptionId) || {
+              revenue: 0,
+              name: (tx as any)?.subscription.plan?.name || 'Unnamed Plan',
+            };
+            subscriptionRevenueMap.set(tx.subscriptionId, {
+              revenue: current.revenue + amount,
+              name: current.name,
+            });
+          }
+          break;
       }
 
       // Update total monthly values
@@ -152,6 +175,15 @@ class AnalysisService {
       ['assetName', 'assetUpload', 'assetThumbnail']
     );
 
+    // Process subscription top items
+    result.subscriptions.topItems = Array.from(
+      subscriptionRevenueMap.entries()
+    ).map(([id, { revenue, name }]) => ({
+      id,
+      name,
+      revenue,
+    }));
+
     // Format all numbers
     return this.formatResults(result);
   }
@@ -168,9 +200,12 @@ class AnalysisService {
       attributes: ['id', ...fields],
     });
 
+    // Get the name field (first field in the array)
+    const nameField = fields[0];
+
     return items.map((item: any) => ({
       id: item.id,
-      name: item[fields[0]] || 'Untitled',
+      name: item[nameField] || 'Untitled', // Fixed: Properly access the field
       revenue: revenueMap.get(item.id) || 0,
       ...(fields.includes('image') && { image: item.image }),
       ...(fields.includes('assetUpload') && { assetUpload: item.assetUpload }),
@@ -208,16 +243,21 @@ class AnalysisService {
         count: result.physicalAssets.count,
         topItems: this.sortAndLimit(result.physicalAssets.topItems),
       },
-
+      subscriptions: {
+        revenue: parseFloat(result.subscriptions.revenue.toFixed(2)),
+        count: result.subscriptions.count,
+        topItems: this.sortAndLimit(result.subscriptions.topItems),
+      },
       monthlyTrends: result.monthlyTrends.map((month) => ({
         ...month,
         coursesRevenue: parseFloat(month.coursesRevenue.toFixed(2)),
         digitalRevenue: parseFloat(month.digitalRevenue.toFixed(2)),
         physicalRevenue: parseFloat(month.physicalRevenue.toFixed(2)),
+        subscriptionRevenue: parseFloat(month.subscriptionRevenue.toFixed(2)),
         totalRevenue: parseFloat(month.totalRevenue.toFixed(2)),
       })),
     };
   }
 }
 
-export default new AnalysisService();
+export default new AdminAnalysisService();

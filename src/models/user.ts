@@ -41,6 +41,7 @@ class User extends Model {
   public status?: UserAccountStatus;
   public verified?: boolean;
   public reason?: string;
+  public lastLogin?: Date;
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -223,6 +224,10 @@ const initModel = (sequelize: Sequelize) => {
       },
       reason: {
         type: DataTypes.TEXT,
+        allowNull: true,
+      },
+      lastLogin: {
+        type: DataTypes.DATE,
         allowNull: true,
       },
     },

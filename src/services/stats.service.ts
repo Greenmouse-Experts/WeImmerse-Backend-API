@@ -4,7 +4,7 @@ import CourseEnrollment from '../models/courseenrollment';
 import Transaction from '../models/transaction';
 import { PaymentStatus, ProductType } from '../models/transaction';
 
-class CourseStatsService {
+class StatsService {
   /**
    * Get total number of courses
    * @param creatorId - Optional filter by creator
@@ -42,7 +42,7 @@ class CourseStatsService {
    * @param userId - Optional filter by user
    * @param status - Optional filter by payment status
    */
-  static async getTotalCourseTransactions(
+  static async getTotalCreatorTransactions(
     courseId?: string | null,
     userId?: string,
     status?: PaymentStatus | null
@@ -99,7 +99,7 @@ class CourseStatsService {
       await Promise.all([
         this.getTotalCourses(creatorId),
         this.getCreatorTotalEnrollments(null, creatorId),
-        this.getTotalCourseTransactions(null, creatorId, null),
+        this.getTotalCreatorTransactions(null, creatorId, null),
         this.getCourseRevenue(null, creatorId, null),
       ]);
 
@@ -112,4 +112,4 @@ class CourseStatsService {
   }
 }
 
-export default CourseStatsService;
+export default StatsService;

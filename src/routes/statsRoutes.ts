@@ -1,25 +1,20 @@
 import { Router } from 'express';
-import * as courseStatsController from '../controllers/courseStatsController';
+import * as statsController from '../controllers/statsController';
 import authMiddleware from '../middlewares/authMiddleware';
+import adminAuthMiddleware from '../middlewares/adminAuthMiddleware';
 
 const router = Router();
 
 router.get(
   '/creator/landing',
   authMiddleware,
-  courseStatsController.getCourseStatistics
+  statsController.getCreatorStatistics
 );
 
-// router.get(
-//   '/courses/:courseId/enrollments',
-//   authMiddleware,
-//   courseStatsController.getCourseEnrollments
-// );
-
-// router.get(
-//   '/courses/:courseId/transactions',
-//   authMiddleware,
-//   courseStatsController.getCourseTransactions
-// );
+router.get(
+  '/admin/landing',
+  adminAuthMiddleware,
+  statsController.getAdminStats
+);
 
 export default router;

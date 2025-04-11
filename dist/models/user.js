@@ -175,6 +175,10 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
         },
+        lastLogin: {
+            type: sequelize_1.DataTypes.DATE,
+            allowNull: true,
+        },
     }, {
         sequelize,
         modelName: 'User',

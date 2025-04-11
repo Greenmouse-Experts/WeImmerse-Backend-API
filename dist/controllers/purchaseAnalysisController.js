@@ -12,11 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getYearlyAnalysis = void 0;
+exports.getAdminYearlyAnalysis = exports.getYearlyAnalysis = void 0;
 const analysis_service_1 = __importDefault(require("../services/analysis.service"));
+const admin_analysis_service_1 = __importDefault(require("../services/admin-analysis.service"));
 const getYearlyAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
-        const userId = req.user.id;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
         const year = req.query.year
             ? parseInt(req.query.year)
             : new Date().getFullYear();
@@ -29,4 +31,34 @@ const getYearlyAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getYearlyAnalysis = getYearlyAnalysis;
+const getAdminYearlyAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const year = req.query.year
+            ? parseInt(req.query.year)
+            : new Date().getFullYear();
+        const analysis = yield admin_analysis_service_1.default.getYearlyAnalysis(year);
+        res.json(analysis);
+    }
+    catch (error) {
+        console.error('Error fetching yearly analysis:', error);
+        res.status(500).json({ message: 'Failed to fetch yearly analysis' });
+    }
+});
+exports.getAdminYearlyAnalysis = getAdminYearlyAnalysis;
+// export const getCreatorAnalysis = async (req: Request, res: Response) => {
+//   try {
+//     const creatorId = req.params.creatorId;
+//     const year = req.query.year
+//       ? parseInt(req.query.year as string)
+//       : new Date().getFullYear();
+//     const analysis = await PurchaseAnalysisService.getCreatorAnalysis(
+//       creatorId,
+//       year
+//     );
+//     res.json(analysis);
+//   } catch (error) {
+//     console.error('Error fetching creator analysis:', error);
+//     res.status(500).json({ message: 'Failed to fetch creator analysis' });
+//   }
+// };
 //# sourceMappingURL=purchaseAnalysisController.js.map

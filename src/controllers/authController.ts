@@ -503,6 +503,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     // Generate token
     const token = JwtService.jwtSign(user.id);
 
+    // Update last login
+    user.lastLogin = new Date();
+    await user.save();
+
     // Successful login
     res.status(200).json({
       message: 'Login successful',
