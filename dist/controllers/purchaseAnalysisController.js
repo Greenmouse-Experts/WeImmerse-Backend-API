@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAdminYearlyAnalysis = exports.getYearlyAnalysis = void 0;
+exports.getRecentSignups = exports.getAdminYearlyAnalysis = exports.getYearlyAnalysis = void 0;
 const analysis_service_1 = __importDefault(require("../services/analysis.service"));
 const admin_analysis_service_1 = __importDefault(require("../services/admin-analysis.service"));
 const getYearlyAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -45,6 +45,22 @@ const getAdminYearlyAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.getAdminYearlyAnalysis = getAdminYearlyAnalysis;
+const getRecentSignups = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const filters = { userType: null, limit: null };
+        filters.userType = req.query.userType;
+        filters.limit = req.query.limit
+            ? parseInt(req.query.limit)
+            : undefined;
+        const analysis = yield admin_analysis_service_1.default.getRecentSignups(filters);
+        res.json(analysis);
+    }
+    catch (error) {
+        console.error('Error fetching yearly analysis:', error);
+        res.status(500).json({ message: 'Failed to fetch yearly analysis' });
+    }
+});
+exports.getRecentSignups = getRecentSignups;
 // export const getCreatorAnalysis = async (req: Request, res: Response) => {
 //   try {
 //     const creatorId = req.params.creatorId;

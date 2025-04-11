@@ -20,6 +20,7 @@ const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const subscription_1 = __importDefault(require("../models/subscription"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
+const user_1 = __importDefault(require("../models/user"));
 class AdminAnalysisService {
     getYearlyAnalysis(year, userId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -185,6 +186,37 @@ class AdminAnalysisService {
             },
             monthlyTrends: result.monthlyTrends.map((month) => (Object.assign(Object.assign({}, month), { coursesRevenue: parseFloat(month.coursesRevenue.toFixed(2)), digitalRevenue: parseFloat(month.digitalRevenue.toFixed(2)), physicalRevenue: parseFloat(month.physicalRevenue.toFixed(2)), subscriptionRevenue: parseFloat(month.subscriptionRevenue.toFixed(2)), totalRevenue: parseFloat(month.totalRevenue.toFixed(2)) }))),
         };
+    }
+    getRecentSignups(filters) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const where = {};
+            const limit = (filters === null || filters === void 0 ? void 0 : filters.limit) || 10; // Default to 10 recent signups
+            // Add user type filter if provided
+            if (filters === null || filters === void 0 ? void 0 : filters.userType) {
+                where.accountType = filters.userType;
+            }
+            const users = yield user_1.default.findAll({
+                where,
+                order: [['createdAt', 'DESC']], // Get newest first
+                limit,
+                attributes: [
+                    'id',
+                    'name',
+                    'email',
+                    'accountType',
+                    'createdAt',
+                    'lastLogin',
+                ],
+            });
+            return users.map((user) => ({
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                type: user.accountType,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin,
+            }));
+        });
     }
 }
 exports.default = new AdminAnalysisService();

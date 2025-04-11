@@ -35,6 +35,24 @@ export const getAdminYearlyAnalysis = async (req: Request, res: Response) => {
   }
 };
 
+export const getRecentSignups = async (req: Request, res: Response) => {
+  try {
+    const filters: any = { userType: null, limit: null };
+    filters.userType = req.query.userType as string | undefined;
+    filters.limit = req.query.limit
+      ? parseInt(req.query.limit as string)
+      : undefined;
+
+    const analysis = await PurchaseAdminAnalysisService.getRecentSignups(
+      filters
+    );
+    res.json(analysis);
+  } catch (error) {
+    console.error('Error fetching yearly analysis:', error);
+    res.status(500).json({ message: 'Failed to fetch yearly analysis' });
+  }
+};
+
 // export const getCreatorAnalysis = async (req: Request, res: Response) => {
 //   try {
 //     const creatorId = req.params.creatorId;

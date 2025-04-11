@@ -1,11 +1,12 @@
 // services/analysis.service.ts
-import { Op } from 'sequelize';
+import { Op, WhereOptions } from 'sequelize';
 import Transaction from '../models/transaction';
 import Course from '../models/course';
 import DigitalAsset from '../models/digitalasset';
 import PhysicalAsset from '../models/physicalasset';
 import Subscription from '../models/subscription';
 import SubscriptionPlan from '../models/subscriptionplan';
+import User from '../models/user';
 
 interface YearlyAnalysis {
   totalRevenue: number;
@@ -39,6 +40,15 @@ interface MonthlyTrend {
   subscriptionRevenue: number; // Added subscription revenue
   totalRevenue: number;
   transactions: number;
+}
+
+interface RecentSignup {
+  id: string;
+  name: string;
+  email: string;
+  type: string;
+  createdAt: Date;
+  lastLogin?: Date;
 }
 
 class AdminAnalysisService {
@@ -257,6 +267,42 @@ class AdminAnalysisService {
         totalRevenue: parseFloat(month.totalRevenue.toFixed(2)),
       })),
     };
+  }
+
+  async getRecentSignups(filters?: {
+    userType?: string;
+    limit?: number;
+  }): Promise<RecentSignup[]> {
+    const where: WhereOptions = {};
+    const limit = filters?.limit || 10; // Default to 10 recent signups
+
+    // Add user type filter if provided
+    if (filters?.userType) {
+      where.accountType = filters.userType;
+    }
+
+    const users = await User.findAll({
+      where,
+      order: [['createdAt', 'DESC']], // Get newest first
+      limit,
+      attributes: [
+        'id',
+        'name',
+        'email',
+        'accountType',
+        'createdAt',
+        'lastLogin',
+      ],
+    });
+
+    return users.map((user) => ({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      type: user.accountType!,
+      createdAt: user.createdAt!,
+      lastLogin: user.lastLogin!,
+    }));
   }
 }
 
