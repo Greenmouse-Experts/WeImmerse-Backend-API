@@ -16,6 +16,8 @@ router.get('/creator/yearly/landing', authMiddleware_1.default, authorizeCreator
 router.get('/admin/yearly/landing', adminAuthMiddleware_1.default, purchaseAnalysisController_1.getAdminYearlyAnalysis);
 // Get yearly analysis for all creators
 router.get('/admin/recent-signups', adminAuthMiddleware_1.default, purchaseAnalysisController_1.getRecentSignups);
+// Get user stats
+router.get('/admin/user-stats', adminAuthMiddleware_1.default, purchaseAnalysisController_1.getUserStats);
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);
 exports.default = router;

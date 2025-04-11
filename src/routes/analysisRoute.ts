@@ -3,6 +3,7 @@ import express from 'express';
 import {
   getAdminYearlyAnalysis,
   getRecentSignups,
+  getUserStats,
   getYearlyAnalysis,
 } from '../controllers/purchaseAnalysisController';
 import { Sequelize } from 'sequelize'; // Assuming you have a database connection setup
@@ -29,6 +30,9 @@ router.get(
 
 // Get yearly analysis for all creators
 router.get('/admin/recent-signups', adminAuthMiddleware, getRecentSignups);
+
+// Get user stats
+router.get('/admin/user-stats', adminAuthMiddleware, getUserStats);
 
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);

@@ -53,6 +53,16 @@ export const getRecentSignups = async (req: Request, res: Response) => {
   }
 };
 
+export async function getUserStats(req: Request, res: Response) {
+  try {
+    const stats = await PurchaseAdminAnalysisService.getUserStats();
+    res.json(stats);
+  } catch (error) {
+    console.error('Failed to fetch user stats:', error);
+    res.status(500).json({ error: 'Failed to fetch user statistics' });
+  }
+}
+
 // export const getCreatorAnalysis = async (req: Request, res: Response) => {
 //   try {
 //     const creatorId = req.params.creatorId;

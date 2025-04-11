@@ -834,7 +834,7 @@ export const initiateMultiPurchaseValidationRules = () => {
     check('shippingAddress')
       .if((value, { req }) =>
         req.body.items.some(
-          (i: any) => i.productType === ProductType.DIGITAL_ASSET
+          (i: any) => i.productType === ProductType.PHYSICAL_ASSET
         )
       )
       .notEmpty()

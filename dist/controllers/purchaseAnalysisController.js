@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getRecentSignups = exports.getAdminYearlyAnalysis = exports.getYearlyAnalysis = void 0;
+exports.getUserStats = getUserStats;
 const analysis_service_1 = __importDefault(require("../services/analysis.service"));
 const admin_analysis_service_1 = __importDefault(require("../services/admin-analysis.service"));
 const getYearlyAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -61,6 +62,18 @@ const getRecentSignups = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getRecentSignups = getRecentSignups;
+function getUserStats(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            const stats = yield admin_analysis_service_1.default.getUserStats();
+            res.json(stats);
+        }
+        catch (error) {
+            console.error('Failed to fetch user stats:', error);
+            res.status(500).json({ error: 'Failed to fetch user statistics' });
+        }
+    });
+}
 // export const getCreatorAnalysis = async (req: Request, res: Response) => {
 //   try {
 //     const creatorId = req.params.creatorId;

@@ -51,6 +51,13 @@ interface RecentSignup {
   lastLogin?: Date;
 }
 
+interface UserStats {
+  totalUsers: number;
+  totalStudents: number;
+  totalCreators: number;
+  totalInstitutions: number;
+}
+
 class AdminAnalysisService {
   async getYearlyAnalysis(
     year: number,
@@ -303,6 +310,24 @@ class AdminAnalysisService {
       createdAt: user.createdAt!,
       lastLogin: user.lastLogin!,
     }));
+  }
+
+  async getUserStats(): Promise<UserStats> {
+    // Run all counts in parallel
+    const [totalUsers, totalStudents, totalCreators, totalInstitutions] =
+      await Promise.all([
+        User.count({ where: { accountType: 'user' } }),
+        User.count({ where: { accountType: 'student' } }),
+        User.count({ where: { accountType: 'creator' } }),
+        User.count({ where: { accountType: 'institution' } }),
+      ]);
+
+    return {
+      totalUsers,
+      totalStudents,
+      totalCreators,
+      totalInstitutions,
+    };
   }
 }
 

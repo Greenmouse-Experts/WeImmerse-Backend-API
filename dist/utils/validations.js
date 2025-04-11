@@ -771,7 +771,7 @@ const initiateMultiPurchaseValidationRules = () => {
             .isIn(Object.values(transaction_1.PaymentMethod))
             .withMessage('Invalid payment method'),
         (0, express_validator_1.check)('shippingAddress')
-            .if((value, { req }) => req.body.items.some((i) => i.productType === transaction_1.ProductType.DIGITAL_ASSET))
+            .if((value, { req }) => req.body.items.some((i) => i.productType === transaction_1.ProductType.PHYSICAL_ASSET))
             .notEmpty()
             .withMessage('Shipping address is required for physical assets')
             .isObject()

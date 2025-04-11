@@ -218,6 +218,23 @@ class AdminAnalysisService {
             }));
         });
     }
+    getUserStats() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Run all counts in parallel
+            const [totalUsers, totalStudents, totalCreators, totalInstitutions] = yield Promise.all([
+                user_1.default.count({ where: { accountType: 'user' } }),
+                user_1.default.count({ where: { accountType: 'student' } }),
+                user_1.default.count({ where: { accountType: 'creator' } }),
+                user_1.default.count({ where: { accountType: 'institution' } }),
+            ]);
+            return {
+                totalUsers,
+                totalStudents,
+                totalCreators,
+                totalInstitutions,
+            };
+        });
+    }
 }
 exports.default = new AdminAnalysisService();
 //# sourceMappingURL=admin-analysis.service.js.map
