@@ -40,8 +40,16 @@ const express_1 = require("express");
 const courseStatsController = __importStar(require("../controllers/courseStatsController"));
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
 const router = (0, express_1.Router)();
-router.get('/courses/stats', authMiddleware_1.default, courseStatsController.getCourseStatistics);
-router.get('/courses/:courseId/enrollments', authMiddleware_1.default, courseStatsController.getCourseEnrollments);
-router.get('/courses/:courseId/transactions', authMiddleware_1.default, courseStatsController.getCourseTransactions);
+router.get('/creator/landing', authMiddleware_1.default, courseStatsController.getCourseStatistics);
+// router.get(
+//   '/courses/:courseId/enrollments',
+//   authMiddleware,
+//   courseStatsController.getCourseEnrollments
+// );
+// router.get(
+//   '/courses/:courseId/transactions',
+//   authMiddleware,
+//   courseStatsController.getCourseTransactions
+// );
 exports.default = router;
 //# sourceMappingURL=statsRoutes.js.map

@@ -26,6 +26,7 @@ const subscriptionRoute_1 = __importDefault(require("../routes/subscriptionRoute
 const couponRoute_1 = __importDefault(require("../routes/couponRoute"));
 const purchaseRoute_1 = __importDefault(require("../routes/purchaseRoute"));
 const statsRoutes_1 = __importDefault(require("../routes/statsRoutes"));
+const analysisRoute_1 = __importDefault(require("../routes/analysisRoute"));
 dotenv_1.default.config();
 const createExpressApp = () => {
     const app = (0, express_1.default)();
@@ -61,6 +62,7 @@ const createExpressApp = () => {
     app.use('/v1/api/coupon', couponRoute_1.default);
     app.use('/v1/api/purchase', purchaseRoute_1.default);
     app.use('/v1/api/stat', statsRoutes_1.default);
+    app.use('/v1/api/analysis', analysisRoute_1.default);
     // 404 handler (this should come after routes)
     app.use((req, res) => {
         console.log(`404 error for path: ${req.path}`);

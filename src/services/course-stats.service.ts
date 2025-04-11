@@ -23,12 +23,17 @@ class CourseStatsService {
    * @param courseId - Optional filter by course
    * @param userId - Optional filter by user
    */
-  static async getTotalEnrollments(courseId?: string, userId?: string) {
+  static async getCreatorTotalEnrollments(
+    courseId?: string | null,
+    userId?: string
+  ) {
     const where: any = {};
     if (courseId) where.courseId = courseId;
-    if (userId) where.userId = userId;
 
-    return await CourseEnrollment.count({ where });
+    return await CourseEnrollment.count({
+      where,
+      include: [{ model: Course, where: { creatorId: userId }, as: 'course' }],
+    });
   }
 
   /**
@@ -38,9 +43,9 @@ class CourseStatsService {
    * @param status - Optional filter by payment status
    */
   static async getTotalCourseTransactions(
-    courseId?: string,
+    courseId?: string | null,
     userId?: string,
-    status?: PaymentStatus
+    status?: PaymentStatus | null
   ) {
     const where: any = {
       paymentType: ProductType.COURSE,
@@ -60,9 +65,9 @@ class CourseStatsService {
    * @param status - Optional filter by payment status
    */
   static async getCourseRevenue(
-    courseId?: string,
+    courseId?: string | null,
     userId?: string,
-    status?: PaymentStatus
+    status?: PaymentStatus | null
   ) {
     const where: any = {
       paymentType: ProductType.COURSE,
@@ -93,9 +98,9 @@ class CourseStatsService {
     const [totalCourses, totalEnrollments, totalTransactions, totalRevenue] =
       await Promise.all([
         this.getTotalCourses(creatorId),
-        this.getTotalEnrollments(),
-        this.getTotalCourseTransactions(),
-        this.getCourseRevenue(),
+        this.getCreatorTotalEnrollments(null, creatorId),
+        this.getTotalCourseTransactions(null, creatorId, null),
+        this.getCourseRevenue(null, creatorId, null),
       ]);
 
     return {

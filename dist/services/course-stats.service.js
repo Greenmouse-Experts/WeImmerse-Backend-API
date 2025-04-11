@@ -38,14 +38,15 @@ class CourseStatsService {
      * @param courseId - Optional filter by course
      * @param userId - Optional filter by user
      */
-    static getTotalEnrollments(courseId, userId) {
+    static getCreatorTotalEnrollments(courseId, userId) {
         return __awaiter(this, void 0, void 0, function* () {
             const where = {};
             if (courseId)
                 where.courseId = courseId;
-            if (userId)
-                where.userId = userId;
-            return yield courseenrollment_1.default.count({ where });
+            return yield courseenrollment_1.default.count({
+                where,
+                include: [{ model: course_1.default, where: { creatorId: userId }, as: 'course' }],
+            });
         });
     }
     /**
@@ -105,9 +106,9 @@ class CourseStatsService {
                 where.creatorId = creatorId;
             const [totalCourses, totalEnrollments, totalTransactions, totalRevenue] = yield Promise.all([
                 this.getTotalCourses(creatorId),
-                this.getTotalEnrollments(),
-                this.getTotalCourseTransactions(),
-                this.getCourseRevenue(),
+                this.getCreatorTotalEnrollments(null, creatorId),
+                this.getTotalCourseTransactions(null, creatorId, null),
+                this.getCourseRevenue(null, creatorId, null),
             ]);
             return {
                 totalCourses,
