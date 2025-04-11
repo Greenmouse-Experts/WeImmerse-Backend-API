@@ -1,4 +1,37 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -20,7 +53,7 @@ const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const subscription_1 = __importDefault(require("../models/subscription"));
 const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan"));
-const user_1 = __importDefault(require("../models/user"));
+const user_1 = __importStar(require("../models/user"));
 class AdminAnalysisService {
     getYearlyAnalysis(year, userId) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -233,6 +266,69 @@ class AdminAnalysisService {
                 totalCreators,
                 totalInstitutions,
             };
+        });
+    }
+    getUsersByCountry() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Get total count of all users for percentage calculation
+            const totalUsers = yield user_1.default.count();
+            if (totalUsers === 0) {
+                return [];
+            }
+            // Get user counts grouped by country
+            const countryCounts = yield user_1.default.findAll({
+                attributes: [
+                    'country',
+                    [sequelize_1.Sequelize.fn('COUNT', sequelize_1.Sequelize.col('id')), 'count'],
+                ],
+                group: ['country'],
+                raw: true,
+            });
+            // Transform to the required format
+            return countryCounts.map(({ country, count }) => {
+                const countryInfo = user_1.countryDetails[country];
+                const percentage = ((count / totalUsers) * 100).toFixed(0) + '%';
+                return {
+                    latitude: countryInfo.latitude,
+                    longitude: countryInfo.longitude,
+                    name: countryInfo.title,
+                    value: percentage,
+                };
+            });
+        });
+    }
+    // Optional: Add filtering by date range
+    getUsersByCountryWithDateRange(startDate, endDate) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const where = {};
+            if (startDate && endDate) {
+                where.createdAt = {
+                    [sequelize_1.Op.between]: [startDate, endDate],
+                };
+            }
+            const totalUsers = yield user_1.default.count({ where });
+            if (totalUsers === 0) {
+                return [];
+            }
+            const countryCounts = yield user_1.default.findAll({
+                attributes: [
+                    'country',
+                    [sequelize_1.Sequelize.fn('COUNT', sequelize_1.Sequelize.col('id')), 'count'],
+                ],
+                where,
+                group: ['country'],
+                raw: true,
+            });
+            return countryCounts.map(({ country, count }) => {
+                const countryInfo = user_1.countryDetails[country];
+                const percentage = ((count / totalUsers) * 100).toFixed(0) + '%';
+                return {
+                    latitude: countryInfo.latitude,
+                    longitude: countryInfo.longitude,
+                    name: countryInfo.title,
+                    value: percentage,
+                };
+            });
         });
     }
 }

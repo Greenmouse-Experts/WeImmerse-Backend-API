@@ -1,12 +1,12 @@
 // services/analysis.service.ts
-import { Op, WhereOptions } from 'sequelize';
+import { Op, Sequelize, WhereOptions } from 'sequelize';
 import Transaction from '../models/transaction';
 import Course from '../models/course';
 import DigitalAsset from '../models/digitalasset';
 import PhysicalAsset from '../models/physicalasset';
 import Subscription from '../models/subscription';
 import SubscriptionPlan from '../models/subscriptionplan';
-import User from '../models/user';
+import User, { Country, countryDetails } from '../models/user';
 
 interface YearlyAnalysis {
   totalRevenue: number;
@@ -56,6 +56,23 @@ interface UserStats {
   totalStudents: number;
   totalCreators: number;
   totalInstitutions: number;
+}
+
+interface CountryStats {
+  country: Country | undefined;
+  totalUsers: number;
+}
+
+// interface UserCountryStats {
+//   totalCountries: number;
+//   countries: CountryStats[];
+// }
+
+interface CountryData {
+  latitude: number;
+  longitude: number;
+  name: string;
+  value: string;
 }
 
 class AdminAnalysisService {
@@ -328,6 +345,82 @@ class AdminAnalysisService {
       totalCreators,
       totalInstitutions,
     };
+  }
+
+  async getUsersByCountry(): Promise<CountryData[]> {
+    // Get total count of all users for percentage calculation
+    const totalUsers = await User.count();
+
+    if (totalUsers === 0) {
+      return [];
+    }
+
+    // Get user counts grouped by country
+    const countryCounts = await User.findAll({
+      attributes: [
+        'country',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+      ],
+      group: ['country'],
+      raw: true,
+    });
+
+    // Transform to the required format
+    return countryCounts.map(({ country, count }: any) => {
+      const countryInfo = countryDetails[country as Country];
+      const percentage =
+        (((count as number) / totalUsers) * 100).toFixed(0) + '%';
+
+      return {
+        latitude: countryInfo.latitude,
+        longitude: countryInfo.longitude,
+        name: countryInfo.title,
+        value: percentage,
+      };
+    });
+  }
+
+  // Optional: Add filtering by date range
+  async getUsersByCountryWithDateRange(
+    startDate?: Date,
+    endDate?: Date
+  ): Promise<CountryData[]> {
+    const where: any = {};
+
+    if (startDate && endDate) {
+      where.createdAt = {
+        [Op.between]: [startDate, endDate],
+      };
+    }
+
+    const totalUsers = await User.count({ where });
+
+    if (totalUsers === 0) {
+      return [];
+    }
+
+    const countryCounts = await User.findAll({
+      attributes: [
+        'country',
+        [Sequelize.fn('COUNT', Sequelize.col('id')), 'count'],
+      ],
+      where,
+      group: ['country'],
+      raw: true,
+    });
+
+    return countryCounts.map(({ country, count }: any) => {
+      const countryInfo = countryDetails[country as Country];
+      const percentage =
+        (((count as number) / totalUsers) * 100).toFixed(0) + '%';
+
+      return {
+        latitude: countryInfo.latitude,
+        longitude: countryInfo.longitude,
+        name: countryInfo.title,
+        value: percentage,
+      };
+    });
   }
 }
 

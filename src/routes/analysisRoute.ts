@@ -3,6 +3,7 @@ import express from 'express';
 import {
   getAdminYearlyAnalysis,
   getRecentSignups,
+  getUsersByCountry,
   getUserStats,
   getYearlyAnalysis,
 } from '../controllers/purchaseAnalysisController';
@@ -33,6 +34,9 @@ router.get('/admin/recent-signups', adminAuthMiddleware, getRecentSignups);
 
 // Get user stats
 router.get('/admin/user-stats', adminAuthMiddleware, getUserStats);
+
+// Get users by country
+router.get('/admin/users-by-country', adminAuthMiddleware, getUsersByCountry);
 
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);

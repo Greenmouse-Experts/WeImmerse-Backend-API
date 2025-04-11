@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = exports.Gender = exports.UserAccountStatus = exports.UserType = void 0;
+exports.initModel = exports.countryDetails = exports.Country = exports.Gender = exports.UserAccountStatus = exports.UserType = void 0;
 // models/user.ts
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const sequelize_1 = require("sequelize");
@@ -33,6 +33,47 @@ var Gender;
     Gender["MALE"] = "male";
     Gender["FEMALE"] = "female";
 })(Gender || (exports.Gender = Gender = {}));
+var Country;
+(function (Country) {
+    Country["NG"] = "NG";
+    Country["GB"] = "GB";
+    Country["US"] = "US";
+    Country["CA"] = "CA";
+    Country["GH"] = "GH";
+    Country["ES"] = "ES";
+})(Country || (exports.Country = Country = {}));
+exports.countryDetails = {
+    NG: {
+        title: 'Nigeria',
+        latitude: 9.082,
+        longitude: 8.6753,
+    },
+    GB: {
+        title: 'United Kingdom',
+        latitude: 55.3781,
+        longitude: -3.436,
+    },
+    CA: {
+        title: 'Canada',
+        latitude: 56.1304,
+        longitude: -106.3468,
+    },
+    GH: {
+        title: 'Ghana',
+        latitude: 7.9465,
+        longitude: -1.0232,
+    },
+    ES: {
+        title: 'Spain',
+        latitude: 40.4637,
+        longitude: -3.7492,
+    },
+    US: {
+        title: 'United States',
+        latitude: 19.50139,
+        longitude: 64.85694,
+    },
+};
 class User extends sequelize_1.Model {
     // Method to hash the password before saving
     static hashPassword(password) {
@@ -178,6 +219,11 @@ const initModel = (sequelize) => {
         lastLogin: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: true,
+        },
+        country: {
+            type: sequelize_1.DataTypes.ENUM(...Object.values(Country)),
+            allowNull: false,
+            defaultValue: Country.NG,
         },
     }, {
         sequelize,

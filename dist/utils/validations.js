@@ -4,6 +4,7 @@ exports.validate = exports.initiateMultiPurchaseValidationRules = exports.webhoo
 const express_validator_1 = require("express-validator");
 const category_1 = require("../models/category");
 const transaction_1 = require("../models/transaction");
+const user_1 = require("../models/user");
 // Validation rules for different functionalities
 // User registration validation rules
 const userRegistrationValidationRules = () => {
@@ -27,6 +28,10 @@ const userRegistrationValidationRules = () => {
             }
             return true;
         }),
+        (0, express_validator_1.check)('country')
+            .optional()
+            .isIn(Object.values(user_1.Country))
+            .withMessage('Country must be of the following: ' + Object.values(user_1.Country).join(', ')),
         (0, express_validator_1.check)('referralCode')
             .optional({ checkFalsy: true })
             .isAlphanumeric()
@@ -44,6 +49,10 @@ const studentRegistrationValidationRules = () => {
             .isLength({ min: 3 })
             .withMessage('Name must be at least 3 characters long'),
         (0, express_validator_1.check)('email').isEmail().withMessage('Please provide a valid email'),
+        (0, express_validator_1.check)('country')
+            .optional()
+            .isIn(Object.values(user_1.Country))
+            .withMessage('Country must be of the following: ' + Object.values(user_1.Country).join(', ')),
         (0, express_validator_1.check)('password')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
@@ -89,6 +98,10 @@ const creatorRegistrationValidationRules = () => {
             .isLength({ min: 3 })
             .withMessage('Name must be at least 3 characters long'),
         (0, express_validator_1.check)('email').isEmail().withMessage('Please provide a valid email'),
+        (0, express_validator_1.check)('country')
+            .optional()
+            .isIn(Object.values(user_1.Country))
+            .withMessage('Country must be of the following: ' + Object.values(user_1.Country).join(', ')),
         (0, express_validator_1.check)('password')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),
@@ -120,6 +133,10 @@ const institutionRegistrationValidationRules = () => {
     return [
         (0, express_validator_1.check)('name').notEmpty().withMessage('User name is required'),
         (0, express_validator_1.check)('email').isEmail().withMessage('Invalid email format'),
+        (0, express_validator_1.check)('country')
+            .optional()
+            .isIn(Object.values(user_1.Country))
+            .withMessage('Country must be of the following: ' + Object.values(user_1.Country).join(', ')),
         (0, express_validator_1.check)('password')
             .isLength({ min: 6 })
             .withMessage('Password must be at least 6 characters'),

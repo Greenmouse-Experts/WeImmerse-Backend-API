@@ -20,6 +20,48 @@ export enum Gender {
   FEMALE = 'female',
 }
 
+export enum Country {
+  NG = 'NG',
+  GB = 'GB',
+  US = 'US',
+  CA = 'CA',
+  GH = 'GH',
+  ES = 'ES',
+}
+
+export const countryDetails = {
+  NG: {
+    title: 'Nigeria',
+    latitude: 9.082,
+    longitude: 8.6753,
+  },
+  GB: {
+    title: 'United Kingdom',
+    latitude: 55.3781,
+    longitude: -3.436,
+  },
+  CA: {
+    title: 'Canada',
+    latitude: 56.1304,
+    longitude: -106.3468,
+  },
+  GH: {
+    title: 'Ghana',
+    latitude: 7.9465,
+    longitude: -1.0232,
+  },
+  ES: {
+    title: 'Spain',
+    latitude: 40.4637,
+    longitude: -3.7492,
+  },
+  US: {
+    title: 'United States',
+    latitude: 19.50139,
+    longitude: 64.85694,
+  },
+};
+
 class User extends Model {
   public id!: string; // Use '!' to indicate these fields are definitely assigned
   public name!: string;
@@ -42,6 +84,7 @@ class User extends Model {
   public verified?: boolean;
   public reason?: string;
   public lastLogin?: Date;
+  public country?: Country;
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -229,6 +272,11 @@ const initModel = (sequelize: Sequelize) => {
       lastLogin: {
         type: DataTypes.DATE,
         allowNull: true,
+      },
+      country: {
+        type: DataTypes.ENUM(...Object.values(Country)),
+        allowNull: false,
+        defaultValue: Country.NG,
       },
     },
     {

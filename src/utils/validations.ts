@@ -2,6 +2,7 @@ import { check, validationResult } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 import { CategoryTypes } from '../models/category';
 import { PaymentMethod, ProductType } from '../models/transaction';
+import { Country } from '../models/user';
 
 // Validation rules for different functionalities
 
@@ -31,6 +32,13 @@ export const userRegistrationValidationRules = () => {
         return true;
       }),
 
+    check('country')
+      .optional()
+      .isIn(Object.values(Country))
+      .withMessage(
+        'Country must be of the following: ' + Object.values(Country).join(', ')
+      ),
+
     check('referralCode')
       .optional({ checkFalsy: true })
       .isAlphanumeric()
@@ -49,6 +57,13 @@ export const studentRegistrationValidationRules = () => {
       .withMessage('Name must be at least 3 characters long'),
 
     check('email').isEmail().withMessage('Please provide a valid email'),
+
+    check('country')
+      .optional()
+      .isIn(Object.values(Country))
+      .withMessage(
+        'Country must be of the following: ' + Object.values(Country).join(', ')
+      ),
 
     check('password')
       .isLength({ min: 6 })
@@ -101,6 +116,13 @@ export const creatorRegistrationValidationRules = () => {
 
     check('email').isEmail().withMessage('Please provide a valid email'),
 
+    check('country')
+      .optional()
+      .isIn(Object.values(Country))
+      .withMessage(
+        'Country must be of the following: ' + Object.values(Country).join(', ')
+      ),
+
     check('password')
       .isLength({ min: 6 })
       .withMessage('Password must be at least 6 characters'),
@@ -137,6 +159,13 @@ export const institutionRegistrationValidationRules = () => {
     check('name').notEmpty().withMessage('User name is required'),
 
     check('email').isEmail().withMessage('Invalid email format'),
+
+    check('country')
+      .optional()
+      .isIn(Object.values(Country))
+      .withMessage(
+        'Country must be of the following: ' + Object.values(Country).join(', ')
+      ),
 
     check('password')
       .isLength({ min: 6 })

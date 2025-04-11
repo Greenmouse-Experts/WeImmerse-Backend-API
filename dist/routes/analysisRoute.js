@@ -18,6 +18,8 @@ router.get('/admin/yearly/landing', adminAuthMiddleware_1.default, purchaseAnaly
 router.get('/admin/recent-signups', adminAuthMiddleware_1.default, purchaseAnalysisController_1.getRecentSignups);
 // Get user stats
 router.get('/admin/user-stats', adminAuthMiddleware_1.default, purchaseAnalysisController_1.getUserStats);
+// Get users by country
+router.get('/admin/users-by-country', adminAuthMiddleware_1.default, purchaseAnalysisController_1.getUsersByCountry);
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);
 exports.default = router;

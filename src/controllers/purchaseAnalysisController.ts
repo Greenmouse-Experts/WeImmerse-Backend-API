@@ -63,6 +63,16 @@ export async function getUserStats(req: Request, res: Response) {
   }
 }
 
+export async function getUsersByCountry(req: Request, res: Response) {
+  try {
+    const stats = await PurchaseAdminAnalysisService.getUsersByCountry();
+    res.json(stats);
+  } catch (error) {
+    console.error('Failed to fetch user country stats:', error);
+    res.status(500).json({ error: 'Failed to fetch user country statistics' });
+  }
+}
+
 // export const getCreatorAnalysis = async (req: Request, res: Response) => {
 //   try {
 //     const creatorId = req.params.creatorId;
