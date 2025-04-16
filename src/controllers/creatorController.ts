@@ -6,7 +6,7 @@ import JwtService from '../services/jwt.service';
 import logger from '../middlewares/logger';
 import { Op, ForeignKeyConstraintError, Sequelize } from 'sequelize';
 import sequelizeService from '../services/sequelize.service';
-import Course from '../models/course';
+import Course, { CourseStatus } from '../models/course';
 import { AuthenticatedRequest } from '../types/index';
 import Lesson from '../models/lesson';
 import Module from '../models/module';
@@ -27,6 +27,7 @@ import LessonAssignment from '../models/lessonassignment';
 import { formatCourse } from '../utils/helpers';
 import Category, { CategoryTypes } from '../models/category';
 import categoryService from '../services/category.service';
+import CourseEnrollment from '../models/courseenrollment';
 
 export const courseCategories = async (
   req: Request,
@@ -472,6 +473,54 @@ export const coursePublish = async (
     res.status(500).json({
       message:
         error.message || 'An error occurred while publishing the course.',
+    });
+  }
+};
+
+export const deleteUnpublishedUnpurchasedCourse = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const courseId = req.params.courseId;
+
+    // Find the course
+    const course = await Course.findByPk(courseId);
+    if (!course) {
+      res.status(404).json({ message: 'Course not found.' });
+      return;
+    }
+
+    // Check if course is published or under review
+    if (
+      course.status === CourseStatus.UNDER_REVIEW ||
+      course.status === CourseStatus.LIVE
+    ) {
+      res.status(400).json({
+        message: 'Cannot delete a course that is published or under review.',
+      });
+      return;
+    }
+
+    // Check if course has been purchased
+    const purchaseCount = await CourseEnrollment.count({
+      where: { courseId },
+    });
+
+    if (purchaseCount > 0) {
+      res.status(400).json({
+        message: 'Cannot delete a course that has been purchased.',
+      });
+      return;
+    }
+
+    // Delete the course
+    await course.destroy();
+
+    res.status(200).json({ message: 'Course deleted successfully.' });
+  } catch (error: any) {
+    res.status(500).json({
+      message: error.message || 'Failed to delete course.',
     });
   }
 };

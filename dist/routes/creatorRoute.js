@@ -51,6 +51,7 @@ creatorRoutes.get('/courses', authMiddleware_1.default, authorizeCreator_1.defau
 creatorRoutes.get('/course', authMiddleware_1.default, authorizeCreator_1.default, creatorController.viewCourse);
 creatorRoutes.get('/course/statistics', authMiddleware_1.default, authorizeCreator_1.default, creatorController.courseStatistics);
 creatorRoutes.post('/course/publish', authMiddleware_1.default, authorizeCreator_1.default, creatorController.coursePublish);
+creatorRoutes.delete('/course/delete/:courseId', authMiddleware_1.default, authorizeCreator_1.default, creatorController.deleteUnpublishedUnpurchasedCourse);
 // Module
 creatorRoutes.get('/course/modules', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getCourseModules);
 // Module

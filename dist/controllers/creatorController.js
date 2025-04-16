@@ -45,14 +45,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteJob = exports.closeJob = exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModuleDetails = exports.getCourseModules = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
-exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = void 0;
+exports.closeJob = exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModuleDetails = exports.getCourseModules = exports.deleteUnpublishedUnpurchasedCourse = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = void 0;
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
 const logger_1 = __importDefault(require("../middlewares/logger"));
 const sequelize_1 = require("sequelize");
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
-const course_1 = __importDefault(require("../models/course"));
+const course_1 = __importStar(require("../models/course"));
 const lesson_1 = __importDefault(require("../models/lesson"));
 const module_1 = __importDefault(require("../models/module"));
 const lessonquiz_1 = __importDefault(require("../models/lessonquiz"));
@@ -70,6 +70,7 @@ const lessonassignment_1 = __importDefault(require("../models/lessonassignment")
 const helpers_1 = require("../utils/helpers");
 const category_1 = __importStar(require("../models/category"));
 const category_service_1 = __importDefault(require("../services/category.service"));
+const courseenrollment_1 = __importDefault(require("../models/courseenrollment"));
 const courseCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const includeInactive = req.query.includeInactive === 'true';
@@ -428,6 +429,44 @@ const coursePublish = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.coursePublish = coursePublish;
+const deleteUnpublishedUnpurchasedCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const courseId = req.params.courseId;
+        // Find the course
+        const course = yield course_1.default.findByPk(courseId);
+        if (!course) {
+            res.status(404).json({ message: 'Course not found.' });
+            return;
+        }
+        // Check if course is published or under review
+        if (course.status === course_1.CourseStatus.UNDER_REVIEW ||
+            course.status === course_1.CourseStatus.LIVE) {
+            res.status(400).json({
+                message: 'Cannot delete a course that is published or under review.',
+            });
+            return;
+        }
+        // Check if course has been purchased
+        const purchaseCount = yield courseenrollment_1.default.count({
+            where: { courseId },
+        });
+        if (purchaseCount > 0) {
+            res.status(400).json({
+                message: 'Cannot delete a course that has been purchased.',
+            });
+            return;
+        }
+        // Delete the course
+        yield course.destroy();
+        res.status(200).json({ message: 'Course deleted successfully.' });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'Failed to delete course.',
+        });
+    }
+});
+exports.deleteUnpublishedUnpurchasedCourse = deleteUnpublishedUnpurchasedCourse;
 // Module
 const getCourseModules = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const courseId = req.query.courseId;

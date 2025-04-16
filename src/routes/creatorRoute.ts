@@ -81,6 +81,12 @@ creatorRoutes.post(
   authorizeCreator,
   creatorController.coursePublish
 );
+creatorRoutes.delete(
+  '/course/delete/:courseId',
+  authMiddleware,
+  authorizeCreator,
+  creatorController.deleteUnpublishedUnpurchasedCourse
+);
 
 // Module
 creatorRoutes.get(
