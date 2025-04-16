@@ -3,10 +3,11 @@ import express from 'express';
 import {
   getAdminYearlyAnalysis,
   getRecentSignups,
+  getStudentAnalysis,
   getUsersByCountry,
   getUserStats,
   getYearlyAnalysis,
-} from '../controllers/purchaseAnalysisController';
+} from '../controllers/analysisController';
 import { Sequelize } from 'sequelize'; // Assuming you have a database connection setup
 import authMiddleware from '../middlewares/authMiddleware';
 import authorizeCreatorOrInstitution from '../middlewares/authorizeCreatorOrInstitution';
@@ -38,6 +39,8 @@ router.get('/admin/user-stats', adminAuthMiddleware, getUserStats);
 // Get users by country
 router.get('/admin/users-by-country', adminAuthMiddleware, getUsersByCountry);
 
+// Get student analysis (for regular users)
+router.get('/student/yearly', authMiddleware, getStudentAnalysis);
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);
 
