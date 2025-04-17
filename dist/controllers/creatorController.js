@@ -424,27 +424,20 @@ const coursePublish = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         yield course.save();
         // Create notification
         yield notification_1.default.create({
-            message: `Your course ${course.title} has been published.`,
+            message: `Your course '${course.title}' has been published. The admin has been notified to make it live.`,
             link: `${process.env.APP_URL}/creator/courses`,
             userId: (_a = course.creator) === null || _a === void 0 ? void 0 : _a.id,
         });
-        // Send email notification to creator
-        // try {
-        //   const messageToSubscriber =
-        //     await emailTemplates.sendCoursePublishedNotification(
-        //       course.creator?.email!,
-        //       course.title!
-        //     );
-        //   // Send email
-        //   await sendMail(
-        //     course.creator?.email!,
-        //     `${process.env.APP_NAME} - Your Course Has Been Published 🎉`,
-        //     messageToSubscriber
-        //   );
-        // } catch (emailError) {
-        //   console.error('Failed to send publish notification:', emailError);
-        //   // Continue even if email fails
-        // }
+        // Send email notification to admin
+        try {
+            const messageToSubscriber = yield messages_1.emailTemplates.sendDigitalAssetPublishRequestNotification(process.env.ADMIN_EMAIL, course.title);
+            // Send email
+            yield (0, mail_service_1.sendMail)(process.env.ADMIN_EMAIL, `${process.env.APP_NAME} - Your course has been submitted for review`, messageToSubscriber);
+        }
+        catch (emailError) {
+            console.error('Failed to send publish request notification:', emailError);
+            // Continue even if email fails
+        }
         res.status(200).json({
             message: 'Course published successfully.',
             data: course,
@@ -483,7 +476,7 @@ const courseUnpublish = (req, res) => __awaiter(void 0, void 0, void 0, function
         yield course.save();
         // Create notification
         yield notification_1.default.create({
-            message: `Your course ${course.title} has been unpublished.`,
+            message: `Your course '${course.title}' has been unpublished.`,
             link: `${process.env.APP_URL}/creator/courses`,
             userId: (_a = course.creator) === null || _a === void 0 ? void 0 : _a.id,
         });
@@ -499,7 +492,7 @@ const courseUnpublish = (req, res) => __awaiter(void 0, void 0, void 0, function
         //   // Continue even if email fails
         // }
         res.status(200).json({
-            message: 'Course published successfully.',
+            message: 'Course unpublished successfully.',
             data: course,
         });
     }
@@ -1479,7 +1472,7 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.viewDigitalAsset = viewDigitalAsset;
 const updateDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id, categoryId } = req.body; // ID is passed in the request body
+    const { id, categoryId, isPublished, status } = req.body; // ID is passed in the request body
     try {
         // Category check
         const category = yield category_1.default.findByPk(categoryId);
@@ -1490,13 +1483,42 @@ const updateDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, funct
             return;
         }
         // Find the Digital Asset by ID
-        const asset = yield digitalasset_1.default.findByPk(id);
+        const asset = yield digitalasset_1.default.findOne({
+            where: { id },
+            include: [{ model: user_1.default, as: 'user' }],
+        });
         if (!asset) {
             res.status(404).json({ message: 'Digital Asset not found' });
             return;
         }
         // Update the Digital Asset with new data
         yield asset.update(Object.assign(Object.assign({}, req.body), { categoryId: category.id }));
+        if (isPublished) {
+            // Create notification
+            yield notification_1.default.create({
+                message: `Your digital asset '${asset.assetName}' has been published. The admin has been notified to make it live.`,
+                link: `${process.env.APP_URL}/creator/assets`,
+                userId: asset.creatorId,
+            });
+            // Send email notification to admin
+            try {
+                const messageToSubscriber = yield messages_1.emailTemplates.sendDigitalAssetPublishRequestNotification(process.env.ADMIN_EMAIL, asset.assetName);
+                // Send email
+                yield (0, mail_service_1.sendMail)(process.env.ADMIN_EMAIL, `${process.env.APP_NAME} - Your digital asset has been submitted for review`, messageToSubscriber);
+            }
+            catch (emailError) {
+                console.error('Failed to send digital asset publish request notification:', emailError);
+                // Continue even if email fails
+            }
+        }
+        else {
+            // Create notification
+            yield notification_1.default.create({
+                message: `Your digital asset '${asset.assetName}' has been unpublished`,
+                link: `${process.env.APP_URL}/creator/assets`,
+                userId: asset.creatorId,
+            });
+        }
         res.status(200).json({
             message: 'Digital Asset updated successfully',
         });

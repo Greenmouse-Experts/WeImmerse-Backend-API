@@ -584,6 +584,11 @@ export const digitalAssetValidationRules = () => {
         'Status must be one of: published, unpublished, under_review'
       ),
 
+    check('isPublished')
+      .optional()
+      .isBoolean()
+      .withMessage('Status must be of a boolean value'),
+
     check('provider')
       .optional()
       .isIn(['meshy-ai', 'system'])

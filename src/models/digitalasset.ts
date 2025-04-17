@@ -113,6 +113,11 @@ const initModel = (sequelize: Sequelize) => {
         type: DataTypes.FLOAT,
         allowNull: true,
       },
+      isPublished: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true,
+      },
       status: {
         type: DataTypes.ENUM('published', 'unpublished', 'under_review'),
         defaultValue: 'under_review',

@@ -46,7 +46,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createPhysicalAsset = exports.getAllPhysicalAssets = exports.updateDigitalAssetStatus = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.getAllDigitalAssets = exports.deleteJobCategory = exports.updateJobCategory = exports.createJobCategory = exports.getJobCategories = exports.getSingleUser = exports.getAllInstitution = exports.getAllStudent = exports.getAllUser = exports.getAllCreator = exports.deleteSubscriptionPlan = exports.updateSubscriptionPlan = exports.createSubscriptionPlan = exports.getSubscriptionPlan = exports.getAllSubscriptionPlans = exports.deleteAssetCategory = exports.updateAssetCategory = exports.createAssetCategory = exports.getAssetCategories = exports.deleteCourseCategory = exports.updateCourseCategory = exports.createCourseCategory = exports.getCourseCategories = exports.deletePermission = exports.updatePermission = exports.getPermissions = exports.createPermission = exports.deletePermissionFromRole = exports.assignPermissionToRole = exports.viewRolePermissions = exports.updateRole = exports.getRoles = exports.createRole = exports.resendLoginDetailsSubAdmin = exports.deleteSubAdmin = exports.deactivateOrActivateSubAdmin = exports.updateSubAdmin = exports.createSubAdmin = exports.subAdmins = exports.updatePassword = exports.updateProfile = exports.logout = void 0;
-exports.fetchAllJobs = exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.getAllCourses = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = void 0;
+exports.fetchAllJobs = exports.vetJobPost = exports.fetchJobs = exports.vetAccount = exports.reviewJobPost = exports.getAllCourses = exports.unpublishCourse = exports.publishCourse = exports.updatePhysicalAssetStatus = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = void 0;
 const sequelize_1 = require("sequelize");
 const helpers_1 = require("../utils/helpers");
 const mail_service_1 = require("../services/mail.service");
@@ -62,7 +62,7 @@ const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan")
 const user_1 = __importDefault(require("../models/user"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
-const course_1 = __importDefault(require("../models/course"));
+const course_1 = __importStar(require("../models/course"));
 const job_1 = __importDefault(require("../models/job"));
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const job_service_1 = __importDefault(require("../services/job.service"));
@@ -71,6 +71,7 @@ const kycverification_1 = __importDefault(require("../models/kycverification"));
 const wallet_1 = __importDefault(require("../models/wallet"));
 const withdrawalaccount_1 = __importDefault(require("../models/withdrawalaccount"));
 const category_1 = __importStar(require("../models/category"));
+const notification_1 = __importDefault(require("../models/notification"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -1456,8 +1457,43 @@ const updateDigitalAssetStatus = (req, res) => __awaiter(void 0, void 0, void 0,
             status,
             adminNote: status === 'unpublished' ? adminNote : null,
         });
+        // Send email notification to admin
+        if (status === 'published') {
+            // Create notification
+            yield notification_1.default.create({
+                message: `Your digital asset '${asset.assetName}' has been published.`,
+                link: `${process.env.APP_URL}/creator/assets`,
+                userId: asset.creatorId,
+            });
+            try {
+                const messageToSubscriber = yield messages_1.emailTemplates.sendDigitalAssetPublishedNotification(process.env.ADMIN_EMAIL, asset.assetName);
+                // Send email
+                yield (0, mail_service_1.sendMail)(process.env.ADMIN_EMAIL, `${process.env.APP_NAME} - Your digital asset has been published`, messageToSubscriber);
+            }
+            catch (emailError) {
+                console.error('Failed to send digital asset publish notification:', emailError);
+                // Continue even if email fails
+            }
+        }
+        else {
+            // Create notification
+            yield notification_1.default.create({
+                message: `Your digital asset '${asset.assetName}' has been unpublished.`,
+                link: `${process.env.APP_URL}/creator/assets`,
+                userId: asset.creatorId,
+            });
+            try {
+                const messageToSubscriber = yield messages_1.emailTemplates.sendDigitalAssetUnpublishedNotification(process.env.ADMIN_EMAIL, asset.assetName);
+                // Send email
+                yield (0, mail_service_1.sendMail)(process.env.ADMIN_EMAIL, `${process.env.APP_NAME} - Your digital asset has been unpublished`, messageToSubscriber);
+            }
+            catch (emailError) {
+                console.error('Failed to send digital asset unpublish notification:', emailError);
+                // Continue even if email fails
+            }
+        }
         res.status(200).json({
-            message: 'Asset status updated successfully.',
+            message: 'Digital Asset status updated successfully.',
             data: asset,
         });
     }
@@ -1695,10 +1731,14 @@ exports.updatePhysicalAssetStatus = updatePhysicalAssetStatus;
 // Course
 // Publish course
 const publishCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
     try {
         const courseId = req.params.id;
         // Find the course by its ID
-        const course = yield course_1.default.findByPk(courseId);
+        const course = yield course_1.default.findOne({
+            where: { id: courseId },
+            include: [{ model: user_1.default, as: 'creator' }],
+        });
         if (!course) {
             res.status(404).json({
                 message: 'Course not found in our database.',
@@ -1737,9 +1777,24 @@ const publishCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         // Update the course status to published (true)
         course.published = true; // Assuming `status` is a boolean column
-        course.status = 'live';
+        course.status = course_1.CourseStatus.LIVE;
         yield course.save();
-        // Send email to the creator about course status update
+        // Create notification
+        yield notification_1.default.create({
+            message: `Your course '${course.title}' is now live.`,
+            link: `${process.env.APP_URL}/creator/courses`,
+            userId: (_a = course.creator) === null || _a === void 0 ? void 0 : _a.id,
+        });
+        // Send email notification to creator
+        try {
+            const messageToSubscriber = yield messages_1.emailTemplates.sendCoursePublishedNotification((_b = course.creator) === null || _b === void 0 ? void 0 : _b.email, course.title);
+            // Send email
+            yield (0, mail_service_1.sendMail)((_c = course.creator) === null || _c === void 0 ? void 0 : _c.email, `${process.env.APP_NAME} - Your Course Has Been Published 🎉`, messageToSubscriber);
+        }
+        catch (emailError) {
+            console.error('Failed to send publish notification:', emailError);
+            // Continue even if email fails
+        }
         res.status(200).json({
             message: 'Course is now live.',
             data: course,
@@ -1752,6 +1807,59 @@ const publishCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.publishCourse = publishCourse;
+// unpublish course
+const unpublishCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b, _c;
+    try {
+        const courseId = req.params.id;
+        // Find the course by its ID
+        const course = yield course_1.default.findOne({
+            where: { id: courseId },
+            include: [{ model: user_1.default, as: 'creator' }],
+        });
+        if (!course) {
+            res.status(404).json({
+                message: 'Course not found in our database.',
+            });
+            return;
+        }
+        if (course.status === course_1.CourseStatus.UNPUBLISHED) {
+            return res.status(400).json({
+                status: false,
+                message: 'Course has already been unpublished',
+            });
+        }
+        // Update the course status to published (true)
+        course.status = course_1.CourseStatus.UNPUBLISHED;
+        yield course.save();
+        // Create notification
+        yield notification_1.default.create({
+            message: `Your course '${course.title}' has been unpublished by the admin.`,
+            link: `${process.env.APP_URL}/creator/courses`,
+            userId: (_a = course.creator) === null || _a === void 0 ? void 0 : _a.id,
+        });
+        // Send email notification to creator
+        try {
+            const messageToSubscriber = yield messages_1.emailTemplates.sendCoursePublishedNotification((_b = course.creator) === null || _b === void 0 ? void 0 : _b.email, course.title);
+            // Send email
+            yield (0, mail_service_1.sendMail)((_c = course.creator) === null || _c === void 0 ? void 0 : _c.email, `${process.env.APP_NAME} - Your Course Has Been Published 🎉`, messageToSubscriber);
+        }
+        catch (emailError) {
+            console.error('Failed to send publish notification:', emailError);
+            // Continue even if email fails
+        }
+        res.status(200).json({
+            message: 'Course is now unpublished.',
+            data: course,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while publishing the course.',
+        });
+    }
+});
+exports.unpublishCourse = unpublishCourse;
 // Get all courses with filters (categoryId)
 const getAllCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {

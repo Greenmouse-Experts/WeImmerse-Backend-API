@@ -1711,8 +1711,67 @@ export const updateDigitalAssetStatus = async (
       adminNote: status === 'unpublished' ? adminNote : null,
     });
 
+    // Send email notification to admin
+    if (status === 'published') {
+      // Create notification
+      await Notification.create({
+        message: `Your digital asset '${asset.assetName}' has been published.`,
+        link: `${process.env.APP_URL}/creator/assets`,
+        userId: asset.creatorId,
+      });
+
+      try {
+        const messageToSubscriber =
+          await emailTemplates.sendDigitalAssetPublishedNotification(
+            process.env.ADMIN_EMAIL!,
+            asset.assetName!
+          );
+
+        // Send email
+        await sendMail(
+          process.env.ADMIN_EMAIL!,
+          `${process.env.APP_NAME} - Your digital asset has been published`,
+          messageToSubscriber
+        );
+      } catch (emailError) {
+        console.error(
+          'Failed to send digital asset publish notification:',
+          emailError
+        );
+        // Continue even if email fails
+      }
+    } else {
+      // Create notification
+      await Notification.create({
+        message: `Your digital asset '${asset.assetName}' has been unpublished.`,
+        link: `${process.env.APP_URL}/creator/assets`,
+        userId: asset.creatorId,
+      });
+
+      try {
+        const messageToSubscriber =
+          await emailTemplates.sendDigitalAssetUnpublishedNotification(
+            process.env.ADMIN_EMAIL!,
+            asset.assetName!
+          );
+
+        // Send email
+        await sendMail(
+          process.env.ADMIN_EMAIL!,
+          `${process.env.APP_NAME} - Your digital asset has been unpublished`,
+          messageToSubscriber
+        );
+      } catch (emailError) {
+        console.error(
+          'Failed to send digital asset unpublish notification:',
+          emailError
+        );
+        // Continue even if email fails
+      }
+    }
+
     res.status(200).json({
-      message: 'Asset status updated successfully.',
+      message: 'Digital Asset status updated successfully.',
       data: asset,
     });
   } catch (error: any) {
