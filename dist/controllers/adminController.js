@@ -1570,9 +1570,7 @@ const getPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, functi
     try {
         const { assetName, status } = req.query; // Extract search parameters
         // Build search conditions
-        const searchConditions = {
-            creatorId: adminId,
-        };
+        const searchConditions = {};
         if (assetName) {
             searchConditions.assetName = { [sequelize_1.Op.like]: `%${assetName}%` }; // Partial match
         }
@@ -1715,6 +1713,41 @@ const updatePhysicalAssetStatus = (req, res) => __awaiter(void 0, void 0, void 0
             status,
             adminNote: status === 'unpublished' ? adminNote : null,
         });
+        // Send email notification to admin
+        if (status === 'published') {
+            // Create notification
+            yield notification_1.default.create({
+                message: `Your physical asset '${asset.assetName}' has been published.`,
+                link: `${process.env.APP_URL}/creator/assets`,
+                userId: asset.creatorId,
+            });
+            try {
+                const messageToSubscriber = yield messages_1.emailTemplates.sendPhysicalAssetPublishedNotification(process.env.ADMIN_EMAIL, asset.assetName);
+                // Send email
+                yield (0, mail_service_1.sendMail)(process.env.ADMIN_EMAIL, `${process.env.APP_NAME} - Your physical asset has been published`, messageToSubscriber);
+            }
+            catch (emailError) {
+                console.error('Failed to send physical asset publish notification:', emailError);
+                // Continue even if email fails
+            }
+        }
+        else {
+            // Create notification
+            yield notification_1.default.create({
+                message: `Your physical asset '${asset.assetName}' has been unpublished.`,
+                link: `${process.env.APP_URL}/creator/assets`,
+                userId: asset.creatorId,
+            });
+            try {
+                const messageToSubscriber = yield messages_1.emailTemplates.sendPhysicalAssetUnpublishedNotification(process.env.ADMIN_EMAIL, asset.assetName);
+                // Send email
+                yield (0, mail_service_1.sendMail)(process.env.ADMIN_EMAIL, `${process.env.APP_NAME} - Your physical asset has been unpublished`, messageToSubscriber);
+            }
+            catch (emailError) {
+                console.error('Failed to send physical asset unpublish notification:', emailError);
+                // Continue even if email fails
+            }
+        }
         res.status(200).json({
             message: 'Asset status updated successfully.',
             data: asset,

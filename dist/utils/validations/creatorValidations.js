@@ -576,6 +576,10 @@ const physicalAssetValidationRules = () => {
             .withMessage('Amount is required')
             .isFloat({ gt: 0 })
             .withMessage('Amount must be a positive number'),
+        (0, express_validator_1.check)('isPublished')
+            .optional()
+            .isBoolean()
+            .withMessage('Status must be of a boolean value'),
     ];
 };
 exports.physicalAssetValidationRules = physicalAssetValidationRules;

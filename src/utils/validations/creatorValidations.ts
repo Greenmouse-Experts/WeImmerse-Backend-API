@@ -662,6 +662,11 @@ export const physicalAssetValidationRules = () => {
       .withMessage('Amount is required')
       .isFloat({ gt: 0 })
       .withMessage('Amount must be a positive number'),
+
+    check('isPublished')
+      .optional()
+      .isBoolean()
+      .withMessage('Status must be of a boolean value'),
   ];
 };
 

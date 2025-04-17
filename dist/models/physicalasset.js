@@ -78,6 +78,11 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.ENUM('published', 'unpublished', 'under_review'),
             defaultValue: 'under_review',
         },
+        isPublished: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: true,
+        },
         adminNote: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,

@@ -1981,7 +1981,7 @@ export const updatePhysicalAsset = async (
   req: Request,
   res: Response
 ): Promise<void> => {
-  const { id, categoryId } = req.body; // ID is passed in the request body
+  const { id, categoryId, isPublished } = req.body; // ID is passed in the request body
 
   try {
     // Category check
@@ -2003,6 +2003,43 @@ export const updatePhysicalAsset = async (
 
     // Update the Physical Asset with new data
     await asset.update({ ...req.body, categoryId: category.id });
+
+    if (isPublished) {
+      // Create notification
+      await Notification.create({
+        message: `Your physical asset '${asset.assetName}' has been published. The admin has been notified to make it live.`,
+        link: `${process.env.APP_URL}/creator/assets`,
+        userId: asset.creatorId,
+      });
+
+      // Send email notification to admin
+      try {
+        const messageToSubscriber =
+          await emailTemplates.sendPhysicalAssetPublishRequestNotification(
+            process.env.ADMIN_EMAIL!,
+            asset.assetName
+          );
+
+        // Send email
+        await sendMail(
+          process.env.ADMIN_EMAIL!,
+          `${process.env.APP_NAME} - Your physical asset has been submitted for review`,
+          messageToSubscriber
+        );
+      } catch (emailError) {
+        console.error(
+          'Failed to send physical asset publish request notification:',
+          emailError
+        );
+      }
+    } else {
+      // Create notification
+      await Notification.create({
+        message: `Your physical asset '${asset.assetName}' has been unpublished`,
+        link: `${process.env.APP_URL}/creator/assets`,
+        userId: asset.creatorId,
+      });
+    }
 
     res.status(200).json({
       message: 'Physical Asset updated successfully',

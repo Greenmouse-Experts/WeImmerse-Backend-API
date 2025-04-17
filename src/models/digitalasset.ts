@@ -19,6 +19,7 @@ class DigitalAsset extends Model {
   public currency?: string; // Optional, used when One Time Purchase is selected
   public amount?: number; // Optional, used when One Time Purchase is selected
   public status!: 'published' | 'unpublished' | 'under_review';
+  public isPublished!: boolean;
   public adminNote?: string;
   public provider?: 'meshy-ai' | 'system';
 

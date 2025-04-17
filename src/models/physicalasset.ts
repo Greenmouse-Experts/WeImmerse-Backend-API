@@ -15,6 +15,7 @@ class PhysicalAsset extends Model {
   public currency!: string;
   public amount!: number;
   public status!: 'published' | 'unpublished' | 'under_review';
+  public isPublished!: boolean;
   public adminNote?: string;
 
   public readonly createdAt!: Date;
@@ -95,6 +96,11 @@ const initModel = (sequelize: Sequelize) => {
       status: {
         type: DataTypes.ENUM('published', 'unpublished', 'under_review'),
         defaultValue: 'under_review',
+      },
+      isPublished: {
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue: true,
       },
       adminNote: {
         type: DataTypes.TEXT,
