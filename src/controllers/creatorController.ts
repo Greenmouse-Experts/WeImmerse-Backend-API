@@ -28,6 +28,7 @@ import { formatCourse } from '../utils/helpers';
 import Category, { CategoryTypes } from '../models/category';
 import categoryService from '../services/category.service';
 import CourseEnrollment from '../models/courseenrollment';
+import Notification from '../models/notification';
 
 export const courseCategories = async (
   req: Request,
@@ -417,7 +418,10 @@ export const coursePublish = async (
     const courseId = req.query.courseId as string;
 
     // Find the course by its ID
-    const course = await Course.findByPk(courseId);
+    const course = await Course.findOne({
+      where: { id: courseId },
+      include: [{ model: User, as: 'creator' }],
+    });
     if (!course) {
       res.status(404).json({
         message: 'Course not found in our database.',
@@ -462,8 +466,95 @@ export const coursePublish = async (
 
     // Update the course status to published (true)
     course.published = true; // Assuming `status` is a boolean column
-    course.status = 'under_review';
+    course.status = CourseStatus.LIVE;
     await course.save();
+
+    // Create notification
+    await Notification.create({
+      message: `Your course ${course.title} has been published.`,
+      link: `${process.env.APP_URL}/creator/courses`,
+      userId: course.creator?.id,
+    });
+
+    // Send email notification to creator
+    // try {
+    //   const messageToSubscriber =
+    //     await emailTemplates.sendCoursePublishedNotification(
+    //       course.creator?.email!,
+    //       course.title!
+    //     );
+
+    //   // Send email
+    //   await sendMail(
+    //     course.creator?.email!,
+    //     `${process.env.APP_NAME} - Your Course Has Been Published 🎉`,
+    //     messageToSubscriber
+    //   );
+    // } catch (emailError) {
+    //   console.error('Failed to send publish notification:', emailError);
+    //   // Continue even if email fails
+    // }
+
+    res.status(200).json({
+      message: 'Course published successfully.',
+      data: course,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message:
+        error.message || 'An error occurred while publishing the course.',
+    });
+  }
+};
+
+export const courseUnpublish = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const courseId = req.query.courseId as string;
+
+    // Find the course by its ID
+    const course = await Course.findOne({
+      where: { id: courseId },
+      include: [{ model: User, as: 'creator' }],
+    });
+    if (!course) {
+      res.status(404).json({
+        message: 'Course not found in our database.',
+      });
+      return;
+    }
+
+    if (!course.isPublished) {
+      return res.status(400).json({
+        status: false,
+        message: 'Course has already been unpublished.',
+      });
+    }
+
+    // Update the course status to published (true)
+    course.published = false; // Assuming `status` is a boolean column
+    await course.save();
+
+    // Create notification
+    await Notification.create({
+      message: `Your course ${course.title} has been unpublished.`,
+      link: `${process.env.APP_URL}/creator/courses`,
+      userId: course.creator?.id,
+    });
+
+    // Send email notification to creator
+    // try {
+    //   const messageToSubscriber =
+    //     await emailTemplates.sendCoursePublishedNotification(
+    //       course.creator?.email!,
+    //       course.title!
+    //     );
+    // } catch (emailError) {
+    //   console.error('Failed to send publish notification:', emailError);
+    //   // Continue even if email fails
+    // }
 
     res.status(200).json({
       message: 'Course published successfully.',
