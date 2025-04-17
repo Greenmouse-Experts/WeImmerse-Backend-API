@@ -287,11 +287,11 @@ class TransactionService {
                         if (!product.currency || !product.amount) {
                             throw new ApiError_1.ForbiddenError('Digital asset not properly configured for purchase');
                         }
-                        if (product.currency !== currency || product.amount !== amount) {
+                        if (product.currency !== currency || +product.amount !== +amount) {
                             throw new ApiError_1.ForbiddenError('Invalid payment amount or currency');
                         }
                     }
-                    else if (product.pricingType === 'Free' && amount !== 0) {
+                    else if (product.pricingType === 'Free' && +amount !== 0) {
                         throw new ApiError_1.ForbiddenError('This is a free asset');
                     }
                     creator = product.user;
@@ -306,7 +306,7 @@ class TransactionService {
                     if (!product.currency || !product.amount) {
                         throw new ApiError_1.ForbiddenError('Physical asset not properly configured for purchase');
                     }
-                    if (product.currency !== currency || product.amount !== amount) {
+                    if (product.currency !== currency || +product.amount !== +amount) {
                         throw new ApiError_1.ForbiddenError('Invalid payment amount or currency');
                     }
                     creator = product.user;
@@ -324,17 +324,13 @@ class TransactionService {
                     });
                     if (existingEnrollment)
                         throw new ApiError_1.ConflictError('You are already enrolled in this course');
-                    if (product.price === 0 && amount !== 0) {
+                    if (product.price === 0 && +amount !== 0) {
                         throw new ApiError_1.ForbiddenError('This is a free course');
                     }
                     else if (product.price > 0) {
-                        console.log(product.price);
-                        console.log(amount);
-                        console.log(product.currency);
-                        console.log(currency);
                         if (!product.currency)
                             throw new ApiError_1.ForbiddenError('Course not properly configured');
-                        if (product.currency !== currency || product.price !== amount) {
+                        if (product.currency !== currency || +product.price !== +amount) {
                             throw new ApiError_1.ForbiddenError('Invalid payment amount or currency');
                         }
                     }
