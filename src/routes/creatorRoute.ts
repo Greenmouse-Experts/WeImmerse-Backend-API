@@ -81,6 +81,12 @@ creatorRoutes.post(
   authorizeCreator,
   creatorController.coursePublish
 );
+creatorRoutes.post(
+  '/course/unpublish',
+  authMiddleware,
+  authorizeCreator,
+  creatorController.courseUnpublish
+);
 creatorRoutes.delete(
   '/course/delete/:courseId',
   authMiddleware,

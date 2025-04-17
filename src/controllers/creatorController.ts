@@ -466,12 +466,12 @@ export const coursePublish = async (
 
     // Update the course status to published (true)
     course.published = true; // Assuming `status` is a boolean column
-    course.status = CourseStatus.LIVE;
+    course.status = CourseStatus.UNDER_REVIEW;
     await course.save();
 
     // Create notification
     await Notification.create({
-      message: `Your course ${course.title} has been published.`,
+      message: `Your course '${course.title}' has been published.`,
       link: `${process.env.APP_URL}/creator/courses`,
       userId: course.creator?.id,
     });
@@ -539,7 +539,7 @@ export const courseUnpublish = async (
 
     // Create notification
     await Notification.create({
-      message: `Your course ${course.title} has been unpublished.`,
+      message: `Your course '${course.title}' has been unpublished.`,
       link: `${process.env.APP_URL}/creator/courses`,
       userId: course.creator?.id,
     });
@@ -557,7 +557,7 @@ export const courseUnpublish = async (
     // }
 
     res.status(200).json({
-      message: 'Course published successfully.',
+      message: 'Course unpublished successfully.',
       data: course,
     });
   } catch (error: any) {

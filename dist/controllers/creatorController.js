@@ -45,8 +45,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.closeJob = exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModuleDetails = exports.getCourseModules = exports.deleteUnpublishedUnpurchasedCourse = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
-exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = void 0;
+exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModuleDetails = exports.getCourseModules = exports.deleteUnpublishedUnpurchasedCourse = exports.courseUnpublish = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = void 0;
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
 const logger_1 = __importDefault(require("../middlewares/logger"));
@@ -71,6 +71,7 @@ const helpers_1 = require("../utils/helpers");
 const category_1 = __importStar(require("../models/category"));
 const category_service_1 = __importDefault(require("../services/category.service"));
 const courseenrollment_1 = __importDefault(require("../models/courseenrollment"));
+const notification_1 = __importDefault(require("../models/notification"));
 const courseCategories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const includeInactive = req.query.includeInactive === 'true';
@@ -373,10 +374,14 @@ const courseStatistics = (req, res) => __awaiter(void 0, void 0, void 0, functio
 });
 exports.courseStatistics = courseStatistics;
 const coursePublish = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const courseId = req.query.courseId;
         // Find the course by its ID
-        const course = yield course_1.default.findByPk(courseId);
+        const course = yield course_1.default.findOne({
+            where: { id: courseId },
+            include: [{ model: user_1.default, as: 'creator' }],
+        });
         if (!course) {
             res.status(404).json({
                 message: 'Course not found in our database.',
@@ -415,8 +420,31 @@ const coursePublish = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         // Update the course status to published (true)
         course.published = true; // Assuming `status` is a boolean column
-        course.status = 'under_review';
+        course.status = course_1.CourseStatus.UNDER_REVIEW;
         yield course.save();
+        // Create notification
+        yield notification_1.default.create({
+            message: `Your course ${course.title} has been published.`,
+            link: `${process.env.APP_URL}/creator/courses`,
+            userId: (_a = course.creator) === null || _a === void 0 ? void 0 : _a.id,
+        });
+        // Send email notification to creator
+        // try {
+        //   const messageToSubscriber =
+        //     await emailTemplates.sendCoursePublishedNotification(
+        //       course.creator?.email!,
+        //       course.title!
+        //     );
+        //   // Send email
+        //   await sendMail(
+        //     course.creator?.email!,
+        //     `${process.env.APP_NAME} - Your Course Has Been Published 🎉`,
+        //     messageToSubscriber
+        //   );
+        // } catch (emailError) {
+        //   console.error('Failed to send publish notification:', emailError);
+        //   // Continue even if email fails
+        // }
         res.status(200).json({
             message: 'Course published successfully.',
             data: course,
@@ -429,6 +457,59 @@ const coursePublish = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.coursePublish = coursePublish;
+const courseUnpublish = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const courseId = req.query.courseId;
+        // Find the course by its ID
+        const course = yield course_1.default.findOne({
+            where: { id: courseId },
+            include: [{ model: user_1.default, as: 'creator' }],
+        });
+        if (!course) {
+            res.status(404).json({
+                message: 'Course not found in our database.',
+            });
+            return;
+        }
+        if (!course.isPublished) {
+            return res.status(400).json({
+                status: false,
+                message: 'Course has already been unpublished.',
+            });
+        }
+        // Update the course status to published (true)
+        course.published = false; // Assuming `status` is a boolean column
+        yield course.save();
+        // Create notification
+        yield notification_1.default.create({
+            message: `Your course ${course.title} has been unpublished.`,
+            link: `${process.env.APP_URL}/creator/courses`,
+            userId: (_a = course.creator) === null || _a === void 0 ? void 0 : _a.id,
+        });
+        // Send email notification to creator
+        // try {
+        //   const messageToSubscriber =
+        //     await emailTemplates.sendCoursePublishedNotification(
+        //       course.creator?.email!,
+        //       course.title!
+        //     );
+        // } catch (emailError) {
+        //   console.error('Failed to send publish notification:', emailError);
+        //   // Continue even if email fails
+        // }
+        res.status(200).json({
+            message: 'Course published successfully.',
+            data: course,
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while publishing the course.',
+        });
+    }
+});
+exports.courseUnpublish = courseUnpublish;
 const deleteUnpublishedUnpurchasedCourse = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const courseId = req.params.courseId;
