@@ -24,7 +24,7 @@ import AssetCategory from '../models/assetcategory';
 import JobCategory from '../models/jobcategory';
 import PhysicalAsset from '../models/physicalasset';
 import DigitalAsset from '../models/digitalasset';
-import Course from '../models/course';
+import Course, { CourseStatus } from '../models/course';
 import Job from '../models/job';
 import sequelizeService from '../services/sequelize.service';
 import jobService from '../services/job.service';
@@ -33,6 +33,7 @@ import KYCVerification from '../models/kycverification';
 import Wallet from '../models/wallet';
 import WithdrawalAccount from '../models/withdrawalaccount';
 import Category, { CategoryTypes } from '../models/category';
+import Notification from '../models/notification';
 
 // Extend the Express Request interface to include adminId and admin
 interface AuthenticatedRequest extends Request {
@@ -2001,7 +2002,10 @@ export const publishCourse = async (
     const courseId = req.params.id as string;
 
     // Find the course by its ID
-    const course = await Course.findByPk(courseId);
+    const course = await Course.findOne({
+      where: { id: courseId },
+      include: [{ model: User, as: 'creator' }],
+    });
     if (!course) {
       res.status(404).json({
         message: 'Course not found in our database.',
@@ -2046,13 +2050,106 @@ export const publishCourse = async (
 
     // Update the course status to published (true)
     course.published = true; // Assuming `status` is a boolean column
-    course.status = 'live';
+    course.status = CourseStatus.LIVE;
     await course.save();
 
-    // Send email to the creator about course status update
+    // Create notification
+    await Notification.create({
+      message: `Your course '${course.title}' is now live.`,
+      link: `${process.env.APP_URL}/creator/courses`,
+      userId: course.creator?.id,
+    });
+
+    // Send email notification to creator
+    try {
+      const messageToSubscriber =
+        await emailTemplates.sendCoursePublishedNotification(
+          course.creator?.email!,
+          course.title!
+        );
+
+      // Send email
+      await sendMail(
+        course.creator?.email!,
+        `${process.env.APP_NAME} - Your Course Has Been Published 🎉`,
+        messageToSubscriber
+      );
+    } catch (emailError) {
+      console.error('Failed to send publish notification:', emailError);
+      // Continue even if email fails
+    }
 
     res.status(200).json({
       message: 'Course is now live.',
+      data: course,
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message:
+        error.message || 'An error occurred while publishing the course.',
+    });
+  }
+};
+
+// unpublish course
+export const unpublishCourse = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const courseId = req.params.id as string;
+
+    // Find the course by its ID
+    const course = await Course.findOne({
+      where: { id: courseId },
+      include: [{ model: User, as: 'creator' }],
+    });
+    if (!course) {
+      res.status(404).json({
+        message: 'Course not found in our database.',
+      });
+      return;
+    }
+
+    if (course.status === CourseStatus.UNPUBLISHED) {
+      return res.status(400).json({
+        status: false,
+        message: 'Course has already been unpublished',
+      });
+    }
+
+    // Update the course status to published (true)
+    course.status = CourseStatus.UNPUBLISHED;
+    await course.save();
+
+    // Create notification
+    await Notification.create({
+      message: `Your course '${course.title}' has been unpublished by the admin.`,
+      link: `${process.env.APP_URL}/creator/courses`,
+      userId: course.creator?.id,
+    });
+
+    // Send email notification to creator
+    try {
+      const messageToSubscriber =
+        await emailTemplates.sendCoursePublishedNotification(
+          course.creator?.email!,
+          course.title!
+        );
+
+      // Send email
+      await sendMail(
+        course.creator?.email!,
+        `${process.env.APP_NAME} - Your Course Has Been Published 🎉`,
+        messageToSubscriber
+      );
+    } catch (emailError) {
+      console.error('Failed to send publish notification:', emailError);
+      // Continue even if email fails
+    }
+
+    res.status(200).json({
+      message: 'Course is now unpublished.',
       data: course,
     });
   } catch (error: any) {

@@ -36,7 +36,7 @@ const initModel = (sequelize: Sequelize) => {
       },
       date: {
         type: DataTypes.DATE,
-        allowNull: false,
+        allowNull: true,
         defaultValue: DataTypes.NOW,
       },
       read: {

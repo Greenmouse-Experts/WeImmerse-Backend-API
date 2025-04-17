@@ -355,6 +355,11 @@ adminRoutes.post(
   adminAuthMiddleware,
   adminController.publishCourse
 );
+adminRoutes.post(
+  '/course/:id/unpublish',
+  adminAuthMiddleware,
+  adminController.unpublishCourse
+);
 adminRoutes.get(
   '/course/fetch',
   adminAuthMiddleware,

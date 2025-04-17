@@ -477,23 +477,23 @@ export const coursePublish = async (
     });
 
     // Send email notification to creator
-    // try {
-    //   const messageToSubscriber =
-    //     await emailTemplates.sendCoursePublishedNotification(
-    //       course.creator?.email!,
-    //       course.title!
-    //     );
+    try {
+      const messageToSubscriber =
+        await emailTemplates.sendCoursePublishRequestNotification(
+          process.env.ADMIN_EMAIL!,
+          course.title!
+        );
 
-    //   // Send email
-    //   await sendMail(
-    //     course.creator?.email!,
-    //     `${process.env.APP_NAME} - Your Course Has Been Published 🎉`,
-    //     messageToSubscriber
-    //   );
-    // } catch (emailError) {
-    //   console.error('Failed to send publish notification:', emailError);
-    //   // Continue even if email fails
-    // }
+      // Send email
+      await sendMail(
+        process.env.ADMIN_EMAIL!,
+        `${process.env.APP_NAME} - Your course has been submitted for review`,
+        messageToSubscriber
+      );
+    } catch (emailError) {
+      console.error('Failed to send publish request notification:', emailError);
+      // Continue even if email fails
+    }
 
     res.status(200).json({
       message: 'Course published successfully.',

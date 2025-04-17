@@ -4797,13 +4797,13 @@ export const emailTemplates = {
     `;
   },
 
-  // Send course publish email
-  sendCoursePublishedNotification: async (
-    creatorEmail: string,
+  // Send course publish request email
+  sendCoursePublishRequestNotification: async (
+    adminEmail: string,
     courseTitle: string
   ) => {
     const logoUrl = process.env.LOGO_URL;
-    const dashboardUrl = `${process.env.CLIENT_URL}/dashboard/courses`;
+    const dashboardUrl = `${process.env.CLIENT_URL}/admin/courses`;
     const currentYear = new Date().getFullYear();
 
     const html = `
@@ -4896,6 +4896,242 @@ export const emailTemplates = {
             </div>
             
             <p>Our team will review your course content and get back to you within 2-3 business days. You'll receive another notification once the review is complete.</p>
+            
+            <p>You can check the status of your course at any time in your creator dashboard:</p>
+            <a href="${dashboardUrl}" class="button">View in Dashboard</a>
+            
+            <p>If you have any questions about the review process, please don't hesitate to contact our support team.</p>
+            
+            <p>Happy teaching!<br>The ${process.env.APP_NAME} Team</p>
+          </div>
+          
+          <div class="footer">
+            <p>&copy; ${currentYear} ${process.env.APP_NAME}. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return html;
+  },
+
+  // Send course publish email
+  sendCoursePublishedNotification: async (
+    creatorEmail: string,
+    courseTitle: string
+  ) => {
+    const logoUrl = process.env.LOGO_URL;
+    const dashboardUrl = `${process.env.CLIENT_URL}/creator/courses`;
+    const currentYear = new Date().getFullYear();
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0;
+            padding: 0;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+          }
+          .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+          }
+          .logo { 
+            margin-bottom: 20px; 
+          }
+          .logo img {
+            max-height: 60px;
+          }
+          .content { 
+            background-color: #f9f9f9; 
+            padding: 30px; 
+            border-radius: 8px;
+            border: 1px solid #eaeaea;
+          }
+          h1, h2, h3 {
+            color: #2d3748;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: bold;
+          }
+          .footer { 
+            margin-top: 30px; 
+            text-align: center; 
+            font-size: 12px; 
+            color: #718096; 
+          }
+          .course-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border: 1px solid #e2e8f0;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #EFF6FF;
+            color: #1E40AF;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">
+              <img src="${logoUrl}" alt="Company Logo">
+            </div>
+            <h1>Course Published Successfully</h1>
+          </div>
+          
+          <div class="content">
+            <p>Hello there,</p>
+            <p>We're excited to let you know that your course has been successfully submitted for review!</p>
+            
+            <div class="course-details">
+              <h3>${courseTitle}</h3>
+              <div class="status-badge">Under Review</div>
+            </div>
+            
+            <p>Our team will review your course content and get back to you within 2-3 business days. You'll receive another notification once the review is complete.</p>
+            
+            <p>You can check the status of your course at any time in your creator dashboard:</p>
+            <a href="${dashboardUrl}" class="button">View in Dashboard</a>
+            
+            <p>If you have any questions about the review process, please don't hesitate to contact our support team.</p>
+            
+            <p>Happy teaching!<br>The ${process.env.APP_NAME} Team</p>
+          </div>
+          
+          <div class="footer">
+            <p>&copy; ${currentYear} ${process.env.APP_NAME}. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return html;
+  },
+
+  // Send course unpublish email
+  sendCourseUnpublishedNotification: async (
+    creatorEmail: string,
+    courseTitle: string
+  ) => {
+    const logoUrl = process.env.LOGO_URL;
+    const dashboardUrl = `${process.env.CLIENT_URL}/dashboard/courses`;
+    const currentYear = new Date().getFullYear();
+
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { 
+            font-family: Arial, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0;
+            padding: 0;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+          }
+          .header { 
+            text-align: center; 
+            margin-bottom: 30px; 
+          }
+          .logo { 
+            margin-bottom: 20px; 
+          }
+          .logo img {
+            max-height: 60px;
+          }
+          .content { 
+            background-color: #f9f9f9; 
+            padding: 30px; 
+            border-radius: 8px;
+            border: 1px solid #eaeaea;
+          }
+          h1, h2, h3 {
+            color: #2d3748;
+          }
+          .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background-color: #4F46E5;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: bold;
+          }
+          .footer { 
+            margin-top: 30px; 
+            text-align: center; 
+            font-size: 12px; 
+            color: #718096; 
+          }
+          .course-details {
+            background-color: white;
+            padding: 20px;
+            border-radius: 6px;
+            margin: 20px 0;
+            border: 1px solid #e2e8f0;
+          }
+          .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background-color: #EFF6FF;
+            color: #1E40AF;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            margin-top: 10px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <div class="logo">
+              <img src="${logoUrl}" alt="Company Logo">
+            </div>
+            <h1>Course Published Successfully</h1>
+          </div>
+          
+          <div class="content">
+            <p>Hello there,</p>
+            <p>We're excited to let you know that your course has been unpublished!</p>
+            
+            <div class="course-details">
+              <h3>${courseTitle}</h3>
+              <div class="status-badge">Unpublished</div>
+            </div>
             
             <p>You can check the status of your course at any time in your creator dashboard:</p>
             <a href="${dashboardUrl}" class="button">View in Dashboard</a>
