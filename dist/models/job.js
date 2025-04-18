@@ -1,14 +1,24 @@
 "use strict";
 // models/Job.ts
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initModel = void 0;
+exports.initModel = exports.JobStatus = void 0;
 const sequelize_1 = require("sequelize");
+var JobStatus;
+(function (JobStatus) {
+    JobStatus["DRAFT"] = "draft";
+    JobStatus["ACTIVE"] = "active";
+    JobStatus["CLOSED"] = "closed";
+    JobStatus["LIVE"] = "live";
+})(JobStatus || (exports.JobStatus = JobStatus = {}));
 class Job extends sequelize_1.Model {
     static associate(models) {
         // Define associations here
         // Example:
         this.belongsTo(models.User, { as: 'user', foreignKey: 'creatorId' });
-        this.belongsTo(models.JobCategory, { as: 'category', foreignKey: 'categoryId' });
+        this.belongsTo(models.JobCategory, {
+            as: 'category',
+            foreignKey: 'categoryId',
+        });
         this.hasMany(models.Applicant, { as: 'applicants', foreignKey: 'jobId' });
     }
 }
@@ -88,16 +98,21 @@ const initModel = (sequelize) => {
             allowNull: false,
         },
         status: {
-            type: sequelize_1.DataTypes.ENUM('draft', 'active', 'closed'),
+            type: sequelize_1.DataTypes.ENUM(...Object.keys(JobStatus)),
             defaultValue: 'draft',
             allowNull: false,
         },
+        isPublished: {
+            type: sequelize_1.DataTypes.BOOLEAN,
+            allowNull: true,
+            defaultValue: true,
+        },
     }, {
         sequelize,
-        modelName: "Job",
+        modelName: 'Job',
         timestamps: true,
         paranoid: false,
-        tableName: "jobs", // Matches your migration table name
+        tableName: 'jobs', // Matches your migration table name
     });
 };
 exports.initModel = initModel;

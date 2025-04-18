@@ -91,7 +91,7 @@ class StudentAnalyticsService {
             {
               model: Course,
               as: 'course',
-              attributes: ['id', 'title'],
+
               include: [
                 {
                   model: CourseProgress,

@@ -69,7 +69,6 @@ class StudentAnalyticsService {
                     {
                         model: course_1.default,
                         as: 'course',
-                        attributes: ['id', 'title'],
                         include: [
                             {
                                 model: courseprogress_1.default,

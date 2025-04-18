@@ -45,8 +45,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getJob = exports.getJobs = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModuleDetails = exports.getCourseModules = exports.deleteUnpublishedUnpurchasedCourse = exports.courseUnpublish = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
-exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = void 0;
+exports.getJobs = exports.unpublishJob = exports.postJob = exports.addJob = exports.jobCategories = exports.deletePhysicalAsset = exports.updatePhysicalAsset = exports.viewPhysicalAsset = exports.getPhysicalAssets = exports.createPhysicalAsset = exports.deleteDigitalAsset = exports.updateDigitalAsset = exports.viewDigitalAsset = exports.getDigitalAssets = exports.createDigitalAsset = exports.assetCategories = exports.deleteLessonAssignment = exports.updateLessonAssignment = exports.getLessonAssignments = exports.getLessonAssignment = exports.createLessonAssignment = exports.getLessonQuizQuestion = exports.deleteLessonQuizQuestion = exports.updateLessonQuizQuestion = exports.createLessonQuizQuestion = exports.getLessonQuizzes = exports.deleteLessonQuiz = exports.updateLessonQuiz = exports.createLessonQuiz = exports.updateDraggableLesson = exports.deleteModuleLesson = exports.updateModuleLesson = exports.createModuleLesson = exports.getModuleLessons = exports.updateDraggableCourseModule = exports.deleteCourseModule = exports.updateCourseModule = exports.createCourseModule = exports.getCourseModuleDetails = exports.getCourseModules = exports.deleteUnpublishedUnpurchasedCourse = exports.courseUnpublish = exports.coursePublish = exports.courseStatistics = exports.viewCourse = exports.getCourses = exports.courseThumbnailImage = exports.courseBasic = exports.courseCreate = exports.courseCategories = void 0;
+exports.rejectApplicant = exports.downloadApplicantResume = exports.repostJob = exports.viewApplicant = exports.getJobApplicants = exports.deleteJob = exports.closeJob = exports.getJob = void 0;
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
 const logger_1 = __importDefault(require("../middlewares/logger"));
@@ -60,7 +60,7 @@ const lessonquizquestion_1 = __importDefault(require("../models/lessonquizquesti
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const jobcategory_1 = __importDefault(require("../models/jobcategory"));
-const job_1 = __importDefault(require("../models/job"));
+const job_1 = __importStar(require("../models/job"));
 const uuid_1 = require("uuid");
 const applicant_1 = __importDefault(require("../models/applicant"));
 const user_1 = __importDefault(require("../models/user"));
@@ -1773,8 +1773,11 @@ const addJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
 exports.addJob = addJob;
 const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { jobId, categoryId, title, company, logo, workplaceType, location, jobType, description, skills, applyLink, applicantCollectionEmailAddress, rejectionEmails, } = req.body;
-        const job = yield job_1.default.findByPk(jobId);
+        const { jobId, categoryId, title, company, logo, workplaceType, location, jobType, description, skills, applyLink, applicantCollectionEmailAddress, rejectionEmails, isPublished, } = req.body;
+        const job = yield job_1.default.findOne({
+            where: { id: jobId },
+            include: [{ model: user_1.default, as: 'user' }],
+        });
         if (!job) {
             res.status(404).json({
                 message: 'Job not found in our database.',
@@ -1804,10 +1807,28 @@ const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             applyLink,
             applicantCollectionEmailAddress,
             rejectionEmails,
-            status: 'active',
+            status: job_1.JobStatus.ACTIVE,
         });
+        if (isPublished) {
+            // Create notification
+            yield notification_1.default.create({
+                message: `Your job post '${job.title}' has been published. The admin has been notified to make it live.`,
+                link: `${process.env.APP_URL}/creator/jobs`,
+                userId: job.creatorId,
+            });
+            // Send email notification to admin
+            try {
+                const messageToSubscriber = yield messages_1.emailTemplates.sendJobPostPublishRequestNotification(process.env.ADMIN_EMAIL, job.title);
+                // Send email
+                yield (0, mail_service_1.sendMail)(process.env.ADMIN_EMAIL, `${process.env.APP_NAME} - Your job post has been submitted for review`, messageToSubscriber);
+            }
+            catch (emailError) {
+                console.error('Failed to send job post publish request notification:', emailError);
+                // Continue even if email fails
+            }
+        }
         res.status(200).json({
-            message: 'Job posted successfully.',
+            message: 'Job post published for review successfully.',
             data: job, // Include a JobResource equivalent if needed
         });
     }
@@ -1818,6 +1839,48 @@ const postJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.postJob = postJob;
+const unpublishJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { jobId, categoryId } = req.body;
+        const job = yield job_1.default.findByPk(jobId);
+        if (!job) {
+            res.status(404).json({
+                message: 'Job not found in our database.',
+            });
+            return;
+        }
+        if (categoryId) {
+            const category = yield jobcategory_1.default.findByPk(categoryId);
+            if (!category) {
+                res.status(404).json({
+                    message: 'Category not found in our database.',
+                });
+                return;
+            }
+        }
+        // Use existing job values if new values are not provided
+        yield job.update({
+            status: job_1.JobStatus.DRAFT,
+            isPublished: false,
+        });
+        // Create notification
+        yield notification_1.default.create({
+            message: `Your job post '${job.title}' has been unpublished.`,
+            link: `${process.env.APP_URL}/creator/jobs`,
+            userId: job.creatorId,
+        });
+        res.status(200).json({
+            message: 'Job unpublished successfully.',
+            data: job, // Include a JobResource equivalent if needed
+        });
+    }
+    catch (error) {
+        res.status(500).json({
+            message: error.message || 'An error occurred while unpublishing your job post.',
+        });
+    }
+});
+exports.unpublishJob = unpublishJob;
 const getJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -1883,7 +1946,7 @@ const closeJob = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             return;
         }
         // Update the job status to 'Closed'
-        job.status = 'closed';
+        job.status = job_1.JobStatus.CLOSED;
         job.updatedAt = new Date();
         yield job.save();
         res.status(200).json({

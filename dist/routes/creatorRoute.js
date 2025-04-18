@@ -99,6 +99,7 @@ creatorRoutes.delete('/physical/asset/delete', authMiddleware_1.default, authori
 creatorRoutes.get('/job/categories', authMiddleware_1.default, authorizeCreator_1.default, creatorController.jobCategories);
 creatorRoutes.post('/job/add', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.addJobValidationRules)(), creatorValidations_1.validate, creatorController.addJob);
 creatorRoutes.put('/job/post', authMiddleware_1.default, authorizeCreator_1.default, (0, creatorValidations_1.postJobValidationRules)(), creatorValidations_1.validate, creatorController.postJob);
+creatorRoutes.put('/job/unpublish', authMiddleware_1.default, authorizeCreator_1.default, creatorController.unpublishJob);
 creatorRoutes.get('/jobs', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getJobs);
 creatorRoutes.get('/job/:id/details', authMiddleware_1.default, authorizeCreator_1.default, creatorController.getJob);
 creatorRoutes.patch('/job/close', authMiddleware_1.default, authorizeCreator_1.default, creatorController.closeJob);

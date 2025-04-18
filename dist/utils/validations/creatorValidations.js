@@ -510,7 +510,7 @@ const digitalAssetValidationRules = () => {
         (0, express_validator_1.check)('isPublished')
             .optional()
             .isBoolean()
-            .withMessage('Status must be of a boolean value'),
+            .withMessage('isPublished must be of a boolean value'),
         (0, express_validator_1.check)('provider')
             .optional()
             .isIn(['meshy-ai', 'system'])
@@ -579,7 +579,7 @@ const physicalAssetValidationRules = () => {
         (0, express_validator_1.check)('isPublished')
             .optional()
             .isBoolean()
-            .withMessage('Status must be of a boolean value'),
+            .withMessage('isPublished must be of a boolean value'),
     ];
 };
 exports.physicalAssetValidationRules = physicalAssetValidationRules;
@@ -678,6 +678,10 @@ const postJobValidationRules = () => {
             .withMessage('Rejection emails field is required')
             .isBoolean()
             .withMessage('Rejection emails must be a boolean value'),
+        (0, express_validator_1.check)('isPublished')
+            .isBoolean()
+            .optional()
+            .withMessage('isPublished must be of a boolean value'),
     ];
 };
 exports.postJobValidationRules = postJobValidationRules;

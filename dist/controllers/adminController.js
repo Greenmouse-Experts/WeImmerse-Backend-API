@@ -2075,6 +2075,12 @@ const vetJobPost = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         // Prepare and send the notification email to creator about vetting
         const message = messages_1.emailTemplates.vettedJob(updatedJob.user, updatedJob); // Ensure verifyEmailMessage generates the correct email message
         try {
+            // Create notification
+            yield notification_1.default.create({
+                message: `Your job post '${updatedJob.title}' is now live.`,
+                link: `${process.env.APP_URL}/creator/jobs`,
+                userId: updatedJob.creatorId,
+            });
             yield (0, mail_service_1.sendMail)(updatedJob.user.email, `${process.env.APP_NAME} - Your Job Post Status Update`, message);
         }
         catch (emailError) {
