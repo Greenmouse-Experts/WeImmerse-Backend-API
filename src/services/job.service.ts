@@ -1,5 +1,5 @@
 // src/services/jobService.ts
-import Job from '../models/job';
+import Job, { JobStatus } from '../models/job';
 import User from '../models/user';
 
 class JobService {
@@ -12,7 +12,7 @@ class JobService {
     }
   }
 
-  async vetJobPost(jobId: string, status: 'active' | 'closed') {
+  async vetJobPost(jobId: string, status: JobStatus) {
     try {
       const job = (await Job.findOne({
         where: { id: jobId },

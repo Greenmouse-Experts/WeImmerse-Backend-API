@@ -2509,6 +2509,13 @@ export const vetJobPost = async (req: Request, res: Response): Promise<any> => {
     // Prepare and send the notification email to creator about vetting
     const message = emailTemplates.vettedJob(updatedJob.user, updatedJob); // Ensure verifyEmailMessage generates the correct email message
     try {
+      // Create notification
+      await Notification.create({
+        message: `Your job post '${updatedJob.title}' is now live.`,
+        link: `${process.env.APP_URL}/creator/jobs`,
+        userId: updatedJob.creatorId,
+      });
+
       await sendMail(
         updatedJob.user.email,
         `${process.env.APP_NAME} - Your Job Post Status Update`,

@@ -371,6 +371,12 @@ creatorRoutes.put(
   validate,
   creatorController.postJob
 );
+creatorRoutes.put(
+  '/job/unpublish',
+  authMiddleware,
+  authorizeCreator,
+  creatorController.unpublishJob
+);
 creatorRoutes.get(
   '/jobs',
   authMiddleware,

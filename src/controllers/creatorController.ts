@@ -17,7 +17,7 @@ import DigitalAsset from '../models/digitalasset';
 import AssetCategory from '../models/assetcategory';
 import PhysicalAsset from '../models/physicalasset';
 import JobCategory from '../models/jobcategory';
-import Job from '../models/job';
+import Job, { JobStatus } from '../models/job';
 import { v4 as uuidv4 } from 'uuid';
 import Applicant from '../models/applicant';
 import User from '../models/user';
@@ -2167,9 +2167,13 @@ export const postJob = async (req: Request, res: Response): Promise<void> => {
       applyLink,
       applicantCollectionEmailAddress,
       rejectionEmails,
+      isPublished,
     } = req.body;
 
-    const job = await Job.findByPk(jobId);
+    const job = await Job.findOne({
+      where: { id: jobId },
+      include: [{ model: User, as: 'user' }],
+    });
     if (!job) {
       res.status(404).json({
         message: 'Job not found in our database.',
@@ -2201,16 +2205,97 @@ export const postJob = async (req: Request, res: Response): Promise<void> => {
       applyLink,
       applicantCollectionEmailAddress,
       rejectionEmails,
-      status: 'active',
+      status: JobStatus.ACTIVE,
     });
 
+    if (isPublished) {
+      // Create notification
+      await Notification.create({
+        message: `Your job post '${job.title}' has been published. The admin has been notified to make it live.`,
+        link: `${process.env.APP_URL}/creator/jobs`,
+        userId: job.creatorId,
+      });
+
+      // Send email notification to admin
+      try {
+        const messageToSubscriber =
+          await emailTemplates.sendJobPostPublishRequestNotification(
+            process.env.ADMIN_EMAIL!,
+            job.title!
+          );
+
+        // Send email
+        await sendMail(
+          process.env.ADMIN_EMAIL!,
+          `${process.env.APP_NAME} - Your job post has been submitted for review`,
+          messageToSubscriber
+        );
+      } catch (emailError) {
+        console.error(
+          'Failed to send job post publish request notification:',
+          emailError
+        );
+        // Continue even if email fails
+      }
+    }
+
     res.status(200).json({
-      message: 'Job posted successfully.',
+      message: 'Job post published for review successfully.',
       data: job, // Include a JobResource equivalent if needed
     });
   } catch (error: any) {
     res.status(500).json({
       message: error.message || 'An error occurred while posting the job.',
+    });
+  }
+};
+
+export const unpublishJob = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { jobId, categoryId } = req.body;
+
+    const job = await Job.findByPk(jobId);
+    if (!job) {
+      res.status(404).json({
+        message: 'Job not found in our database.',
+      });
+      return;
+    }
+
+    if (categoryId) {
+      const category = await JobCategory.findByPk(categoryId);
+      if (!category) {
+        res.status(404).json({
+          message: 'Category not found in our database.',
+        });
+        return;
+      }
+    }
+
+    // Use existing job values if new values are not provided
+    await job.update({
+      status: JobStatus.DRAFT,
+      isPublished: false,
+    });
+
+    // Create notification
+    await Notification.create({
+      message: `Your job post '${job.title}' has been unpublished.`,
+      link: `${process.env.APP_URL}/creator/jobs`,
+      userId: job.creatorId,
+    });
+
+    res.status(200).json({
+      message: 'Job unpublished successfully.',
+      data: job, // Include a JobResource equivalent if needed
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      message:
+        error.message || 'An error occurred while unpublishing your job post.',
     });
   }
 };
@@ -2288,7 +2373,7 @@ export const closeJob = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Update the job status to 'Closed'
-    job.status = 'closed';
+    job.status = JobStatus.CLOSED;
     job.updatedAt = new Date();
 
     await job.save();

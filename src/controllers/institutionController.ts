@@ -7,7 +7,7 @@ import logger from '../middlewares/logger';
 import { Op, ForeignKeyConstraintError, Sequelize } from 'sequelize';
 import { AuthenticatedRequest } from '../types';
 import JobCategory from '../models/jobcategory';
-import Job from '../models/job';
+import Job, { JobStatus } from '../models/job';
 import { v4 as uuidv4 } from 'uuid';
 import Applicant from '../models/applicant';
 import User from '../models/user';
@@ -226,7 +226,7 @@ export const closeJob = async (req: Request, res: Response): Promise<void> => {
     }
 
     // Update the job status to 'Closed'
-    job.status = 'closed';
+    job.status = JobStatus.CLOSED;
     job.updatedAt = new Date();
 
     await job.save();

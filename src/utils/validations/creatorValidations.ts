@@ -587,7 +587,7 @@ export const digitalAssetValidationRules = () => {
     check('isPublished')
       .optional()
       .isBoolean()
-      .withMessage('Status must be of a boolean value'),
+      .withMessage('isPublished must be of a boolean value'),
 
     check('provider')
       .optional()
@@ -666,7 +666,7 @@ export const physicalAssetValidationRules = () => {
     check('isPublished')
       .optional()
       .isBoolean()
-      .withMessage('Status must be of a boolean value'),
+      .withMessage('isPublished must be of a boolean value'),
   ];
 };
 
@@ -778,6 +778,11 @@ export const postJobValidationRules = () => {
       .withMessage('Rejection emails field is required')
       .isBoolean()
       .withMessage('Rejection emails must be a boolean value'),
+
+    check('isPublished')
+      .isBoolean()
+      .optional()
+      .withMessage('isPublished must be of a boolean value'),
   ];
 };
 
