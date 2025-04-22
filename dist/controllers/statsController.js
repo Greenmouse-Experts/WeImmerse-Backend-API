@@ -12,10 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserStatistics = exports.getAdminStats = exports.getCreatorStatistics = void 0;
+exports.getInstitutionStatistics = exports.getUserStatistics = exports.getAdminStats = exports.getCreatorStatistics = void 0;
 const stats_service_1 = __importDefault(require("../services/stats.service"));
 const admin_stats_service_1 = __importDefault(require("../services/admin-stats.service"));
 const logger_1 = __importDefault(require("../middlewares/logger"));
+const institution_stats_service_1 = __importDefault(require("../services/institution-stats.service"));
 const user_stats_service_1 = __importDefault(require("../services/user-stats.service"));
 const getCreatorStatistics = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -63,6 +64,18 @@ const getUserStatistics = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.getUserStatistics = getUserStatistics;
+const getInstitutionStatistics = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const userId = req.user.id;
+        const stats = yield institution_stats_service_1.default.getStatistics(userId);
+        res.json(stats);
+    }
+    catch (error) {
+        console.error('Institution stats error:', error);
+        res.status(500).json({ error: 'Failed to fetch institution statistics' });
+    }
+});
+exports.getInstitutionStatistics = getInstitutionStatistics;
 // export const getCourseEnrollments = async (req: Request, res: Response) => {
 //   try {
 //     const { courseId } = req.params;

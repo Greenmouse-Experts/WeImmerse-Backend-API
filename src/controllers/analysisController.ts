@@ -3,6 +3,7 @@ import { Request, Response } from 'express';
 import AnalysisService from '../services/analysis.service';
 import PurchaseAdminAnalysisService from '../services/admin-analysis.service';
 import StudentAnalyticsService from '../services/student-analysis.service';
+import InstitutionAnalysis from '../services/institution-analysis.service';
 
 export const getYearlyAnalysis = async (req: Request, res: Response) => {
   try {
@@ -104,19 +105,17 @@ export const getUserAnalysis = async (
   }
 };
 
-// export const getCreatorAnalysis = async (req: Request, res: Response) => {
-//   try {
-//     const creatorId = req.params.creatorId;
-//     const year = req.query.year
-//       ? parseInt(req.query.year as string)
-//       : new Date().getFullYear();
-//     const analysis = await AnalysisService.getCreatorAnalysis(
-//       creatorId,
-//       year
-//     );
-//     res.json(analysis);
-//   } catch (error) {
-//     console.error('Error fetching creator analysis:', error);
-//     res.status(500).json({ message: 'Failed to fetch creator analysis' });
-//   }
-// };
+export const getInstitutionAnalytics = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const userId = (req.user as any)?.id;
+
+    const analysis = await InstitutionAnalysis.compiledForInstitution(userId);
+    return res.json(analysis);
+  } catch (error) {
+    console.error('Error fetching user analysis:', error);
+    res.status(500).json({ message: 'Failed to fetch user analysis' });
+  }
+};

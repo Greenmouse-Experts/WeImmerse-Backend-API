@@ -9,6 +9,7 @@ const analysisController_1 = require("../controllers/analysisController");
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
 const authorizeCreatorOrInstitution_1 = __importDefault(require("../middlewares/authorizeCreatorOrInstitution"));
 const adminAuthMiddleware_1 = __importDefault(require("../middlewares/adminAuthMiddleware"));
+const authorizeInstitution_1 = __importDefault(require("../middlewares/authorizeInstitution"));
 const router = express_1.default.Router();
 // Get yearly analysis for all creators
 router.get('/creator/yearly/landing', authMiddleware_1.default, authorizeCreatorOrInstitution_1.default, analysisController_1.getYearlyAnalysis);
@@ -23,6 +24,7 @@ router.get('/admin/users-by-country', adminAuthMiddleware_1.default, analysisCon
 // Get student analysis (for regular users)
 router.get('/student/yearly', authMiddleware_1.default, analysisController_1.getStudentAnalysis);
 router.get('/user/landing', authMiddleware_1.default, analysisController_1.getUserAnalysis);
+router.get('/institution/landing', authMiddleware_1.default, authorizeInstitution_1.default, analysisController_1.getInstitutionAnalytics);
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);
 exports.default = router;

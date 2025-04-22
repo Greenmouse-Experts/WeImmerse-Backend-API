@@ -3,6 +3,7 @@ import StatsService from '../services/stats.service';
 import AdminStatsService from '../services/admin-stats.service';
 import logger from '../middlewares/logger';
 import { PaymentStatus } from '../models/transaction';
+import InstitutionStatsService from '../services/institution-stats.service';
 import UserStatsService from '../services/user-stats.service';
 
 export const getCreatorStatistics = async (req: Request, res: Response) => {
@@ -29,7 +30,9 @@ export const getAdminStats = async (req: Request, res: Response) => {
     const year = req.query.year
       ? parseInt(req.query.year as string)
       : new Date().getFullYear();
+
     const stats = await AdminStatsService.getAdminStats(year);
+
     res.json(stats);
   } catch (error) {
     console.error('Admin stats error:', error);
@@ -46,6 +49,18 @@ export const getUserStatistics = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('User stats error:', error);
     res.status(500).json({ error: 'Failed to fetch user statistics' });
+  }
+};
+
+export const getInstitutionStatistics = async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+
+    const stats = await InstitutionStatsService.getStatistics(userId);
+    res.json(stats);
+  } catch (error) {
+    console.error('Institution stats error:', error);
+    res.status(500).json({ error: 'Failed to fetch institution statistics' });
   }
 };
 

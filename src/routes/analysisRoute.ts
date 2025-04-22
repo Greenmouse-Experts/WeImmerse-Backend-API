@@ -2,6 +2,7 @@
 import express from 'express';
 import {
   getAdminYearlyAnalysis,
+  getInstitutionAnalytics,
   getRecentSignups,
   getStudentAnalysis,
   getUserAnalysis,
@@ -13,6 +14,7 @@ import { Sequelize } from 'sequelize'; // Assuming you have a database connectio
 import authMiddleware from '../middlewares/authMiddleware';
 import authorizeCreatorOrInstitution from '../middlewares/authorizeCreatorOrInstitution';
 import adminAuthMiddleware from '../middlewares/adminAuthMiddleware';
+import authorizeInstitution from '../middlewares/authorizeInstitution';
 
 const router = express.Router();
 
@@ -44,6 +46,13 @@ router.get('/admin/users-by-country', adminAuthMiddleware, getUsersByCountry);
 router.get('/student/yearly', authMiddleware, getStudentAnalysis);
 
 router.get('/user/landing', authMiddleware, getUserAnalysis);
+
+router.get(
+  '/institution/landing',
+  authMiddleware,
+  authorizeInstitution,
+  getInstitutionAnalytics
+);
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);
 

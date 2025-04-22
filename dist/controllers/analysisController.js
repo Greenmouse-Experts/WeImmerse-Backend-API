@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getUserAnalysis = exports.getStudentAnalysis = exports.getRecentSignups = exports.getAdminYearlyAnalysis = exports.getYearlyAnalysis = void 0;
+exports.getInstitutionAnalytics = exports.getUserAnalysis = exports.getStudentAnalysis = exports.getRecentSignups = exports.getAdminYearlyAnalysis = exports.getYearlyAnalysis = void 0;
 exports.getUserStats = getUserStats;
 exports.getUsersByCountry = getUsersByCountry;
 const analysis_service_1 = __importDefault(require("../services/analysis.service"));
 const admin_analysis_service_1 = __importDefault(require("../services/admin-analysis.service"));
 const student_analysis_service_1 = __importDefault(require("../services/student-analysis.service"));
+const institution_analysis_service_1 = __importDefault(require("../services/institution-analysis.service"));
 const getYearlyAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -119,20 +120,17 @@ const getUserAnalysis = (req, res) => __awaiter(void 0, void 0, void 0, function
     }
 });
 exports.getUserAnalysis = getUserAnalysis;
-// export const getCreatorAnalysis = async (req: Request, res: Response) => {
-//   try {
-//     const creatorId = req.params.creatorId;
-//     const year = req.query.year
-//       ? parseInt(req.query.year as string)
-//       : new Date().getFullYear();
-//     const analysis = await AnalysisService.getCreatorAnalysis(
-//       creatorId,
-//       year
-//     );
-//     res.json(analysis);
-//   } catch (error) {
-//     console.error('Error fetching creator analysis:', error);
-//     res.status(500).json({ message: 'Failed to fetch creator analysis' });
-//   }
-// };
+const getInstitutionAnalytics = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const analysis = yield institution_analysis_service_1.default.compiledForInstitution(userId);
+        return res.json(analysis);
+    }
+    catch (error) {
+        console.error('Error fetching user analysis:', error);
+        res.status(500).json({ message: 'Failed to fetch user analysis' });
+    }
+});
+exports.getInstitutionAnalytics = getInstitutionAnalytics;
 //# sourceMappingURL=analysisController.js.map

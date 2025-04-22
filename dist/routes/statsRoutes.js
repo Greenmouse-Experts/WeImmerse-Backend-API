@@ -40,9 +40,11 @@ const express_1 = require("express");
 const statsController = __importStar(require("../controllers/statsController"));
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
 const adminAuthMiddleware_1 = __importDefault(require("../middlewares/adminAuthMiddleware"));
+const authorizeInstitution_1 = __importDefault(require("../middlewares/authorizeInstitution"));
 const router = (0, express_1.Router)();
 router.get('/creator/landing', authMiddleware_1.default, statsController.getCreatorStatistics);
 router.get('/admin/landing', adminAuthMiddleware_1.default, statsController.getAdminStats);
 router.get('/user/landing', authMiddleware_1.default, statsController.getUserStatistics);
+router.get('/institution/landing', authMiddleware_1.default, authorizeInstitution_1.default, statsController.getInstitutionStatistics);
 exports.default = router;
 //# sourceMappingURL=statsRoutes.js.map
