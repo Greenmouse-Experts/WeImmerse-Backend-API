@@ -17,4 +17,6 @@ router.get(
   statsController.getAdminStats
 );
 
+router.get('/user/landing', authMiddleware, statsController.getUserStatistics);
+
 export default router;

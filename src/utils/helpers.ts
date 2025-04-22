@@ -314,6 +314,27 @@ const CurrencySymbol = (currency: string) => {
   }
 };
 
+const parseFormattedAmount = (amount: string | number): number => {
+  let finalVal = null;
+  if (typeof amount === 'string') {
+    // Remove all characters except digits, comma, and dot
+    let cleaned = amount.replace(/[^\d.,-]/g, '');
+
+    // Handle European format (comma as decimal)
+    if (cleaned.indexOf(',') > -1 && cleaned.indexOf('.') === -1) {
+      cleaned = cleaned.replace(',', '.');
+    } else {
+      cleaned = cleaned.replace(/,/g, ''); // Remove thousands separator
+    }
+
+    finalVal = parseFloat(cleaned);
+  } else {
+    finalVal = amount;
+  }
+
+  return finalVal;
+};
+
 // Export functions
 export {
   generateOTP,
@@ -331,4 +352,5 @@ export {
   formatMoney,
   AccountVettingStatus,
   CurrencySymbol,
+  parseFormattedAmount,
 };

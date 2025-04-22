@@ -22,6 +22,7 @@ router.get('/admin/user-stats', adminAuthMiddleware_1.default, analysisControlle
 router.get('/admin/users-by-country', adminAuthMiddleware_1.default, analysisController_1.getUsersByCountry);
 // Get student analysis (for regular users)
 router.get('/student/yearly', authMiddleware_1.default, analysisController_1.getStudentAnalysis);
+router.get('/user/landing', authMiddleware_1.default, analysisController_1.getUserAnalysis);
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);
 exports.default = router;

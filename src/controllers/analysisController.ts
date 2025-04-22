@@ -88,6 +88,22 @@ export const getStudentAnalysis = async (req: Request, res: Response) => {
   }
 };
 
+// get user analysis
+export const getUserAnalysis = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const userId = (req.user as any)?.id;
+
+    const analysis = await StudentAnalyticsService.compiledForUser(userId);
+    return res.json(analysis);
+  } catch (error) {
+    console.error('Error fetching user analysis:', error);
+    res.status(500).json({ message: 'Failed to fetch user analysis' });
+  }
+};
+
 // export const getCreatorAnalysis = async (req: Request, res: Response) => {
 //   try {
 //     const creatorId = req.params.creatorId;

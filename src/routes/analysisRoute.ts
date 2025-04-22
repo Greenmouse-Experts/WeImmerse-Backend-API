@@ -4,6 +4,7 @@ import {
   getAdminYearlyAnalysis,
   getRecentSignups,
   getStudentAnalysis,
+  getUserAnalysis,
   getUsersByCountry,
   getUserStats,
   getYearlyAnalysis,
@@ -41,6 +42,8 @@ router.get('/admin/users-by-country', adminAuthMiddleware, getUsersByCountry);
 
 // Get student analysis (for regular users)
 router.get('/student/yearly', authMiddleware, getStudentAnalysis);
+
+router.get('/user/landing', authMiddleware, getUserAnalysis);
 // Get analysis for a specific creator
 // router.get('/creator/:creatorId', authMiddleware, getCreatorAnalysis);
 

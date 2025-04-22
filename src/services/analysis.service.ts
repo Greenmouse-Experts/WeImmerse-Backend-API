@@ -7,7 +7,7 @@ import PhysicalAsset from '../models/physicalasset';
 import Subscription from '../models/subscription';
 import SubscriptionPlan from '../models/subscriptionplan';
 
-interface YearlyAnalysis {
+export interface YearlyAnalysis {
   totalRevenue: number;
   courses: ProductAnalysis;
   digitalAssets: ProductAnalysis;

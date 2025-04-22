@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CurrencySymbol = exports.AccountVettingStatus = exports.formatMoney = exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.generateOTP = void 0;
+exports.parseFormattedAmount = exports.CurrencySymbol = exports.AccountVettingStatus = exports.formatMoney = exports.uploadToS3 = exports.getTotalPages = exports.getPaginationFields = exports.formatCourse = exports.getJobsBySearch = exports.shuffleArray = exports.verifyPayment = exports.fetchAdminWithPermissions = exports.sendSMS = exports.generateOTP = void 0;
 exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.generateReferralCode = generateReferralCode;
 // utils/helpers.ts
@@ -287,4 +287,24 @@ const CurrencySymbol = (currency) => {
     }
 };
 exports.CurrencySymbol = CurrencySymbol;
+const parseFormattedAmount = (amount) => {
+    let finalVal = null;
+    if (typeof amount === 'string') {
+        // Remove all characters except digits, comma, and dot
+        let cleaned = amount.replace(/[^\d.,-]/g, '');
+        // Handle European format (comma as decimal)
+        if (cleaned.indexOf(',') > -1 && cleaned.indexOf('.') === -1) {
+            cleaned = cleaned.replace(',', '.');
+        }
+        else {
+            cleaned = cleaned.replace(/,/g, ''); // Remove thousands separator
+        }
+        finalVal = parseFloat(cleaned);
+    }
+    else {
+        finalVal = amount;
+    }
+    return finalVal;
+};
+exports.parseFormattedAmount = parseFormattedAmount;
 //# sourceMappingURL=helpers.js.map

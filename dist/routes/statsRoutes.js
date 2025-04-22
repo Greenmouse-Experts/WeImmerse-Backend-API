@@ -43,5 +43,6 @@ const adminAuthMiddleware_1 = __importDefault(require("../middlewares/adminAuthM
 const router = (0, express_1.Router)();
 router.get('/creator/landing', authMiddleware_1.default, statsController.getCreatorStatistics);
 router.get('/admin/landing', adminAuthMiddleware_1.default, statsController.getAdminStats);
+router.get('/user/landing', authMiddleware_1.default, statsController.getUserStatistics);
 exports.default = router;
 //# sourceMappingURL=statsRoutes.js.map

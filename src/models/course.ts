@@ -33,7 +33,7 @@ class Course extends Model {
   public requirement!: string | null;
   public whatToLearn!: string | null;
   public published!: boolean;
-  public status!: 'live' | 'unpublished' | 'under_review' | 'draft';
+  public status!: CourseStatus;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public modules?: Module[];

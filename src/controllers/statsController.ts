@@ -3,6 +3,7 @@ import StatsService from '../services/stats.service';
 import AdminStatsService from '../services/admin-stats.service';
 import logger from '../middlewares/logger';
 import { PaymentStatus } from '../models/transaction';
+import UserStatsService from '../services/user-stats.service';
 
 export const getCreatorStatistics = async (req: Request, res: Response) => {
   try {
@@ -33,6 +34,18 @@ export const getAdminStats = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Admin stats error:', error);
     res.status(500).json({ error: 'Failed to fetch admin statistics' });
+  }
+};
+
+export const getUserStatistics = async (req: Request, res: Response) => {
+  try {
+    const userId = (req.user as any).id;
+
+    const stats = await UserStatsService.getStatistics(userId);
+    res.json(stats);
+  } catch (error) {
+    console.error('User stats error:', error);
+    res.status(500).json({ error: 'Failed to fetch user statistics' });
   }
 };
 
