@@ -124,6 +124,10 @@ class User extends sequelize_1.Model {
             as: 'coupons',
             foreignKey: 'couponId',
         });
+        this.belongsTo(models.InstitutionInformation, {
+            as: 'institution',
+            foreignKey: 'institutionId',
+        });
     }
 }
 const initModel = (sequelize) => {
@@ -224,6 +228,10 @@ const initModel = (sequelize) => {
             type: sequelize_1.DataTypes.ENUM(...Object.values(Country)),
             allowNull: false,
             defaultValue: Country.NG,
+        },
+        institutionId: {
+            type: sequelize_1.DataTypes.STRING,
+            allowNull: true,
         },
     }, {
         sequelize,

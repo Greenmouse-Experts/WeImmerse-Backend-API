@@ -3,6 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import { CategoryTypes } from '../models/category';
 import { PaymentMethod, ProductType } from '../models/transaction';
 import { Country } from '../models/user';
+import { BlogStatus } from '../models/blog';
 
 // Validation rules for different functionalities
 
@@ -870,6 +871,30 @@ export const initiateMultiPurchaseValidationRules = () => {
       .withMessage('Shipping address is required for physical assets')
       .isObject()
       .withMessage('Shipping address must be an object'),
+  ];
+};
+
+export const blogValidationRules = () => {
+  return [
+    check('title').trim().isLength({ min: 5, max: 255 }),
+    check('content').trim().isLength({ min: 100, max: 10000 }),
+    check('featuredImage').optional().isURL(),
+    check('status').optional().isIn(Object.values(BlogStatus)),
+    check('categoryId').isUUID(),
+  ];
+};
+
+export const blogCategoryValidationRules = () => {
+  return [
+    check('name')
+      .trim()
+      .isLength({ min: 2, max: 50 })
+      .withMessage('Name must be between 2-50 characters'),
+    check('description')
+      .optional()
+      .trim()
+      .isLength({ max: 500 })
+      .withMessage('Description must be less than 500 characters'),
   ];
 };
 

@@ -535,6 +535,7 @@ export const courseUnpublish = async (
 
     // Update the course status to published (true)
     course.published = false; // Assuming `status` is a boolean column
+    course.status = CourseStatus.DRAFT;
     await course.save();
 
     // Create notification

@@ -1,6 +1,6 @@
 // models/otp.ts
-import { Model, DataTypes, Sequelize } from "sequelize";
-import User from "./user";
+import { Model, DataTypes, Sequelize } from 'sequelize';
+import User from './user';
 
 class InstitutionInformation extends Model {
   public userId!: string;
@@ -19,6 +19,10 @@ class InstitutionInformation extends Model {
     this.belongsTo(models.User, {
       as: 'user',
       foreignKey: 'userId', // Ensure the InstitutionInformation model has a 'userId' column
+    });
+    this.hasMany(models.InstitutionInformation, {
+      as: 'users',
+      foreignKey: 'institutionId',
     });
   }
 }
@@ -63,13 +67,13 @@ const initModel = (sequelize: Sequelize) => {
     },
     {
       sequelize,
-      modelName: "InstitutionInformation",
+      modelName: 'InstitutionInformation',
       timestamps: true,
       paranoid: false,
-      tableName: "institution_informations"
+      tableName: 'institution_informations',
     }
   );
 };
 
-export default InstitutionInformation; 
+export default InstitutionInformation;
 export { initModel };

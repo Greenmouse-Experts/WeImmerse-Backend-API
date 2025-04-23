@@ -540,6 +540,7 @@ export const getCourses = async (req: Request, res: Response): Promise<any> => {
     let whereCondition: any = {
       ...(categoryId && { categoryId }),
       status: CourseStatus.LIVE,
+      published: true,
     };
 
     const { rows: courses, count: totalItems } = await Course.findAndCountAll({

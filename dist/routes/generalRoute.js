@@ -41,6 +41,7 @@ const express_1 = require("express");
 const generalController = __importStar(require("../controllers/generalController"));
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
 const validations_1 = require("../utils/validations");
+const blogController = __importStar(require("../controllers/blogController"));
 const generalRoutes = (0, express_1.Router)();
 // User routes
 generalRoutes.post('/logout', authMiddleware_1.default, generalController.logout);
@@ -56,5 +57,11 @@ generalRoutes.get('/fetch/savedJob', authMiddleware_1.default, generalController
 generalRoutes.get('/fetch/appliedJob', authMiddleware_1.default, generalController.getAppliedJobs);
 generalRoutes.get('/courses', generalController.getCourses);
 generalRoutes.get('/course/:id', generalController.getSingleCourse);
+// Public routes
+generalRoutes.get('/blogs', blogController.getBlogs);
+generalRoutes.get('/blog/:slug', blogController.getBlogBySlug);
+// Public routes
+generalRoutes.get('/blog-category', blogController.getCategories);
+generalRoutes.get('/blog-category/:slug', blogController.getCategoryBySlug);
 exports.default = generalRoutes;
 //# sourceMappingURL=generalRoute.js.map

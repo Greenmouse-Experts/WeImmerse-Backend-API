@@ -43,6 +43,7 @@ const adminAuthMiddleware_1 = __importDefault(require("../middlewares/adminAuthM
 const validations_1 = require("../utils/validations"); // Import the service
 const adminValidations_1 = require("../utils/validations/adminValidations");
 const checkPermissionMiddleware_1 = __importDefault(require("../middlewares/checkPermissionMiddleware"));
+const BlogController = __importStar(require("../controllers/blogController"));
 const adminRoutes = (0, express_1.Router)();
 // User routes
 adminRoutes.post('/logout', adminAuthMiddleware_1.default, adminController.logout);
@@ -121,5 +122,12 @@ adminRoutes.patch('/job/:id/vet', adminAuthMiddleware_1.default, adminController
 adminRoutes.get('/job/fetch', adminAuthMiddleware_1.default, adminController.fetchAllJobs);
 // Creator/Institution account vetting
 adminRoutes.post('/account/:userId/vet/', adminAuthMiddleware_1.default, (0, adminValidations_1.vetAccountValidationRules)(), validations_1.validate, adminController.vetAccount);
+adminRoutes.post('/blog', adminAuthMiddleware_1.default, (0, validations_1.blogValidationRules)(), validations_1.validate, BlogController.createBlog);
+adminRoutes.put('/blog/:id', adminAuthMiddleware_1.default, (0, validations_1.blogValidationRules)(), validations_1.validate, BlogController.updateBlog);
+adminRoutes.delete('/blog/:id', adminAuthMiddleware_1.default, BlogController.deleteBlog);
+adminRoutes.post('/blog-category', adminAuthMiddleware_1.default, (0, validations_1.blogCategoryValidationRules)(), validations_1.validate, BlogController.createBlogCategory);
+adminRoutes.get('/blog-category/:id', BlogController.getCategoryById);
+adminRoutes.put('/blog-category/:id', adminAuthMiddleware_1.default, (0, validations_1.blogCategoryValidationRules)(), validations_1.validate, BlogController.updateBlogCategory);
+adminRoutes.delete('/blog-category/:id', adminAuthMiddleware_1.default, BlogController.deleteBlogCategory);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map

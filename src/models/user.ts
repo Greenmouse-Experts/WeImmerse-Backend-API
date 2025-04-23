@@ -85,6 +85,7 @@ class User extends Model {
   public reason?: string;
   public lastLogin?: Date;
   public country?: Country;
+  public institutionId?: string;
   public createdAt?: Date;
   public updatedAt?: Date;
 
@@ -136,6 +137,10 @@ class User extends Model {
     this.hasMany(models.Coupon, {
       as: 'coupons',
       foreignKey: 'couponId',
+    });
+    this.belongsTo(models.InstitutionInformation, {
+      as: 'institution',
+      foreignKey: 'institutionId',
     });
   }
 
@@ -277,6 +282,10 @@ const initModel = (sequelize: Sequelize) => {
         type: DataTypes.ENUM(...Object.values(Country)),
         allowNull: false,
         defaultValue: Country.NG,
+      },
+      institutionId: {
+        type: DataTypes.STRING,
+        allowNull: true,
       },
     },
     {

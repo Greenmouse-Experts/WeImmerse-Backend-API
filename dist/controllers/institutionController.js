@@ -507,4 +507,59 @@ const downloadApplicantResume = (req, res) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.downloadApplicantResume = downloadApplicantResume;
+// export const createStudent = async (req: Request, res: Response) => {
+//   try {
+//     const institution = await InstitutionInformation.findOne({
+//       where: { userId: req.user.id }
+//     });
+//     if (!institution) {
+//       return res.status(403).json({
+//         success: false,
+//         message: 'Only institutions can create student accounts'
+//       });
+//     }
+//     const {
+//       name,
+//       email,
+//       password,
+//       phoneNumber,
+//       dateOfBirth,
+//       educationalLevel,
+//       gender
+//     } = req.body;
+//     // Check if email already exists
+//     const existingUser = await User.findOne({ where: { email } });
+//     if (existingUser) {
+//       return res.status(400).json({
+//         success: false,
+//         message: 'Email already exists'
+//       });
+//     }
+//     // Create the student
+//     const student = await User.create({
+//       id: uuidv4(),
+//       name,
+//       email,
+//       password: await bcrypt.hash(password, 10),
+//       phoneNumber,
+//       dateOfBirth,
+//       educationalLevel,
+//       gender,
+//       accountType: UserType.STUDENT,
+//       status: UserAccountStatus.ACTIVE,
+//       schoolId: institution.institutionName,
+//       verified: true
+//     });
+//     return res.status(201).json({
+//       success: true,
+//       data: student
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     return res.status(500).json({
+//       success: false,
+//       message: 'Failed to create student account'
+//     });
+//   }
+// }
 //# sourceMappingURL=institutionController.js.map

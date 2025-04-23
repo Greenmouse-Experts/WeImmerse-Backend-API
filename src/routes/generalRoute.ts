@@ -7,6 +7,7 @@ import {
   validateJobApplication,
   validate,
 } from '../utils/validations';
+import * as blogController from '../controllers/blogController';
 
 const generalRoutes = Router();
 
@@ -63,5 +64,13 @@ generalRoutes.get(
 
 generalRoutes.get('/courses', generalController.getCourses);
 generalRoutes.get('/course/:id', generalController.getSingleCourse);
+
+// Public routes
+generalRoutes.get('/blogs', blogController.getBlogs);
+generalRoutes.get('/blog/:slug', blogController.getBlogBySlug);
+
+// Public routes
+generalRoutes.get('/blog-category', blogController.getCategories);
+generalRoutes.get('/blog-category/:slug', blogController.getCategoryBySlug);
 
 export default generalRoutes;

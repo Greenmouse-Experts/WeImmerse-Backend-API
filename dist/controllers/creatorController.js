@@ -473,6 +473,7 @@ const courseUnpublish = (req, res) => __awaiter(void 0, void 0, void 0, function
         }
         // Update the course status to published (true)
         course.published = false; // Assuming `status` is a boolean column
+        course.status = course_1.CourseStatus.DRAFT;
         yield course.save();
         // Create notification
         yield notification_1.default.create({

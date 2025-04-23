@@ -12,6 +12,8 @@ import {
   validatePaymentGateway,
   validate,
   reviewJobValidationRules,
+  blogValidationRules,
+  blogCategoryValidationRules,
 } from '../utils/validations'; // Import the service
 import {
   digitalAssetValidationRules,
@@ -19,6 +21,7 @@ import {
   vetAccountValidationRules,
 } from '../utils/validations/adminValidations';
 import checkPermission from '../middlewares/checkPermissionMiddleware';
+import * as BlogController from '../controllers/blogController';
 
 const adminRoutes = Router();
 
@@ -397,6 +400,48 @@ adminRoutes.post(
   vetAccountValidationRules(),
   validate,
   adminController.vetAccount
+);
+
+adminRoutes.post(
+  '/blog',
+  adminAuthMiddleware,
+  blogValidationRules(),
+  validate,
+  BlogController.createBlog
+);
+
+adminRoutes.put(
+  '/blog/:id',
+  adminAuthMiddleware,
+  blogValidationRules(),
+  validate,
+  BlogController.updateBlog
+);
+
+adminRoutes.delete('/blog/:id', adminAuthMiddleware, BlogController.deleteBlog);
+
+adminRoutes.post(
+  '/blog-category',
+  adminAuthMiddleware,
+  blogCategoryValidationRules(),
+  validate,
+  BlogController.createBlogCategory
+);
+
+adminRoutes.get('/blog-category/:id', BlogController.getCategoryById);
+
+adminRoutes.put(
+  '/blog-category/:id',
+  adminAuthMiddleware,
+  blogCategoryValidationRules(),
+  validate,
+  BlogController.updateBlogCategory
+);
+
+adminRoutes.delete(
+  '/blog-category/:id',
+  adminAuthMiddleware,
+  BlogController.deleteBlogCategory
 );
 
 export default adminRoutes; // Export the router

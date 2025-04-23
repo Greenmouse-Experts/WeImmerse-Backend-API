@@ -10,6 +10,10 @@ class InstitutionInformation extends sequelize_1.Model {
             as: 'user',
             foreignKey: 'userId', // Ensure the InstitutionInformation model has a 'userId' column
         });
+        this.hasMany(models.InstitutionInformation, {
+            as: 'users',
+            foreignKey: 'institutionId',
+        });
     }
 }
 const initModel = (sequelize) => {
@@ -50,10 +54,10 @@ const initModel = (sequelize) => {
         },
     }, {
         sequelize,
-        modelName: "InstitutionInformation",
+        modelName: 'InstitutionInformation',
         timestamps: true,
         paranoid: false,
-        tableName: "institution_informations"
+        tableName: 'institution_informations',
     });
 };
 exports.initModel = initModel;

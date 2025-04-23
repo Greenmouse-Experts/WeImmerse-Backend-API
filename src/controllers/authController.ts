@@ -763,6 +763,8 @@ export const adminLogin = async (
   } catch (error) {
     logger.error('Error in login:', error);
 
+    console.log(error);
+
     // Handle server errors
     res.status(500).json({ message: 'Internal server error' });
   }

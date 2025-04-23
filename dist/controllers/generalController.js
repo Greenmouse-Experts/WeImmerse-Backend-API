@@ -472,7 +472,7 @@ const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const { categoryId } = req.query;
         // Extract pagination query parameters
         const { page, limit, offset } = (0, helpers_1.getPaginationFields)(req.query.page, req.query.limit);
-        let whereCondition = Object.assign(Object.assign({}, (categoryId && { categoryId })), { status: course_1.CourseStatus.LIVE });
+        let whereCondition = Object.assign(Object.assign({}, (categoryId && { categoryId })), { status: course_1.CourseStatus.LIVE, published: true });
         const { rows: courses, count: totalItems } = yield course_1.default.findAndCountAll({
             where: whereCondition,
             include: [
