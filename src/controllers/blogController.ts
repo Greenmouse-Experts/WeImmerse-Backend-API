@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import Blog from '../models/blog';
+import Blog, { BlogStatus } from '../models/blog';
 import { v4 as uuidv4 } from 'uuid';
 import slugify from 'slugify';
 import BlogCategory from '../models/blogcategory';
@@ -54,7 +54,42 @@ export const getBlogs = async (req: Request, res: Response): Promise<any> => {
       limit,
       offset,
       order: [['createdAt', 'DESC']],
-      include: ['user'],
+      include: [{ model: BlogCategory, as: 'category' }],
+    });
+
+    return res.json({
+      success: true,
+      data: rows,
+      meta: {
+        total: count,
+        page,
+        pages: Math.ceil(count / limit),
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch blogs',
+    });
+  }
+};
+
+// Get all unpublished blogs (with pagination)
+export const getUnPublishedBlogs = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Blog.findAndCountAll({
+      where: { status: BlogStatus.DRAFT },
+      limit,
+      offset,
+      order: [['createdAt', 'DESC']],
+      include: [{ model: BlogCategory, as: 'category' }],
     });
 
     return res.json({
@@ -82,7 +117,35 @@ export const getBlogBySlug = async (
   try {
     const blog = await Blog.findOne({
       where: { slug: req.params.slug },
-      include: ['user'],
+    });
+
+    if (!blog) {
+      return res.status(404).json({
+        success: false,
+        message: 'Blog not found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      data: blog,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch blog',
+    });
+  }
+};
+
+// Get single blog by id
+export const getBlogById = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    const blog = await Blog.findOne({
+      where: { id: req.params.id },
     });
 
     if (!blog) {
@@ -117,14 +180,6 @@ export const updateBlog = async (req: Request, res: Response): Promise<any> => {
       });
     }
 
-    // Check ownership
-    if (blog.userId !== (req.user as any).id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to update this blog',
-      });
-    }
-
     const updates: any = { content, featuredImage, status };
     if (title) {
       updates.title = title;
@@ -135,6 +190,7 @@ export const updateBlog = async (req: Request, res: Response): Promise<any> => {
 
     return res.json({
       success: true,
+      message: 'Blog updated successfully.',
       data: blog,
     });
   } catch (error) {
@@ -154,14 +210,6 @@ export const deleteBlog = async (req: Request, res: Response): Promise<any> => {
       return res.status(404).json({
         success: false,
         message: 'Blog not found',
-      });
-    }
-
-    // Check ownership
-    if (blog.userId !== (req.user as any).id) {
-      return res.status(403).json({
-        success: false,
-        message: 'Not authorized to delete this blog',
       });
     }
 

@@ -418,6 +418,14 @@ adminRoutes.put(
   BlogController.updateBlog
 );
 
+adminRoutes.get(
+  '/blog/fetch-unpublished/view',
+  adminAuthMiddleware,
+  BlogController.getUnPublishedBlogs
+);
+
+adminRoutes.get('/blog/:id', adminAuthMiddleware, BlogController.getBlogById);
+
 adminRoutes.delete('/blog/:id', adminAuthMiddleware, BlogController.deleteBlog);
 
 adminRoutes.post(
