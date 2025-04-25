@@ -24,6 +24,8 @@ import Applicant from '../models/applicant';
 import sequelizeService from '../services/sequelize.service';
 import Course, { CourseStatus } from '../models/course';
 import Wallet from '../models/wallet';
+import Module from '../models/module';
+import Lesson, { LessonStatus } from '../models/lesson';
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -593,6 +595,17 @@ export const getSingleCourse = async (
       where: { id },
       include: [
         { model: User, as: 'creator' },
+        {
+          model: Module,
+          as: 'modules',
+          include: [
+            {
+              model: Lesson,
+              as: 'lessons',
+              where: { status: LessonStatus.PUBLISHED },
+            },
+          ],
+        },
         // Adjust alias to match your associations
       ],
     });

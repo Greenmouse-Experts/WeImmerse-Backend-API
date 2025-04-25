@@ -60,6 +60,8 @@ const applicant_1 = __importDefault(require("../models/applicant"));
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const course_1 = __importStar(require("../models/course"));
 const wallet_1 = __importDefault(require("../models/wallet"));
+const module_1 = __importDefault(require("../models/module"));
+const lesson_1 = __importStar(require("../models/lesson"));
 const logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         // Get the token from the request
@@ -518,6 +520,17 @@ const getSingleCourse = (req, res) => __awaiter(void 0, void 0, void 0, function
             where: { id },
             include: [
                 { model: user_1.default, as: 'creator' },
+                {
+                    model: module_1.default,
+                    as: 'modules',
+                    include: [
+                        {
+                            model: lesson_1.default,
+                            as: 'lessons',
+                            where: { status: lesson_1.LessonStatus.PUBLISHED },
+                        },
+                    ],
+                },
                 // Adjust alias to match your associations
             ],
         });
