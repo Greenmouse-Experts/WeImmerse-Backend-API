@@ -44,6 +44,8 @@ const validations_1 = require("../utils/validations"); // Import the service
 const adminValidations_1 = require("../utils/validations/adminValidations");
 const checkPermissionMiddleware_1 = __importDefault(require("../middlewares/checkPermissionMiddleware"));
 const BlogController = __importStar(require("../controllers/blogController"));
+const faqCategoryController_1 = __importDefault(require("../controllers/faqCategoryController"));
+const faqController_1 = __importDefault(require("../controllers/faqController"));
 const adminRoutes = (0, express_1.Router)();
 // User routes
 adminRoutes.post('/logout', adminAuthMiddleware_1.default, adminController.logout);
@@ -131,5 +133,17 @@ adminRoutes.post('/blog-category', adminAuthMiddleware_1.default, (0, validation
 adminRoutes.get('/blog-category/:id', BlogController.getCategoryById);
 adminRoutes.put('/blog-category/:id', adminAuthMiddleware_1.default, (0, validations_1.blogCategoryValidationRules)(), validations_1.validate, BlogController.updateBlogCategory);
 adminRoutes.delete('/blog-category/:id', adminAuthMiddleware_1.default, BlogController.deleteBlogCategory);
+// FAQ Categories
+adminRoutes.get('/faq-category', adminAuthMiddleware_1.default, faqCategoryController_1.default.getAllCategories);
+adminRoutes.get('/faq-category/:id', adminAuthMiddleware_1.default, faqCategoryController_1.default.getCategoryById);
+adminRoutes.post('/faq-category', adminAuthMiddleware_1.default, (0, validations_1.faqCategoryValidationRules)(), validations_1.validate, faqCategoryController_1.default.createCategory);
+adminRoutes.put('/faq-category/:id', adminAuthMiddleware_1.default, (0, validations_1.faqCategoryUpdateValidationRules)(), validations_1.validate, faqCategoryController_1.default.updateCategory);
+adminRoutes.delete('/faq-category/:id', adminAuthMiddleware_1.default, faqCategoryController_1.default.deleteCategory);
+adminRoutes.get('/faq', adminAuthMiddleware_1.default, faqController_1.default.getAllFAQs);
+adminRoutes.get('/faq/:id', adminAuthMiddleware_1.default, faqController_1.default.getFAQById);
+adminRoutes.get('/faq-category/:categoryId/faqs', adminAuthMiddleware_1.default, faqController_1.default.getFAQsByCategory);
+adminRoutes.post('/faq', adminAuthMiddleware_1.default, (0, validations_1.faqValidationRules)(), validations_1.validate, faqController_1.default.createFAQ);
+adminRoutes.put('/faq/:id', adminAuthMiddleware_1.default, (0, validations_1.faqUpdateValidationRules)(), validations_1.validate, faqController_1.default.updateFAQ);
+adminRoutes.delete('/faq/:id', adminAuthMiddleware_1.default, faqController_1.default.deleteFAQ);
 exports.default = adminRoutes; // Export the router
 //# sourceMappingURL=adminRoute.js.map

@@ -14,6 +14,10 @@ import {
   reviewJobValidationRules,
   blogValidationRules,
   blogCategoryValidationRules,
+  faqValidationRules,
+  faqUpdateValidationRules,
+  faqCategoryValidationRules,
+  faqCategoryUpdateValidationRules,
 } from '../utils/validations'; // Import the service
 import {
   digitalAssetValidationRules,
@@ -22,6 +26,8 @@ import {
 } from '../utils/validations/adminValidations';
 import checkPermission from '../middlewares/checkPermissionMiddleware';
 import * as BlogController from '../controllers/blogController';
+import faqCategoryController from '../controllers/faqCategoryController';
+import faqController from '../controllers/faqController';
 
 const adminRoutes = Router();
 
@@ -451,5 +457,59 @@ adminRoutes.delete(
   adminAuthMiddleware,
   BlogController.deleteBlogCategory
 );
+
+// FAQ Categories
+adminRoutes.get(
+  '/faq-category',
+  adminAuthMiddleware,
+  faqCategoryController.getAllCategories
+);
+adminRoutes.get(
+  '/faq-category/:id',
+  adminAuthMiddleware,
+  faqCategoryController.getCategoryById
+);
+adminRoutes.post(
+  '/faq-category',
+  adminAuthMiddleware,
+  faqCategoryValidationRules(),
+  validate,
+  faqCategoryController.createCategory
+);
+adminRoutes.put(
+  '/faq-category/:id',
+  adminAuthMiddleware,
+  faqCategoryUpdateValidationRules(),
+  validate,
+  faqCategoryController.updateCategory
+);
+adminRoutes.delete(
+  '/faq-category/:id',
+  adminAuthMiddleware,
+  faqCategoryController.deleteCategory
+);
+
+adminRoutes.get('/faq', adminAuthMiddleware, faqController.getAllFAQs);
+adminRoutes.get('/faq/:id', adminAuthMiddleware, faqController.getFAQById);
+adminRoutes.get(
+  '/faq-category/:categoryId/faqs',
+  adminAuthMiddleware,
+  faqController.getFAQsByCategory
+);
+adminRoutes.post(
+  '/faq',
+  adminAuthMiddleware,
+  faqValidationRules(),
+  validate,
+  faqController.createFAQ
+);
+adminRoutes.put(
+  '/faq/:id',
+  adminAuthMiddleware,
+  faqUpdateValidationRules(),
+  validate,
+  faqController.updateFAQ
+);
+adminRoutes.delete('/faq/:id', adminAuthMiddleware, faqController.deleteFAQ);
 
 export default adminRoutes; // Export the router

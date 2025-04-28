@@ -1,11 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validate = exports.blogCategoryValidationRules = exports.blogValidationRules = exports.initiateMultiPurchaseValidationRules = exports.webhookValidationRules = exports.initiatePurchaseValidationRules = exports.applyCouponValidationRules = exports.createCouponValidationRules = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
+exports.validate = exports.faqCategoryUpdateValidationRules = exports.faqCategoryValidationRules = exports.faqUpdateValidationRules = exports.faqValidationRules = exports.blogCategoryValidationRules = exports.blogValidationRules = exports.initiateMultiPurchaseValidationRules = exports.webhookValidationRules = exports.initiatePurchaseValidationRules = exports.applyCouponValidationRules = exports.createCouponValidationRules = exports.verifyPaymentValidationRules = exports.cancelSubscriptionValidationRules = exports.createSubscriptionValidationRules = exports.updatePlanValidationRules = exports.createPlanValidationRules = exports.updateCategoryValidationRules = exports.createCategoryValidationRules = exports.withdrawalRequestValidationRules = exports.withdrawalAccountValidationRules = exports.uploadKycDocumentValidationRules = exports.reviewJobValidationRules = exports.validateJobApplication = exports.validatePaymentGateway = exports.updateSubscriptionPlanValidationRules = exports.createSubscriptionPlanValidationRules = exports.updateSubAdminValidationRules = exports.createSubAdminValidationRules = exports.adminUpdateProfileValidationRules = exports.updatePasswordValidationRules = exports.resetPasswordValidationRules = exports.forgotPasswordValidationRules = exports.resendVerificationValidationRules = exports.loginValidationRules = exports.verificationValidationRules = exports.institutionRegistrationValidationRules = exports.creatorRegistrationValidationRules = exports.studentRegistrationValidationRules = exports.userRegistrationValidationRules = void 0;
 const express_validator_1 = require("express-validator");
 const category_1 = require("../models/category");
 const transaction_1 = require("../models/transaction");
 const user_1 = require("../models/user");
 const blog_1 = require("../models/blog");
+const faq_1 = require("../models/faq");
+const faqcategory_1 = require("../models/faqcategory");
 // Validation rules for different functionalities
 // User registration validation rules
 const userRegistrationValidationRules = () => {
@@ -821,6 +823,104 @@ const blogCategoryValidationRules = () => {
     ];
 };
 exports.blogCategoryValidationRules = blogCategoryValidationRules;
+const faqValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('question')
+            .trim()
+            .isLength({ min: 10, max: 255 })
+            .withMessage('Question must be between 10-255 characters'),
+        (0, express_validator_1.check)('answer')
+            .trim()
+            .isLength({ min: 20 })
+            .withMessage('Answer must be at least 20 characters'),
+        (0, express_validator_1.check)('categoryId')
+            .isUUID()
+            .withMessage('Category ID must be a valid UUID'),
+        (0, express_validator_1.check)('status')
+            .optional()
+            .isIn(Object.values(faq_1.FAQStatus))
+            .withMessage('Invalid status value'),
+        (0, express_validator_1.check)('visibility')
+            .optional()
+            .isIn(Object.values(faq_1.FAQVisibility))
+            .withMessage('Invalid visibility value'),
+    ];
+};
+exports.faqValidationRules = faqValidationRules;
+const faqUpdateValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('question')
+            .optional()
+            .trim()
+            .isLength({ min: 10, max: 255 })
+            .withMessage('Question must be between 10-255 characters'),
+        (0, express_validator_1.check)('answer')
+            .optional()
+            .trim()
+            .isLength({ min: 20 })
+            .withMessage('Answer must be at least 20 characters'),
+        (0, express_validator_1.check)('categoryId')
+            .optional()
+            .isUUID()
+            .withMessage('Category ID must be a valid UUID'),
+        (0, express_validator_1.check)('status')
+            .optional()
+            .isIn(Object.values(faq_1.FAQStatus))
+            .withMessage('Invalid status value'),
+        (0, express_validator_1.check)('visibility')
+            .optional()
+            .isIn(Object.values(faq_1.FAQVisibility))
+            .withMessage('Invalid visibility value'),
+    ];
+};
+exports.faqUpdateValidationRules = faqUpdateValidationRules;
+const faqCategoryValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('name')
+            .trim()
+            .isLength({ min: 2, max: 100 })
+            .withMessage('Name must be between 2-100 characters'),
+        (0, express_validator_1.check)('description')
+            .optional()
+            .trim()
+            .isLength({ max: 255 })
+            .withMessage('Description must be less than 255 characters'),
+        (0, express_validator_1.check)('icon')
+            .optional()
+            .trim()
+            .isLength({ max: 50 })
+            .withMessage('Icon must be less than 50 characters'),
+        (0, express_validator_1.check)('status')
+            .optional()
+            .isIn(Object.values(faqcategory_1.FAQCategoryStatus))
+            .withMessage('Invalid status value'),
+    ];
+};
+exports.faqCategoryValidationRules = faqCategoryValidationRules;
+const faqCategoryUpdateValidationRules = () => {
+    return [
+        (0, express_validator_1.check)('name')
+            .optional()
+            .trim()
+            .isLength({ min: 2, max: 100 })
+            .withMessage('Name must be between 2-100 characters'),
+        (0, express_validator_1.check)('description')
+            .optional()
+            .trim()
+            .isLength({ max: 255 })
+            .withMessage('Description must be less than 255 characters'),
+        (0, express_validator_1.check)('icon')
+            .optional()
+            .trim()
+            .isLength({ max: 50 })
+            .withMessage('Icon must be less than 50 characters'),
+        (0, express_validator_1.check)('status')
+            .optional()
+            .isIn(Object.values(faqcategory_1.FAQCategoryStatus))
+            .withMessage('Invalid status value'),
+    ];
+};
+exports.faqCategoryUpdateValidationRules = faqCategoryUpdateValidationRules;
 // Middleware to handle validation errors, sending only the first error
 const validate = (req, res, next) => {
     const errors = (0, express_validator_1.validationResult)(req);

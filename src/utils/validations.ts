@@ -4,6 +4,8 @@ import { CategoryTypes } from '../models/category';
 import { PaymentMethod, ProductType } from '../models/transaction';
 import { Country } from '../models/user';
 import { BlogStatus } from '../models/blog';
+import { FAQStatus, FAQVisibility } from '../models/faq';
+import { FAQCategoryStatus } from '../models/faqcategory';
 
 // Validation rules for different functionalities
 
@@ -895,6 +897,104 @@ export const blogCategoryValidationRules = () => {
       .trim()
       .isLength({ max: 500 })
       .withMessage('Description must be less than 500 characters'),
+  ];
+};
+
+export const faqValidationRules = () => {
+  return [
+    check('question')
+      .trim()
+      .isLength({ min: 10, max: 255 })
+      .withMessage('Question must be between 10-255 characters'),
+    check('answer')
+      .trim()
+      .isLength({ min: 20 })
+      .withMessage('Answer must be at least 20 characters'),
+    check('categoryId')
+      .isUUID()
+      .withMessage('Category ID must be a valid UUID'),
+    check('status')
+      .optional()
+      .isIn(Object.values(FAQStatus))
+      .withMessage('Invalid status value'),
+    check('visibility')
+      .optional()
+      .isIn(Object.values(FAQVisibility))
+      .withMessage('Invalid visibility value'),
+  ];
+};
+
+export const faqUpdateValidationRules = () => {
+  return [
+    check('question')
+      .optional()
+      .trim()
+      .isLength({ min: 10, max: 255 })
+      .withMessage('Question must be between 10-255 characters'),
+    check('answer')
+      .optional()
+      .trim()
+      .isLength({ min: 20 })
+      .withMessage('Answer must be at least 20 characters'),
+    check('categoryId')
+      .optional()
+      .isUUID()
+      .withMessage('Category ID must be a valid UUID'),
+    check('status')
+      .optional()
+      .isIn(Object.values(FAQStatus))
+      .withMessage('Invalid status value'),
+    check('visibility')
+      .optional()
+      .isIn(Object.values(FAQVisibility))
+      .withMessage('Invalid visibility value'),
+  ];
+};
+
+export const faqCategoryValidationRules = () => {
+  return [
+    check('name')
+      .trim()
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Name must be between 2-100 characters'),
+    check('description')
+      .optional()
+      .trim()
+      .isLength({ max: 255 })
+      .withMessage('Description must be less than 255 characters'),
+    check('icon')
+      .optional()
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage('Icon must be less than 50 characters'),
+    check('status')
+      .optional()
+      .isIn(Object.values(FAQCategoryStatus))
+      .withMessage('Invalid status value'),
+  ];
+};
+
+export const faqCategoryUpdateValidationRules = () => {
+  return [
+    check('name')
+      .optional()
+      .trim()
+      .isLength({ min: 2, max: 100 })
+      .withMessage('Name must be between 2-100 characters'),
+    check('description')
+      .optional()
+      .trim()
+      .isLength({ max: 255 })
+      .withMessage('Description must be less than 255 characters'),
+    check('icon')
+      .optional()
+      .trim()
+      .isLength({ max: 50 })
+      .withMessage('Icon must be less than 50 characters'),
+    check('status')
+      .optional()
+      .isIn(Object.values(FAQCategoryStatus))
+      .withMessage('Invalid status value'),
   ];
 };
 
