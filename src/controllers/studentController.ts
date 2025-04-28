@@ -14,12 +14,19 @@ import Module from '../models/module';
 import Lesson, { LessonStatus } from '../models/lesson';
 import { getPaginationFields, getTotalPages } from '../utils/helpers';
 import CourseProgress from '../models/courseprogress';
+import Transactions, {
+  PaymentStatus,
+  PaymentType,
+  ProductType,
+} from '../models/transaction';
 import courseProgressService from '../services/course-progress.service';
 import CourseCategory from '../models/coursecategory';
 import lessonCompletionService from '../services/lesson-completion.service';
 import LessonCompletion from '../models/lessoncompletion';
 import quizService from '../services/quiz.service';
 import certificateService from '../services/certificate.service';
+import DigitalAsset from '../models/digitalasset';
+import PhysicalAsset from '../models/physicalasset';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -65,7 +72,6 @@ export const getAllCourses = async (
             },
             include: [
               { model: User, as: 'creator' },
-              { model: CourseCategory, as: 'courseCategory' },
               { model: CourseProgress, as: 'progress' },
             ],
           },
@@ -473,3 +479,132 @@ export const getCertificate = async (
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export async function getPurchasedProducts(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const userId = (req as any).user?.id as string;
+  const { page = 1, limit = 10 } = (req as any).query;
+
+  const offset = (page - 1) * limit;
+
+  const { rows: transactions, count } = await Transactions.findAndCountAll({
+    where: {
+      userId,
+      paymentType: ProductType.PRODUCT,
+      status: PaymentStatus.COMPLETED, // Assuming you only want successful transactions
+    },
+    order: [['createdAt', 'DESC']],
+    limit,
+    offset,
+  });
+
+  const modified = transactions.map((transaction: any) => {
+    let _items;
+    if (transaction?.metadata) {
+      _items = getProductDetails(transaction.metadata.items);
+    }
+
+    return {
+      ...transaction,
+
+      ..._items,
+    };
+  });
+
+  // const courses = transactions.map((transaction: any) => transaction.course);
+
+  return res.json({
+    transactions,
+    meta: {
+      total: count,
+      page,
+      lastPage: Math.ceil(count / limit),
+    },
+  });
+}
+
+export async function getPurchasedProductDetails(
+  req: Request,
+  res: Response
+): Promise<any> {
+  const userId = (req as AuthenticatedRequest).user?.id as string;
+  const { trxId } = req.params;
+
+  const transaction = JSON.parse(
+    JSON.stringify(
+      await Transactions.findOne({
+        where: {
+          id: trxId,
+          userId,
+          paymentType: ProductType.PRODUCT,
+          status: PaymentStatus.COMPLETED, // Assuming you only want successful transactions
+        },
+      })
+    )
+  );
+
+  let items: any = [];
+
+  if (transaction?.metadata) {
+    items = getProductDetails(transaction.metadata.items);
+  }
+
+  return res.json({ data: { ...transaction, items } });
+}
+
+async function getProductDetails(items: any[]) {
+  let productItems = items.map(async (item) => {
+    let details;
+    switch (item?.productType) {
+      case 'digital_asset':
+        const digitalAsset = JSON.parse(
+          JSON.stringify(
+            await DigitalAsset.findOne({
+              where: { id: item?.productId },
+              include: [{ association: 'user' }],
+            })
+          )
+        ) as DigitalAsset & { user: User };
+
+        details = {
+          ...item,
+          details: digitalAsset,
+        };
+
+      case 'physical_asset':
+        const physicalAsset = JSON.parse(
+          JSON.stringify(
+            await PhysicalAsset.findOne({
+              where: { id: item?.productId },
+              include: [{ association: 'user' }],
+            })
+          )
+        ) as PhysicalAsset & { user: User };
+
+        details = {
+          ...item,
+          details: physicalAsset,
+        };
+
+      case 'course':
+        const course = JSON.parse(
+          JSON.stringify(
+            await Course.findOne({
+              where: { id: item?.productId },
+              include: [{ association: 'creator' }],
+            })
+          )
+        );
+
+        details = {
+          ...item,
+          details: course,
+        };
+    }
+    return details;
+  });
+
+  return productItems;
+}

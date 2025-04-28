@@ -46,6 +46,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getCertificate = exports.generateCertificate = exports.getLatestAttempt = exports.getAttempts = exports.submitQuiz = exports.saveCourseProgress = exports.getAllCourseProgress = exports.updateProgress = exports.getProgress = exports.enrollCourse = exports.getCourseById = exports.getAllCourses = void 0;
+exports.getPurchasedProducts = getPurchasedProducts;
+exports.getPurchasedProductDetails = getPurchasedProductDetails;
 const user_1 = __importDefault(require("../models/user"));
 const course_1 = __importStar(require("../models/course"));
 const courseenrollment_1 = __importDefault(require("../models/courseenrollment"));
@@ -53,12 +55,15 @@ const module_1 = __importDefault(require("../models/module"));
 const lesson_1 = __importStar(require("../models/lesson"));
 const helpers_1 = require("../utils/helpers");
 const courseprogress_1 = __importDefault(require("../models/courseprogress"));
+const transaction_1 = __importStar(require("../models/transaction"));
 const course_progress_service_1 = __importDefault(require("../services/course-progress.service"));
 const coursecategory_1 = __importDefault(require("../models/coursecategory"));
 const lesson_completion_service_1 = __importDefault(require("../services/lesson-completion.service"));
 const lessoncompletion_1 = __importDefault(require("../models/lessoncompletion"));
 const quiz_service_1 = __importDefault(require("../services/quiz.service"));
 const certificate_service_1 = __importDefault(require("../services/certificate.service"));
+const digitalasset_1 = __importDefault(require("../models/digitalasset"));
+const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 // Get all courses with filters (categoryId)
 const getAllCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -85,7 +90,6 @@ const getAllCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                     where: Object.assign({ status: course_1.CourseStatus.LIVE }, (categoryId && { categoryId })),
                     include: [
                         { model: user_1.default, as: 'creator' },
-                        { model: coursecategory_1.default, as: 'courseCategory' },
                         { model: courseprogress_1.default, as: 'progress' },
                     ],
                 },
@@ -430,4 +434,87 @@ const getCertificate = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.getCertificate = getCertificate;
+function getPurchasedProducts(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const { page = 1, limit = 10 } = req.query;
+        const offset = (page - 1) * limit;
+        const { rows: transactions, count } = yield transaction_1.default.findAndCountAll({
+            where: {
+                userId,
+                paymentType: transaction_1.ProductType.PRODUCT,
+                status: transaction_1.PaymentStatus.COMPLETED, // Assuming you only want successful transactions
+            },
+            order: [['createdAt', 'DESC']],
+            limit,
+            offset,
+        });
+        const modified = transactions.map((transaction) => {
+            let _items;
+            if (transaction === null || transaction === void 0 ? void 0 : transaction.metadata) {
+                _items = getProductDetails(transaction.metadata.items);
+            }
+            return Object.assign(Object.assign({}, transaction), _items);
+        });
+        // const courses = transactions.map((transaction: any) => transaction.course);
+        return res.json({
+            transactions,
+            meta: {
+                total: count,
+                page,
+                lastPage: Math.ceil(count / limit),
+            },
+        });
+    });
+}
+function getPurchasedProductDetails(req, res) {
+    return __awaiter(this, void 0, void 0, function* () {
+        var _a;
+        const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
+        const { trxId } = req.params;
+        const transaction = JSON.parse(JSON.stringify(yield transaction_1.default.findOne({
+            where: {
+                id: trxId,
+                userId,
+                paymentType: transaction_1.ProductType.PRODUCT,
+                status: transaction_1.PaymentStatus.COMPLETED, // Assuming you only want successful transactions
+            },
+        })));
+        let items = [];
+        if (transaction === null || transaction === void 0 ? void 0 : transaction.metadata) {
+            items = getProductDetails(transaction.metadata.items);
+        }
+        return res.json({ data: Object.assign(Object.assign({}, transaction), { items }) });
+    });
+}
+function getProductDetails(items) {
+    return __awaiter(this, void 0, void 0, function* () {
+        let productItems = items.map((item) => __awaiter(this, void 0, void 0, function* () {
+            let details;
+            switch (item === null || item === void 0 ? void 0 : item.productType) {
+                case 'digital_asset':
+                    const digitalAsset = JSON.parse(JSON.stringify(yield digitalasset_1.default.findOne({
+                        where: { id: item === null || item === void 0 ? void 0 : item.productId },
+                        include: [{ association: 'user' }],
+                    })));
+                    details = Object.assign(Object.assign({}, item), { details: digitalAsset });
+                case 'physical_asset':
+                    const physicalAsset = JSON.parse(JSON.stringify(yield physicalasset_1.default.findOne({
+                        where: { id: item === null || item === void 0 ? void 0 : item.productId },
+                        include: [{ association: 'user' }],
+                    })));
+                    details = Object.assign(Object.assign({}, item), { details: physicalAsset });
+                case 'course':
+                    const course = JSON.parse(JSON.stringify(yield course_1.default.findOne({
+                        where: { id: item === null || item === void 0 ? void 0 : item.productId },
+                        include: [{ association: 'creator' }],
+                    })));
+                    details = Object.assign(Object.assign({}, item), { details: course });
+            }
+            return details;
+        }));
+        return productItems;
+    });
+}
 //# sourceMappingURL=studentController.js.map

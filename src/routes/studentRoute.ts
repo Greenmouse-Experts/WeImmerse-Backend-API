@@ -73,4 +73,16 @@ studentRoutes.get(
   studentController.getCertificate
 );
 
+studentRoutes.get(
+  '/purchased-products',
+  authMiddleware,
+  studentController.getPurchasedProducts
+);
+
+studentRoutes.get(
+  '/purchased-product/:trxId',
+  authMiddleware,
+  studentController.getPurchasedProductDetails
+);
+
 export default studentRoutes;
