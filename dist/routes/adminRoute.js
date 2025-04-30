@@ -126,7 +126,7 @@ adminRoutes.get('/job/fetch', adminAuthMiddleware_1.default, adminController.fet
 adminRoutes.post('/account/:userId/vet/', adminAuthMiddleware_1.default, (0, adminValidations_1.vetAccountValidationRules)(), validations_1.validate, adminController.vetAccount);
 adminRoutes.post('/blog', adminAuthMiddleware_1.default, (0, validations_1.blogValidationRules)(), validations_1.validate, BlogController.createBlog);
 adminRoutes.put('/blog/:id', adminAuthMiddleware_1.default, (0, validations_1.blogValidationRules)(), validations_1.validate, BlogController.updateBlog);
-adminRoutes.get('/blog/fetch-unpublished/view', adminAuthMiddleware_1.default, BlogController.getUnPublishedBlogs);
+adminRoutes.get('/blog/fetch-all/view', adminAuthMiddleware_1.default, BlogController.getAllBlogs);
 adminRoutes.get('/blog/:id', adminAuthMiddleware_1.default, BlogController.getBlogById);
 adminRoutes.delete('/blog/:id', adminAuthMiddleware_1.default, BlogController.deleteBlog);
 adminRoutes.post('/blog-category', adminAuthMiddleware_1.default, (0, validations_1.blogCategoryValidationRules)(), validations_1.validate, BlogController.createBlogCategory);

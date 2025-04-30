@@ -425,9 +425,9 @@ adminRoutes.put(
 );
 
 adminRoutes.get(
-  '/blog/fetch-unpublished/view',
+  '/blog/fetch-all/view',
   adminAuthMiddleware,
-  BlogController.getUnPublishedBlogs
+  BlogController.getAllBlogs
 );
 
 adminRoutes.get('/blog/:id', adminAuthMiddleware, BlogController.getBlogById);

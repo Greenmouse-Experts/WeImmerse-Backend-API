@@ -74,8 +74,8 @@ export const getBlogs = async (req: Request, res: Response): Promise<any> => {
   }
 };
 
-// Get all unpublished blogs (with pagination)
-export const getUnPublishedBlogs = async (
+// Get all blogs (with pagination)
+export const getAllBlogs = async (
   req: Request,
   res: Response
 ): Promise<any> => {
@@ -85,7 +85,6 @@ export const getUnPublishedBlogs = async (
     const offset = (page - 1) * limit;
 
     const { count, rows } = await Blog.findAndCountAll({
-      where: { status: BlogStatus.DRAFT },
       limit,
       offset,
       order: [['createdAt', 'DESC']],
