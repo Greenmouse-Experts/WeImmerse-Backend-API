@@ -8,6 +8,7 @@ import {
   validate,
 } from '../utils/validations';
 import * as blogController from '../controllers/blogController';
+import faqController from '../controllers/faqController';
 
 const generalRoutes = Router();
 
@@ -72,5 +73,7 @@ generalRoutes.get('/blog/:slug', blogController.getBlogBySlug);
 // Public routes
 generalRoutes.get('/blog-category', blogController.getCategories);
 generalRoutes.get('/blog-category/:slug', blogController.getCategoryBySlug);
+
+generalRoutes.get('/faqs', faqController.getAllFAQs);
 
 export default generalRoutes;
