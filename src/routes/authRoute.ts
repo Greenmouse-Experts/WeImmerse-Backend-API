@@ -16,6 +16,7 @@ import {
 } from '../utils/validations'; // Import the service
 import authMiddleware from '../middlewares/authMiddleware';
 import authorizeCreatorOrInstitution from '../middlewares/authorizeCreatorOrInstitution';
+import upload from '../utils/multer';
 
 const authRoutes = Router();
 
@@ -107,6 +108,13 @@ authRoutes.get(
   authMiddleware,
   authorizeCreatorOrInstitution,
   authController.getAllSubscriptionPlans
+);
+
+authRoutes.post(
+  '/upload-multiple',
+  authMiddleware,
+  upload.array('files', 5),
+  authController.uploadImages
 );
 
 export default authRoutes; // Export the router

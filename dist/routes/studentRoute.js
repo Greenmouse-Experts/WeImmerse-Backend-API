@@ -73,6 +73,6 @@ studentRoutes.get('/latest-quiz-attempt/:quizId', authMiddleware_1.default, stud
 studentRoutes.post('/generate-certificate', authMiddleware_1.default, (0, studentValidations_1.generateCertificateValidationRules)(), validations_1.validate, studentController.generateCertificate);
 studentRoutes.get('/certificate/:courseId', authMiddleware_1.default, (0, studentValidations_1.generateCertificateValidationRules)(), validations_1.validate, studentController.getCertificate);
 studentRoutes.get('/purchased-products', authMiddleware_1.default, studentController.getPurchasedProducts);
-studentRoutes.get('/purchased-product/:trxId', authMiddleware_1.default, studentController.getPurchasedProductDetails);
+studentRoutes.get('/purchased-products/:productType/:id', authMiddleware_1.default, studentController_1.getPurchasedProductDetails);
 exports.default = studentRoutes;
 //# sourceMappingURL=studentRoute.js.map

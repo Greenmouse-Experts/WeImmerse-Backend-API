@@ -164,26 +164,64 @@ const shuffleArray = <T>(array: T[]): T[] => {
   return array;
 };
 
-const getJobsBySearch = async (searchTerm: string, number: number) => {
+const getJobsBySearch = async (
+  searchTerm: string,
+  metadata:
+    | {
+        location: string;
+        jobType: string;
+        workplaceType: string;
+        categoryId: string;
+      }
+    | any,
+  page: number,
+  limit: number
+) => {
+  const offset = (page - 1) * limit;
+
   const where: any = { status: 'active' };
 
+  const {
+    location = '',
+    jobType = '',
+    workplaceType = '',
+    categoryId = '',
+  } = metadata;
+
   if (searchTerm) {
-    const searchRegex = { [Op.iLike]: `%${searchTerm}%` }; // Use Sequelize's Op.iLike for case-insensitive search.
+    const searchRegex = { [Op.like]: `%${searchTerm}%` }; // Use Sequelize's Op.iLike for case-insensitive search.
     where[Op.or] = [
       { title: searchRegex },
       { company: searchRegex },
-      { workplace_type: searchRegex },
-      { job_type: searchRegex },
+      { workplaceType: searchRegex },
+      { jobType: searchRegex },
       { location: searchRegex },
-      { category: searchRegex },
+      { categoryId: searchRegex },
     ];
   }
 
-  return await Job.findAll({
+  // Add optional filters
+  if (location) where.location = { [Op.like]: `%${location}%` };
+  if (jobType) where.jobType = jobType;
+  if (workplaceType) where.workplaceType = workplaceType;
+  if (categoryId) where.categoryId = categoryId;
+
+  const { count, rows: jobs } = await Job.findAndCountAll({
     where,
+    limit,
+    offset,
     order: [['createdAt', 'DESC']], // Sort by createdAt in descending order.
-    limit: number, // Limit the number of results.
   });
+
+  return {
+    jobs,
+    pagination: {
+      total: count,
+      page,
+      pages: Math.ceil(count / limit),
+      limit,
+    },
+  };
 };
 
 const formatCourse = async (course: Course, authUserId: string) => {

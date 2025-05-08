@@ -15,9 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const canvas_1 = require("canvas");
 const helpers_1 = require("../utils/helpers"); // Utility function to upload files to S3
 const courseprogress_1 = __importDefault(require("../models/courseprogress"));
-const quizattempt_1 = __importDefault(require("../models/quizattempt"));
 const certificate_1 = __importDefault(require("../models/certificate"));
-const lessonquiz_1 = __importDefault(require("../models/lessonquiz"));
 const generateCertificatePdf = (userId, courseId) => __awaiter(void 0, void 0, void 0, function* () {
     const canvas = (0, canvas_1.createCanvas)(800, 600);
     const ctx = canvas.getContext('2d');
@@ -32,7 +30,7 @@ const generateCertificatePdf = (userId, courseId) => __awaiter(void 0, void 0, v
     // Convert canvas to buffer
     const buffer = canvas.toBuffer('image/png');
     // Upload to S3 and return URL
-    return yield (0, helpers_1.uploadToS3)(buffer, `certificates/${userId}_${courseId}.png`, 'test-weimmersive-bucket');
+    return yield (0, helpers_1.uploadToS3)(buffer, `uploads/${userId}_${courseId}.png`, 'test-weimmersive-fs');
 });
 const generateCertificate = (userId, courseId) => __awaiter(void 0, void 0, void 0, function* () {
     // Check if course is 100% complete
@@ -44,15 +42,15 @@ const generateCertificate = (userId, courseId) => __awaiter(void 0, void 0, void
     }
     console.log(progress, courseId);
     // Check if quiz is passed
-    const quizAttempt = yield quizattempt_1.default.findOne({
-        where: { userId, passed: true },
-        include: [{ model: lessonquiz_1.default, as: 'quiz', where: { courseId } }],
-        order: [['createdAt', 'DESC']],
-    });
-    console.log(quizAttempt);
-    if (!quizAttempt) {
-        throw new Error('User has not passed the required quiz.');
-    }
+    // const quizAttempt = await QuizAttempt.findOne({
+    //   where: { userId, passed: true },
+    //   include: [{ model: LessonQuiz, as: 'quiz', where: { courseId } }],
+    //   order: [['createdAt', 'DESC']],
+    // });
+    // console.log(quizAttempt);
+    // if (!quizAttempt) {
+    //   throw new Error('User has not passed the required quiz.');
+    // }
     // Generate certificate
     const certificateUrl = yield generateCertificatePdf(userId, courseId);
     // Store certificate in the database

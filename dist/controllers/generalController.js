@@ -47,6 +47,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getSingleCourse = exports.getCourses = exports.getSavedJobs = exports.getAppliedJobs = exports.applyJob = exports.saveJob = exports.updateUserNotificationSettings = exports.getUserNotificationSettings = exports.updatePassword = exports.updateProfilePhoto = exports.updateProfile = exports.profile = exports.logout = void 0;
 const user_1 = __importDefault(require("../models/user"));
+const sequelize_1 = require("sequelize");
 const helpers_1 = require("../utils/helpers");
 const mail_service_1 = require("../services/mail.service");
 const messages_1 = require("../utils/messages");
@@ -471,10 +472,14 @@ exports.getSavedJobs = getSavedJobs;
  */
 const getCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { categoryId } = req.query;
+        const { categoryId, q } = req.query;
         // Extract pagination query parameters
         const { page, limit, offset } = (0, helpers_1.getPaginationFields)(req.query.page, req.query.limit);
-        let whereCondition = Object.assign(Object.assign({}, (categoryId && { categoryId })), { status: course_1.CourseStatus.LIVE, published: true });
+        let whereCondition = Object.assign(Object.assign(Object.assign({}, (categoryId && { categoryId })), { status: course_1.CourseStatus.LIVE, published: true }), (q && {
+            [sequelize_1.Op.or]: {
+                title: { [sequelize_1.Op.like]: `%${q}%` },
+            },
+        }));
         const { rows: courses, count: totalItems } = yield course_1.default.findAndCountAll({
             where: whereCondition,
             include: [

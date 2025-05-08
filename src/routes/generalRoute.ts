@@ -9,6 +9,7 @@ import {
 } from '../utils/validations';
 import * as blogController from '../controllers/blogController';
 import faqController from '../controllers/faqController';
+import searchController from '../controllers/searchController';
 
 const generalRoutes = Router();
 
@@ -75,5 +76,14 @@ generalRoutes.get('/blog-category', blogController.getCategories);
 generalRoutes.get('/blog-category/:slug', blogController.getCategoryBySlug);
 
 generalRoutes.get('/faqs', faqController.getAllFAQs);
+
+// GET /api/search?q=searchTerm
+generalRoutes.get('/search', searchController.searchItems);
+
+// GET /api/search/all?q=searchTerm
+generalRoutes.get('/search/all', searchController.searchAllItems);
+
+// GET /api/search/jobs?q=searchTerm
+generalRoutes.get('/search/jobs', searchController.searchJobs);
 
 export default generalRoutes;

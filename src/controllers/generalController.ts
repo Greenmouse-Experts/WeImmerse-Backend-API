@@ -531,7 +531,7 @@ export const getSavedJobs = async (
  */
 export const getCourses = async (req: Request, res: Response): Promise<any> => {
   try {
-    const { categoryId } = req.query;
+    const { categoryId, q } = req.query;
 
     // Extract pagination query parameters
     const { page, limit, offset } = getPaginationFields(
@@ -543,6 +543,11 @@ export const getCourses = async (req: Request, res: Response): Promise<any> => {
       ...(categoryId && { categoryId }),
       status: CourseStatus.LIVE,
       published: true,
+      ...(q && {
+        [Op.or]: {
+          title: { [Op.like]: `%${q}%` },
+        },
+      }),
     };
 
     const { rows: courses, count: totalItems } = await Course.findAndCountAll({

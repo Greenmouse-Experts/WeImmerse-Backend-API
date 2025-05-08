@@ -55,7 +55,6 @@ const module_1 = __importDefault(require("../models/module"));
 const lesson_1 = __importStar(require("../models/lesson"));
 const helpers_1 = require("../utils/helpers");
 const courseprogress_1 = __importDefault(require("../models/courseprogress"));
-const transaction_1 = __importStar(require("../models/transaction"));
 const course_progress_service_1 = __importDefault(require("../services/course-progress.service"));
 const coursecategory_1 = __importDefault(require("../models/coursecategory"));
 const lesson_completion_service_1 = __importDefault(require("../services/lesson-completion.service"));
@@ -64,6 +63,8 @@ const quiz_service_1 = __importDefault(require("../services/quiz.service"));
 const certificate_service_1 = __importDefault(require("../services/certificate.service"));
 const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
+const userdigitalasset_1 = __importDefault(require("../models/userdigitalasset"));
+const physicalassetorder_1 = __importDefault(require("../models/physicalassetorder"));
 // Get all courses with filters (categoryId)
 const getAllCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -438,28 +439,80 @@ function getPurchasedProducts(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, productType = 'course' } = req.query;
         const offset = (page - 1) * limit;
-        const { rows: transactions, count } = yield transaction_1.default.findAndCountAll({
-            where: {
-                userId,
-                paymentType: transaction_1.ProductType.PRODUCT,
-                status: transaction_1.PaymentStatus.COMPLETED, // Assuming you only want successful transactions
-            },
-            order: [['createdAt', 'DESC']],
-            limit,
-            offset,
-        });
-        const modified = transactions.map((transaction) => {
-            let _items;
-            if (transaction === null || transaction === void 0 ? void 0 : transaction.metadata) {
-                _items = getProductDetails(transaction.metadata.items);
-            }
-            return Object.assign(Object.assign({}, transaction), _items);
-        });
-        // const courses = transactions.map((transaction: any) => transaction.course);
+        // Validate productType
+        const validProductTypes = ['course', 'digital_asset', 'physical_asset'];
+        if (!validProductTypes.includes(productType)) {
+            return res.status(400).json({
+                status: false,
+                message: 'Invalid product type. Must be one of: course, digital_asset, physical_asset',
+            });
+        }
+        let result;
+        let count;
+        switch (productType) {
+            case 'course':
+                // Fetch enrolled courses
+                const courseResult = yield courseenrollment_1.default.findAndCountAll({
+                    where: { userId },
+                    include: [
+                        {
+                            model: course_1.default,
+                            as: 'course',
+                            include: [
+                                { model: user_1.default, as: 'creator' },
+                                { model: courseprogress_1.default, as: 'progress' },
+                            ],
+                        },
+                    ],
+                    order: [['createdAt', 'DESC']],
+                    limit,
+                    offset,
+                });
+                result = courseResult.rows;
+                count = courseResult.count;
+                break;
+            case 'digital_asset':
+                // Fetch digital assets
+                const digitalResult = yield userdigitalasset_1.default.findAndCountAll({
+                    where: { userId },
+                    include: [
+                        {
+                            model: digitalasset_1.default,
+                            as: 'asset',
+                            include: [{ model: user_1.default, as: 'user' }],
+                        },
+                    ],
+                    order: [['createdAt', 'DESC']],
+                    limit,
+                    offset,
+                });
+                result = digitalResult.rows;
+                count = digitalResult.count;
+                break;
+            case 'physical_asset':
+                // Fetch physical asset orders
+                const physicalResult = yield physicalassetorder_1.default.findAndCountAll({
+                    where: { userId },
+                    include: [
+                        {
+                            model: physicalasset_1.default,
+                            as: 'asset',
+                            include: [{ model: user_1.default, as: 'user' }],
+                        },
+                    ],
+                    order: [['createdAt', 'DESC']],
+                    limit,
+                    offset,
+                });
+                result = physicalResult.rows;
+                count = physicalResult.count;
+                break;
+        }
         return res.json({
-            transactions,
+            status: true,
+            data: result,
             meta: {
                 total: count,
                 page,
@@ -472,49 +525,96 @@ function getPurchasedProductDetails(req, res) {
     return __awaiter(this, void 0, void 0, function* () {
         var _a;
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id;
-        const { trxId } = req.params;
-        const transaction = JSON.parse(JSON.stringify(yield transaction_1.default.findOne({
-            where: {
-                id: trxId,
-                userId,
-                paymentType: transaction_1.ProductType.PRODUCT,
-                status: transaction_1.PaymentStatus.COMPLETED, // Assuming you only want successful transactions
-            },
-        })));
-        let items = [];
-        if (transaction === null || transaction === void 0 ? void 0 : transaction.metadata) {
-            items = getProductDetails(transaction.metadata.items);
+        const { id, productType = 'course' } = req.params;
+        // Validate productType
+        const validProductTypes = ['course', 'digital_asset', 'physical_asset'];
+        if (!validProductTypes.includes(productType)) {
+            return res.status(400).json({
+                status: false,
+                message: 'Invalid product type. Must be one of: course, digital_asset, physical_asset',
+            });
         }
-        return res.json({ data: Object.assign(Object.assign({}, transaction), { items }) });
-    });
-}
-function getProductDetails(items) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let productItems = items.map((item) => __awaiter(this, void 0, void 0, function* () {
-            let details;
-            switch (item === null || item === void 0 ? void 0 : item.productType) {
-                case 'digital_asset':
-                    const digitalAsset = JSON.parse(JSON.stringify(yield digitalasset_1.default.findOne({
-                        where: { id: item === null || item === void 0 ? void 0 : item.productId },
-                        include: [{ association: 'user' }],
-                    })));
-                    details = Object.assign(Object.assign({}, item), { details: digitalAsset });
-                case 'physical_asset':
-                    const physicalAsset = JSON.parse(JSON.stringify(yield physicalasset_1.default.findOne({
-                        where: { id: item === null || item === void 0 ? void 0 : item.productId },
-                        include: [{ association: 'user' }],
-                    })));
-                    details = Object.assign(Object.assign({}, item), { details: physicalAsset });
+        let result;
+        try {
+            switch (productType) {
                 case 'course':
-                    const course = JSON.parse(JSON.stringify(yield course_1.default.findOne({
-                        where: { id: item === null || item === void 0 ? void 0 : item.productId },
-                        include: [{ association: 'creator' }],
-                    })));
-                    details = Object.assign(Object.assign({}, item), { details: course });
+                    result = yield courseenrollment_1.default.findOne({
+                        where: {
+                            id,
+                            userId,
+                        },
+                        include: [
+                            {
+                                model: course_1.default,
+                                as: 'course',
+                                include: [
+                                    { model: user_1.default, as: 'creator' },
+                                    { model: courseprogress_1.default, as: 'progress' },
+                                    {
+                                        model: module_1.default,
+                                        as: 'modules',
+                                        include: [
+                                            {
+                                                model: lesson_1.default,
+                                                as: 'lessons',
+                                                where: { status: lesson_1.LessonStatus.PUBLISHED },
+                                            },
+                                        ],
+                                    },
+                                ],
+                            },
+                        ],
+                    });
+                    break;
+                case 'digital_asset':
+                    result = yield userdigitalasset_1.default.findOne({
+                        where: {
+                            id,
+                            userId,
+                        },
+                        include: [
+                            {
+                                model: digitalasset_1.default,
+                                as: 'asset',
+                                include: [{ model: user_1.default, as: 'user' }],
+                            },
+                        ],
+                    });
+                    break;
+                case 'physical_asset':
+                    result = yield physicalassetorder_1.default.findOne({
+                        where: {
+                            id,
+                            userId,
+                        },
+                        include: [
+                            {
+                                model: physicalasset_1.default,
+                                as: 'asset',
+                                include: [{ model: user_1.default, as: 'user' }],
+                            },
+                        ],
+                    });
+                    break;
             }
-            return details;
-        }));
-        return productItems;
+            if (!result) {
+                return res.status(404).json({
+                    status: false,
+                    message: `${productType} not found or you don't have access to it`,
+                });
+            }
+            return res.json({
+                status: true,
+                data: result,
+            });
+        }
+        catch (error) {
+            console.error('Error fetching purchased product details:', error);
+            return res.status(500).json({
+                status: false,
+                message: 'Error fetching purchased product details',
+            });
+        }
     });
 }
 //# sourceMappingURL=studentController.js.map

@@ -25,7 +25,7 @@ const role_1 = __importDefault(require("../models/role"));
 const category_1 = __importDefault(require("../models/category"));
 const fetchDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { assetName, pricingType } = req.query; // Extract search parameters
+        const { assetName, pricingType, categoryId } = req.query; // Extract search parameters
         // Build search conditions
         const searchConditions = {
             status: 'published',
@@ -35,6 +35,9 @@ const fetchDigitalAssets = (req, res) => __awaiter(void 0, void 0, void 0, funct
         }
         if (pricingType) {
             searchConditions.pricingType = pricingType;
+        }
+        if (categoryId) {
+            searchConditions.categoryId = categoryId;
         }
         // Fetch assets with optional search criteria
         const assets = yield digitalasset_1.default.findAll({
@@ -117,13 +120,16 @@ const viewDigitalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functio
 exports.viewDigitalAsset = viewDigitalAsset;
 const fetchPhysicalAssets = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { assetName } = req.query; // Extract search parameters
+        const { assetName, categoryId } = req.query; // Extract search parameters
         // Build search conditions
         const searchConditions = {
             status: 'published',
         };
         if (assetName) {
             searchConditions.assetName = { [sequelize_1.Op.like]: `%${assetName}%` }; // Partial match
+        }
+        if (categoryId) {
+            searchConditions.categoryId = categoryId;
         }
         // Fetch assets with optional search criteria
         const assets = yield physicalasset_1.default.findAll({
@@ -206,11 +212,13 @@ const viewPhysicalAsset = (req, res) => __awaiter(void 0, void 0, void 0, functi
 exports.viewPhysicalAsset = viewPhysicalAsset;
 const fetchJobs = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { keyword } = req.query;
-        const jobs = yield (0, helpers_1.getJobsBySearch)(keyword, 20);
+        const { keyword, location = '', jobType = '', workplaceType = '', categoryId = '', page = 1, limit = 10, } = req.query;
+        const metadata = { location, jobType, workplaceType, categoryId };
+        const { jobs, pagination } = yield (0, helpers_1.getJobsBySearch)(keyword, metadata, page, limit);
         res.status(200).json({
             message: 'All jobs retrieved successfully.',
             data: jobs,
+            pagination,
         });
     }
     catch (error) {

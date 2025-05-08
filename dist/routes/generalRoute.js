@@ -43,6 +43,7 @@ const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"
 const validations_1 = require("../utils/validations");
 const blogController = __importStar(require("../controllers/blogController"));
 const faqController_1 = __importDefault(require("../controllers/faqController"));
+const searchController_1 = __importDefault(require("../controllers/searchController"));
 const generalRoutes = (0, express_1.Router)();
 // User routes
 generalRoutes.post('/logout', authMiddleware_1.default, generalController.logout);
@@ -65,5 +66,11 @@ generalRoutes.get('/blog/:slug', blogController.getBlogBySlug);
 generalRoutes.get('/blog-category', blogController.getCategories);
 generalRoutes.get('/blog-category/:slug', blogController.getCategoryBySlug);
 generalRoutes.get('/faqs', faqController_1.default.getAllFAQs);
+// GET /api/search?q=searchTerm
+generalRoutes.get('/search', searchController_1.default.searchItems);
+// GET /api/search/all?q=searchTerm
+generalRoutes.get('/search/all', searchController_1.default.searchAllItems);
+// GET /api/search/jobs?q=searchTerm
+generalRoutes.get('/search/jobs', searchController_1.default.searchJobs);
 exports.default = generalRoutes;
 //# sourceMappingURL=generalRoute.js.map

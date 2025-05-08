@@ -43,6 +43,7 @@ const frontendController = __importStar(require("../controllers/frontendControll
 const validations_1 = require("../utils/validations"); // Import the service
 const authMiddleware_1 = __importDefault(require("../middlewares/authMiddleware"));
 const authorizeCreatorOrInstitution_1 = __importDefault(require("../middlewares/authorizeCreatorOrInstitution"));
+const multer_1 = __importDefault(require("../utils/multer"));
 const authRoutes = (0, express_1.Router)();
 // Auth routes
 authRoutes.get('/', authController.index);
@@ -67,5 +68,6 @@ authRoutes.get('/fetch/jobs', frontendController.fetchJobs);
 authRoutes.get('/view/job', frontendController.viewJob);
 // Subscription plan
 authRoutes.get('/subscription-plans/fetch', authMiddleware_1.default, authorizeCreatorOrInstitution_1.default, authController.getAllSubscriptionPlans);
+authRoutes.post('/upload-multiple', authMiddleware_1.default, multer_1.default.array('files', 5), authController.uploadImages);
 exports.default = authRoutes; // Export the router
 //# sourceMappingURL=authRoute.js.map

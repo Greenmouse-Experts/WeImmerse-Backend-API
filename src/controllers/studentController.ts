@@ -27,6 +27,8 @@ import quizService from '../services/quiz.service';
 import certificateService from '../services/certificate.service';
 import DigitalAsset from '../models/digitalasset';
 import PhysicalAsset from '../models/physicalasset';
+import UserDigitalAsset from '../models/userdigitalasset';
+import PhysicalAssetOrder from '../models/physicalassetorder';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -485,42 +487,92 @@ export async function getPurchasedProducts(
   res: Response
 ): Promise<any> {
   const userId = (req as any).user?.id as string;
-  const { page = 1, limit = 10 } = (req as any).query;
+  const { page = 1, limit = 10, productType = 'course' } = (req as any).query;
 
   const offset = (page - 1) * limit;
 
-  const { rows: transactions, count } = await Transactions.findAndCountAll({
-    where: {
-      userId,
-      paymentType: ProductType.PRODUCT,
-      status: PaymentStatus.COMPLETED, // Assuming you only want successful transactions
-    },
-    order: [['createdAt', 'DESC']],
-    limit,
-    offset,
-  });
+  // Validate productType
+  const validProductTypes = ['course', 'digital_asset', 'physical_asset'];
+  if (!validProductTypes.includes(productType)) {
+    return res.status(400).json({
+      status: false,
+      message:
+        'Invalid product type. Must be one of: course, digital_asset, physical_asset',
+    });
+  }
 
-  const modified = transactions.map((transaction: any) => {
-    let _items;
-    if (transaction?.metadata) {
-      _items = getProductDetails(transaction.metadata.items);
-    }
+  let result;
+  let count;
 
-    return {
-      ...transaction,
+  switch (productType) {
+    case 'course':
+      // Fetch enrolled courses
+      const courseResult = await CourseEnrollment.findAndCountAll({
+        where: { userId },
+        include: [
+          {
+            model: Course,
+            as: 'course',
+            include: [
+              { model: User, as: 'creator' },
+              { model: CourseProgress, as: 'progress' },
+            ],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        limit,
+        offset,
+      });
+      result = courseResult.rows;
+      count = courseResult.count;
+      break;
 
-      ..._items,
-    };
-  });
+    case 'digital_asset':
+      // Fetch digital assets
+      const digitalResult = await UserDigitalAsset.findAndCountAll({
+        where: { userId },
+        include: [
+          {
+            model: DigitalAsset,
+            as: 'asset',
+            include: [{ model: User, as: 'user' }],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        limit,
+        offset,
+      });
+      result = digitalResult.rows;
+      count = digitalResult.count;
+      break;
 
-  // const courses = transactions.map((transaction: any) => transaction.course);
+    case 'physical_asset':
+      // Fetch physical asset orders
+      const physicalResult = await PhysicalAssetOrder.findAndCountAll({
+        where: { userId },
+        include: [
+          {
+            model: PhysicalAsset,
+            as: 'asset',
+            include: [{ model: User, as: 'user' }],
+          },
+        ],
+        order: [['createdAt', 'DESC']],
+        limit,
+        offset,
+      });
+      result = physicalResult.rows;
+      count = physicalResult.count;
+      break;
+  }
 
   return res.json({
-    transactions,
+    status: true,
+    data: result,
     meta: {
       total: count,
       page,
-      lastPage: Math.ceil(count / limit),
+      lastPage: Math.ceil(count! / limit),
     },
   });
 }
@@ -530,81 +582,101 @@ export async function getPurchasedProductDetails(
   res: Response
 ): Promise<any> {
   const userId = (req as AuthenticatedRequest).user?.id as string;
-  const { trxId } = req.params;
+  const { id, productType = 'course' } = req.params;
 
-  const transaction = JSON.parse(
-    JSON.stringify(
-      await Transactions.findOne({
-        where: {
-          id: trxId,
-          userId,
-          paymentType: ProductType.PRODUCT,
-          status: PaymentStatus.COMPLETED, // Assuming you only want successful transactions
-        },
-      })
-    )
-  );
-
-  let items: any = [];
-
-  if (transaction?.metadata) {
-    items = getProductDetails(transaction.metadata.items);
+  // Validate productType
+  const validProductTypes = ['course', 'digital_asset', 'physical_asset'];
+  if (!validProductTypes.includes(productType)) {
+    return res.status(400).json({
+      status: false,
+      message:
+        'Invalid product type. Must be one of: course, digital_asset, physical_asset',
+    });
   }
 
-  return res.json({ data: { ...transaction, items } });
-}
+  let result;
 
-async function getProductDetails(items: any[]) {
-  let productItems = items.map(async (item) => {
-    let details;
-    switch (item?.productType) {
+  try {
+    switch (productType) {
+      case 'course':
+        result = await CourseEnrollment.findOne({
+          where: {
+            id,
+            userId,
+          },
+          include: [
+            {
+              model: Course,
+              as: 'course',
+              include: [
+                { model: User, as: 'creator' },
+                { model: CourseProgress, as: 'progress' },
+                {
+                  model: Module,
+                  as: 'modules',
+                  include: [
+                    {
+                      model: Lesson,
+                      as: 'lessons',
+                      where: { status: LessonStatus.PUBLISHED },
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        });
+        break;
+
       case 'digital_asset':
-        const digitalAsset = JSON.parse(
-          JSON.stringify(
-            await DigitalAsset.findOne({
-              where: { id: item?.productId },
-              include: [{ association: 'user' }],
-            })
-          )
-        ) as DigitalAsset & { user: User };
-
-        details = {
-          ...item,
-          details: digitalAsset,
-        };
+        result = await UserDigitalAsset.findOne({
+          where: {
+            id,
+            userId,
+          },
+          include: [
+            {
+              model: DigitalAsset,
+              as: 'asset',
+              include: [{ model: User, as: 'user' }],
+            },
+          ],
+        });
+        break;
 
       case 'physical_asset':
-        const physicalAsset = JSON.parse(
-          JSON.stringify(
-            await PhysicalAsset.findOne({
-              where: { id: item?.productId },
-              include: [{ association: 'user' }],
-            })
-          )
-        ) as PhysicalAsset & { user: User };
-
-        details = {
-          ...item,
-          details: physicalAsset,
-        };
-
-      case 'course':
-        const course = JSON.parse(
-          JSON.stringify(
-            await Course.findOne({
-              where: { id: item?.productId },
-              include: [{ association: 'creator' }],
-            })
-          )
-        );
-
-        details = {
-          ...item,
-          details: course,
-        };
+        result = await PhysicalAssetOrder.findOne({
+          where: {
+            id,
+            userId,
+          },
+          include: [
+            {
+              model: PhysicalAsset,
+              as: 'asset',
+              include: [{ model: User, as: 'user' }],
+            },
+          ],
+        });
+        break;
     }
-    return details;
-  });
 
-  return productItems;
+    if (!result) {
+      return res.status(404).json({
+        status: false,
+        message: `${productType} not found or you don't have access to it`,
+      });
+    }
+
+    return res.json({
+      status: true,
+      data: result,
+    });
+  } catch (error) {
+    console.error('Error fetching purchased product details:', error);
+    return res.status(500).json({
+      status: false,
+      message: 'Error fetching purchased product details',
+    });
+  }
 }

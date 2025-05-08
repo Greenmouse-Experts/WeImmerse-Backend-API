@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllSubscriptionPlans = exports.adminLogin = exports.resetPassword = exports.codeCheck = exports.forgetPassword = exports.resendVerificationEmail = exports.login = exports.verifyEmail = exports.institutionRegister = exports.creatorRegister = exports.studentRegister = exports.userRegister = exports.index = void 0;
+exports.uploadImages = exports.getAllSubscriptionPlans = exports.adminLogin = exports.resetPassword = exports.codeCheck = exports.forgetPassword = exports.resendVerificationEmail = exports.login = exports.verifyEmail = exports.institutionRegister = exports.creatorRegister = exports.studentRegister = exports.userRegister = exports.index = void 0;
 const user_1 = __importDefault(require("../models/user"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const helpers_1 = require("../utils/helpers");
@@ -28,6 +28,7 @@ const subscriptionplan_1 = __importDefault(require("../models/subscriptionplan")
 const institutioninformation_1 = __importDefault(require("../models/institutioninformation"));
 const sequelize_service_1 = __importDefault(require("../services/sequelize.service"));
 const sequelize_1 = require("sequelize");
+const cloudinary_1 = __importDefault(require("../utils/cloudinary"));
 const index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.status(200).json({
         code: 200,
@@ -633,4 +634,33 @@ const getAllSubscriptionPlans = (req, res) => __awaiter(void 0, void 0, void 0, 
     }
 });
 exports.getAllSubscriptionPlans = getAllSubscriptionPlans;
+const uploadImages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const files = req.files;
+        if (!files || files.length === 0) {
+            return res.status(400).json({ message: 'No files provided.' });
+        }
+        const uploadPromises = files.map((file) => {
+            return new Promise((resolve, reject) => {
+                cloudinary_1.default.uploader
+                    .upload_stream({ folder: 'uploads' }, (error, result) => {
+                    if (error)
+                        return reject(error);
+                    resolve({ secure_url: result === null || result === void 0 ? void 0 : result.secure_url });
+                })
+                    .end(file.buffer);
+            });
+        });
+        const uploadResults = yield Promise.all(uploadPromises);
+        res.status(200).json({
+            message: 'Files uploaded successfully',
+            files: uploadResults,
+        });
+    }
+    catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Upload failed', error });
+    }
+});
+exports.uploadImages = uploadImages;
 //# sourceMappingURL=authController.js.map

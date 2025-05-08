@@ -16,6 +16,8 @@ import UserNotificationSetting from '../models/usernotificationsetting';
 import InstitutionInformation from '../models/institutioninformation';
 import sequelizeService from '../services/sequelize.service';
 import { Op } from 'sequelize';
+import { BadRequestError } from '../utils/ApiError';
+import cloudinary from '../utils/cloudinary';
 
 export const index = async (req: Request, res: Response) => {
   res.status(200).json({
@@ -794,5 +796,40 @@ export const getAllSubscriptionPlans = async (
   } catch (error: any) {
     logger.error('Error fetching subscription plans:', error);
     res.status(500).json({ message: error.message || 'Internal server error' });
+  }
+};
+
+export const uploadImages = async (
+  req: Request | any,
+  res: Response
+): Promise<any> => {
+  try {
+    const files = req.files as Express.Multer.File[];
+
+    if (!files || files.length === 0) {
+      return res.status(400).json({ message: 'No files provided.' });
+    }
+
+    const uploadPromises = files.map((file) => {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader
+          .upload_stream({ folder: 'uploads' }, (error, result) => {
+            if (error) return reject(error);
+            resolve({ secure_url: result?.secure_url });
+          })
+          .end(file.buffer);
+      });
+    });
+
+    const uploadResults = await Promise.all(uploadPromises);
+
+    res.status(200).json({
+      message: 'Files uploaded successfully',
+      files: uploadResults,
+    });
+  } catch (error) {
+    console.log(error);
+
+    res.status(500).json({ message: 'Upload failed', error });
   }
 };

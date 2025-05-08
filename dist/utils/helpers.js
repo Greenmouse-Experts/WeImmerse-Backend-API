@@ -151,24 +151,45 @@ const shuffleArray = (array) => {
     return array;
 };
 exports.shuffleArray = shuffleArray;
-const getJobsBySearch = (searchTerm, number) => __awaiter(void 0, void 0, void 0, function* () {
+const getJobsBySearch = (searchTerm, metadata, page, limit) => __awaiter(void 0, void 0, void 0, function* () {
+    const offset = (page - 1) * limit;
     const where = { status: 'active' };
+    const { location = '', jobType = '', workplaceType = '', categoryId = '', } = metadata;
     if (searchTerm) {
-        const searchRegex = { [sequelize_1.Op.iLike]: `%${searchTerm}%` }; // Use Sequelize's Op.iLike for case-insensitive search.
+        const searchRegex = { [sequelize_1.Op.like]: `%${searchTerm}%` }; // Use Sequelize's Op.iLike for case-insensitive search.
         where[sequelize_1.Op.or] = [
             { title: searchRegex },
             { company: searchRegex },
-            { workplace_type: searchRegex },
-            { job_type: searchRegex },
+            { workplaceType: searchRegex },
+            { jobType: searchRegex },
             { location: searchRegex },
-            { category: searchRegex },
+            { categoryId: searchRegex },
         ];
     }
-    return yield job_1.default.findAll({
+    // Add optional filters
+    if (location)
+        where.location = { [sequelize_1.Op.like]: `%${location}%` };
+    if (jobType)
+        where.jobType = jobType;
+    if (workplaceType)
+        where.workplaceType = workplaceType;
+    if (categoryId)
+        where.categoryId = categoryId;
+    const { count, rows: jobs } = yield job_1.default.findAndCountAll({
         where,
+        limit,
+        offset,
         order: [['createdAt', 'DESC']], // Sort by createdAt in descending order.
-        limit: number, // Limit the number of results.
     });
+    return {
+        jobs,
+        pagination: {
+            total: count,
+            page,
+            pages: Math.ceil(count / limit),
+            limit,
+        },
+    };
 });
 exports.getJobsBySearch = getJobsBySearch;
 const formatCourse = (course, authUserId) => __awaiter(void 0, void 0, void 0, function* () {

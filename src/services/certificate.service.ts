@@ -29,8 +29,8 @@ const generateCertificatePdf = async (userId: string, courseId: string) => {
   // Upload to S3 and return URL
   return await uploadToS3(
     buffer,
-    `certificates/${userId}_${courseId}.png`,
-    'test-weimmersive-bucket'
+    `uploads/${userId}_${courseId}.png`,
+    'test-weimmersive-fs'
   );
 };
 
@@ -47,17 +47,17 @@ const generateCertificate = async (userId: string, courseId: string) => {
   console.log(progress, courseId);
 
   // Check if quiz is passed
-  const quizAttempt = await QuizAttempt.findOne({
-    where: { userId, passed: true },
-    include: [{ model: LessonQuiz, as: 'quiz', where: { courseId } }],
-    order: [['createdAt', 'DESC']],
-  });
+  // const quizAttempt = await QuizAttempt.findOne({
+  //   where: { userId, passed: true },
+  //   include: [{ model: LessonQuiz, as: 'quiz', where: { courseId } }],
+  //   order: [['createdAt', 'DESC']],
+  // });
 
-  console.log(quizAttempt);
+  // console.log(quizAttempt);
 
-  if (!quizAttempt) {
-    throw new Error('User has not passed the required quiz.');
-  }
+  // if (!quizAttempt) {
+  //   throw new Error('User has not passed the required quiz.');
+  // }
 
   // Generate certificate
   const certificateUrl = await generateCertificatePdf(userId, courseId);

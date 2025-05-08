@@ -16,6 +16,7 @@ import {
   submitQuiz,
   getAttempts,
   getLatestAttempt,
+  getPurchasedProductDetails,
 } from '../controllers/studentController';
 import { generateCertificateValidationRules } from '../utils/validations/studentValidations';
 
@@ -80,9 +81,9 @@ studentRoutes.get(
 );
 
 studentRoutes.get(
-  '/purchased-product/:trxId',
+  '/purchased-products/:productType/:id',
   authMiddleware,
-  studentController.getPurchasedProductDetails
+  getPurchasedProductDetails
 );
 
 export default studentRoutes;
