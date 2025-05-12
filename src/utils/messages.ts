@@ -4706,7 +4706,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 10px 20px;
-            background-color: #4CAF50;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 5px;
@@ -4845,7 +4845,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #4F46E5;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -4961,7 +4961,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #4F46E5;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -5080,7 +5080,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #4F46E5;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -5197,7 +5197,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #4F46E5;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -5310,7 +5310,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #4F46E5;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -5429,7 +5429,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #4F46E5;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -5546,7 +5546,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #4F46E5;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 6px;
@@ -5659,7 +5659,7 @@ export const emailTemplates = {
           .button {
             display: inline-block;
             padding: 12px 24px;
-            background-color: #4F46E5;
+            background-color: #000;
             color: white;
             text-decoration: none;
             border-radius: 6px;
