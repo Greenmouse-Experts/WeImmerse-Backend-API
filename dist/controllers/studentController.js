@@ -56,7 +56,6 @@ const lesson_1 = __importStar(require("../models/lesson"));
 const helpers_1 = require("../utils/helpers");
 const courseprogress_1 = __importDefault(require("../models/courseprogress"));
 const course_progress_service_1 = __importDefault(require("../services/course-progress.service"));
-const coursecategory_1 = __importDefault(require("../models/coursecategory"));
 const lesson_completion_service_1 = __importDefault(require("../services/lesson-completion.service"));
 const lessoncompletion_1 = __importDefault(require("../models/lessoncompletion"));
 const quiz_service_1 = __importDefault(require("../services/quiz.service"));
@@ -65,6 +64,7 @@ const digitalasset_1 = __importDefault(require("../models/digitalasset"));
 const physicalasset_1 = __importDefault(require("../models/physicalasset"));
 const userdigitalasset_1 = __importDefault(require("../models/userdigitalasset"));
 const physicalassetorder_1 = __importDefault(require("../models/physicalassetorder"));
+const category_1 = __importDefault(require("../models/category"));
 // Get all courses with filters (categoryId)
 const getAllCourses = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -153,7 +153,7 @@ const getCourseById = (req, res) => __awaiter(void 0, void 0, void 0, function* 
                                 },
                             ],
                         },
-                        { model: coursecategory_1.default, as: 'courseCategory' },
+                        { model: category_1.default, as: 'courseCategory' },
                         { model: courseprogress_1.default, as: 'progress' },
                     ],
                 },

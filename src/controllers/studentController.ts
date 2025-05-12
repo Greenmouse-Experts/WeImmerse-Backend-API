@@ -29,6 +29,7 @@ import DigitalAsset from '../models/digitalasset';
 import PhysicalAsset from '../models/physicalasset';
 import UserDigitalAsset from '../models/userdigitalasset';
 import PhysicalAssetOrder from '../models/physicalassetorder';
+import Category from '../models/category';
 
 interface AuthRequest extends Request {
   user?: any;
@@ -142,7 +143,7 @@ export const getCourseById = async (
                 },
               ],
             },
-            { model: CourseCategory, as: 'courseCategory' },
+            { model: Category, as: 'courseCategory' },
             { model: CourseProgress, as: 'progress' },
           ],
         },
